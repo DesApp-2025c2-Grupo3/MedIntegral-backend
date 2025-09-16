@@ -1,0 +1,17 @@
+services:
+
+  db:
+    image: postgres
+    ports:
+      - "3005:5432"
+    environment:
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: "MedIntegral"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+volumes:
+  pgdata:
+
+
+    
