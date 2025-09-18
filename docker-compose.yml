@@ -2,16 +2,15 @@ services:
 
   db:
     image: postgres
+    container_name: postgres-container
     ports:
-      - "3005:5432"
+      - "5432:5432"
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: "MedIntegral"
+      POSTGRES_DB: MedIntegral
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
   
 volumes:
-  pgdata:
-
-
-    
+  postgres_data:
