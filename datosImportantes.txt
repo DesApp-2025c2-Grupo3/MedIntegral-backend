@@ -1,0 +1,53 @@
+api.medintegral.vmdigitai.com
+
+dominio de la api backend corriendo 
+
+
+
+medintegral.vmdigitai.com
+
+dominio del frontend corriendo 
+
+
+jdbc:postgresql://vmdigitai.com:3005/MedIntegral
+
+base de datos
+
+
+
+docker build -t "<nombre de la imagen>" .
+
+comando para construir imagen de la app
+
+
+
+docker run \
+-e PORT=3002 \
+-e DB_USERNAME=postgres \
+-e DB_PASSWORD=12345 \
+-e DB_NAME=MedIntegral \
+-e DB_HOST=vmdigitai.com \
+-e DB_PORT=3005 \
+-e DB_DIALECT=postgres \
+<nombre de la imagen>
+
+correr la imagen de forma local
+
+docker run --env-file .env <nombre de la imagen>
+
+opcion alternativa
+
+PORT = 3002
+
+DB_USERNAME=postgres
+DB_PASSWORD=12345
+DB_NAME=MedIntegral
+DB_HOST=vmdigitai.com
+DB_PORT=3005
+DB_DIALECT=postgres
+
+
+
+npx sequelize-cli model:generate --name AgendaTurnos --attributes duracion:integer
+
+comando para crear entidades, debe pasarse solo los atributos que les corresponden datos primitivos. las relaciones van aparte
