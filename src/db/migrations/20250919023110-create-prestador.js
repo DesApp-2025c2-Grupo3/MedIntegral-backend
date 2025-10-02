@@ -26,6 +26,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Prestadors');
+    await queryInterface.dropTable('Prestadores');
   }
 };

@@ -23,6 +23,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('AgendaTurnos');
+    await queryInterface.dropTable('AgendasTurno');
   }
 };

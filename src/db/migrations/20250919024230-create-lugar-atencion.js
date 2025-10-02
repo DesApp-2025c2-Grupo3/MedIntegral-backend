@@ -23,6 +23,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('LugarAtencions');
+    await queryInterface.dropTable('LugaresAtencion');
   }
 };

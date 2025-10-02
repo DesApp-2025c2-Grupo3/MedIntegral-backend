@@ -23,6 +23,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Profesionals');
+    await queryInterface.dropTable('Profesionales');
   }
 };

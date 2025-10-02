@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3002;
 APP.listen(PORT, async () => {
     console.log(`App corriendo en el puerto ${PORT}`);
     await DB.sequelize.sync(
-    //    {force: true}
+        //{force: true}
     );
 })
 
