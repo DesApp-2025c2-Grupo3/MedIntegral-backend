@@ -5,11 +5,12 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Especialidad extends Model {
     static associate(models) {
-      Especialidad.hasOne(models.AgendaTurnos, {
-        foreignKey: 'especialidadId'
+      Especialidad.belongsTo(models.AgendaTurnos, {
+        foreignKey: 'agendaTurnosId'
       });
-      Especialidad.hasOne(models.Prestador, {
-        foreignKey: 'especialidadId'
+      Especialidad.belongsToMany(models.Prestador, {
+        through: "PrestadorEspecialidad", // tabla intermedia
+        foreignKey: 'prestadorId'
       });
     }
   }

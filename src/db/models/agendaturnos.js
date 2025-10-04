@@ -5,17 +5,17 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class AgendaTurnos extends Model {
     static associate(models) {
-      AgendaTurnos.belongsTo(models.Especialidad, {
-        foreignKey: 'especialidadId'
+      AgendaTurnos.hasOne(models.Especialidad, {
+        foreignKey: 'agendaTurnosId'
       });
-      AgendaTurnos.belongsTo(models.Prestador, {
-        foreignKey: 'prestadorId'
+      AgendaTurnos.hasOne(models.Prestador, {
+        foreignKey: 'agendaTurnosId'
       });
-      AgendaTurnos.belongsTo(models.LugarAtencion, {
-        foreignKey: 'lugarAtencionId'
+      AgendaTurnos.hasOne(models.LugarAtencion, {
+        foreignKey: 'agendaTurnosId'
       });
-      AgendaTurnos.belongsTo(models.HorarioAtencion, {
-        foreignKey: 'horarioAtencionId'
+      AgendaTurnos.hasMany(models.HorarioAtencion, {
+        foreignKey: 'agendaTurnosId'
       });
     }
   }

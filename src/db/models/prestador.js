@@ -5,20 +5,21 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Prestador extends Model {
     static associate(models) {
-      Prestador.hasOne(models.AgendaTurnos, {
+      Prestador.belongsTo(models.AgendaTurnos, {
+        foreignKey: 'agendaTurnosId'
+      });
+      Prestador.hasMany(models.Email, {
         foreignKey: 'prestadorId'
       });
-      Prestador.belongsTo(models.Email, {
-        foreignKey: 'emailId'
+      Prestador.hasMany(models.Telefono, {
+        foreignKey: 'prestadorId'
       });
-      Prestador.belongsTo(models.Telefono, {
-        foreignKey: 'telefonoId'
+      Prestador.belongsToMany(models.Especialidad, {
+        through: "PrestadorEspecialidad", // tabla intermedia
+        foreignKey: 'EspecialidadId'
       });
-      Prestador.belongsTo(models.Especialidad, {
-        foreignKey: 'especialidadId'
-      });
-      Prestador.belongsTo(models.Direccion, {
-        foreignKey: 'direccionId'
+      Prestador.hasMany(models.Direccion, {
+        foreignKey: 'prestadorId'
       });
       Prestador.hasOne(models.CentroMedico, {
         foreignKey: 'prestadorId'

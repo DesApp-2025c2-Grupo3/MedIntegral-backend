@@ -5,10 +5,16 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class LugarAtencion extends Model {
     static associate(models) {
-      LugarAtencion.hasOne(models.AgendaTurnos, {
-        foreignKey: 'lugarAtencionId'
+      LugarAtencion.belongsTo(models.AgendaTurnos, {
+        foreignKey: 'agendaTurnosId'
       });
       LugarAtencion.hasMany(models.Prestador, {
+        foreignKey: 'lugarAtencionId'
+      });
+      LugarAtencion.belongsTo(models.Direccion, {
+        foreignKey: 'direccionId'
+      });
+      LugarAtencion.hasMany(models.HorarioAtencion, {
         foreignKey: 'lugarAtencionId'
       });
     }

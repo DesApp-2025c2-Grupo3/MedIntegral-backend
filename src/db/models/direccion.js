@@ -8,6 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       Direccion.hasOne(models.Provincia, {
         foreignKey: 'direccionId'
       });
+      Direccion.hasOne(models.LugarAtencion, {
+        foreignKey: 'direccionId'
+      });
     }
   }
   Direccion.init({

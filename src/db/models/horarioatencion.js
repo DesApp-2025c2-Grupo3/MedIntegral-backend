@@ -5,10 +5,14 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class HorarioAtencion extends Model {
     static associate(models) {
-      HorarioAtencion.hasMany(models.AgendaTurnos, {
-        foreignKey: 'horarioAtencionId'
+      HorarioAtencion.belongsTo(models.AgendaTurnos, {
+        foreignKey: 'agendaTurnosId'
       });
-      HorarioAtencion.hasMany(models.LugarAtencion, {
+      HorarioAtencion.belongsTo(models.LugarAtencion, {
+        foreignKey: 'lugarAtencionId'
+      });
+      HorarioAtencion.belongsToMany(models.Dia, { 
+        through: "DiaHorarioAtencion", // tabla intermedia
         foreignKey: 'horarioAtencionId'
       });
     }
