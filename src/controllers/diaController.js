@@ -1,11 +1,15 @@
-const diasDeLaSemana = [
-  { id: 1, nombre: "Lunes" },
-  { id: 2, nombre: "Martes" },
-  { id: 3, nombre: "Miércoles" },
-  { id: 4, nombre: "Jueves" },
-  { id: 5, nombre: "Viernes" },
-  { id: 6, nombre: "Sábado" },
-];
+const { Dia } = require("../db/models");
+
+const createDia = async (req, res) => {
+  try {
+    const { dia } = req.body;
+    const nuevoDia = await Dia.create({dia});
+    res.status(201).json(nuevoDia)
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error interno al crear dia" });
+  }
+}
 
 const obtenerDias = async (_, res) => {
   try {
@@ -17,5 +21,6 @@ const obtenerDias = async (_, res) => {
 };
 
 module.exports = {
+  createDia,
   obtenerDias,
 };
