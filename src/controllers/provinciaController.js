@@ -1,6 +1,16 @@
 const { Provincia } = require("../db/models");
 
-//Obtiene todas las provincias disponibles desde el Endpoint: GET /api/provincias
+const crearProvincia = async (req, res) => {
+  try {
+    const { provincia } = req.body;
+    const nuevaProvincia = await Provincia.create({ provincia });
+    res.status(201).json(nuevaProvincia);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error: "Error al crear provincia" });
+  }
+};
+
 const obtenerProvincias = async (_, res) => {
   try {
     const provincias = await Provincia.findAll();
