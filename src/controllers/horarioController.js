@@ -13,7 +13,8 @@ const crearHorarioAtencion = async (req, res) => {
 
     //Manejar la asociación muchos a muchos con Dia
     if (dias && dias.length > 0) {
-      //Si hay días seleccionados creo la relación en la tabla intermedia. NOTA: Sequelize genera automáticamente un método en el objeto nuevoHorario llamado add<PluralDelModeloAsociado> (en este caso, addDias).
+      //Si hay días seleccionados creo la relación en la tabla intermedia. 
+      //NOTA: Sequelize genera automáticamente un método en el objeto nuevoHorario llamado add<PluralDelModeloAsociado> (en este caso, addDias).
       await nuevoHorario.addDias(dias); 
     }
 
