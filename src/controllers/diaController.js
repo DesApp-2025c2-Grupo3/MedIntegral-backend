@@ -1,6 +1,6 @@
 const { Dia } = require("../db/models");
 
-const createDia = async (req, res) => {
+const crearDia = async (req, res) => {
   try {
     const { dia } = req.body;
     const nuevoDia = await Dia.create({dia});
