@@ -1,4 +1,4 @@
-const { Direccion, Provincia } = require("../db/models"); // Asegúrate de importar Provincia
+const { Direccion, Provincia } = require("../db/models");
 
 const crearDireccion = async (req, res) => {
   try {
@@ -6,7 +6,7 @@ const crearDireccion = async (req, res) => {
       req.body;
 
     //Validación acá, pero puede moverse a un middleware
-    if (!calle || !altura || !localidad || !provinciaId) {
+    if (!calle || !altura || !localidad || !codigoPostal || !provinciaId) {
       return res
         .status(400)
         .json({ error: "Faltan campos obligatorios para crear la dirección." });
