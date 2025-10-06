@@ -23,5 +23,6 @@ const obtenerProvincias = async (_, res) => {
 };
 
 module.exports = {
+  crearProvincia,
   obtenerProvincias,
 };
