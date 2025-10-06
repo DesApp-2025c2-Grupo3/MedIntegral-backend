@@ -13,14 +13,15 @@ const crearDia = async (req, res) => {
 
 const obtenerDias = async (_, res) => {
   try {
-    res.status(200).json(diasDeLaSemana);
+    const dias = await Dia.findAll();
+    res.status(200).json(dias);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error interno al obtener la lista de días" });
+    return res.status(500).json({ error: "Error interno al obtener los días" });
   }
 };
 
 module.exports = {
-  createDia,
+  crearDia,
   obtenerDias,
 };
