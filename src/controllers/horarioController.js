@@ -8,7 +8,8 @@ const crearHorarioAtencion = async (req, res) => {
       horaInicio,
       horaFin,
       agendaTurnosId,
-      lugarAtencionId
+      lugarAtencionId 
+      //tal vez agreguemos diaId porque dia 1 <----> N horarios y eliminamos tabla intermedia
     });
 
     //Manejar la asociación muchos a muchos con Dia
@@ -38,10 +39,7 @@ const obtenerHorariosAtencion = async (_, res) => {
   try {
     const horarios = await HorarioAtencion.findAll({
         include: [
-            { model: Dia, attributes: ['id', 'nombre'], through: { attributes: [] } },
-            // Es necesario agregar AgendaTurnos y LugarAtencion???
-            // { model: AgendaTurnos, attributes: ['nombre'] }, 
-            // { model: LugarAtencion, attributes: ['nombre'] }
+            { model: Dia, attributes: ['nombre'], through: { attributes: [] } },
         ],
         order: [['horaInicio', 'ASC']]
     });
