@@ -9,15 +9,10 @@ const crearHorarioAtencion = async (req, res) => {
       horaFin,
       agendaTurnosId,
       lugarAtencionId 
-      //tal vez agreguemos diaId porque dia 1 <----> N horarios y eliminamos tabla intermedia
     });
 
-    //Manejar la asociación muchos a muchos con Dia
-    if (dias && dias.length > 0) {
-      //Si hay días seleccionados creo la relación en la tabla intermedia. 
-      //NOTA: Sequelize genera automáticamente un método en el objeto nuevoHorario llamado add<PluralDelModeloAsociado> (en este caso, addDias).
-      await nuevoHorario.addDias(dias); 
-    }
+    //NOTA: Sequelize genera automáticamente un método en el objeto nuevoHorario llamado add<PluralDelModeloAsociado> (en este caso, addDias).
+    await nuevoHorario.addDias(dias); // <--- Días debe ser un array de id de Dias.
 
     const horarioCompleto = await HorarioAtencion.findByPk(nuevoHorario.id, {
         include: [{ 
@@ -55,19 +50,14 @@ const obtenerHorariosAtencion = async (_, res) => {
 const actualizarHorarioAtencion = async (req, res) => {
   try {
     const id = req.params.id;
-    const { dias } = req.body; // Solo extraigo los dias para el manejo especial
+    const { dias, ...otrosCampos} = req.body; // Solo extraigo los dias para el manejo especial
 
     const horario = await HorarioAtencion.findByPk(id);
 
-    //si el campo es diferente de dias lo actualizamos, sino no porque se maneja con setDias()
-    for (const campo in req.body) {
-        if (campo !== 'dias') {
-            horario[campo] = req.body[campo];
-        }
-    }
+    //Actualizo todos los campos que no son dias.
+    await horario.update(otrosCampos);
 
-    await horario.save(); 
-
+    //Si llegan días, actualizo la tabla intermedia con el mixin
     if (dias) {
         await horario.setDias(dias); 
     }
