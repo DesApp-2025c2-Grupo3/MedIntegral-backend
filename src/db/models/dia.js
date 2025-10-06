@@ -5,8 +5,7 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Dia extends Model {
     static associate(models) {
-      Dia.belongsToMany(models.HorarioAtencion, {
-        through: "DiaHorarioAtencion", // tabla intermedia
+      Dia.hasMany(models.HorarioAtencion, {
         foreignKey: 'diaId'
       });
     }

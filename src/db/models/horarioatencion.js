@@ -11,9 +11,8 @@ module.exports = (sequelize, DataTypes) => {
       HorarioAtencion.belongsTo(models.LugarAtencion, {
         foreignKey: 'lugarAtencionId'
       });
-      HorarioAtencion.belongsToMany(models.Dia, { 
-        through: "DiaHorarioAtencion", // tabla intermedia
-        foreignKey: 'horarioAtencionId'
+      HorarioAtencion.belongsTo(models.Dia, { 
+        foreignKey: 'diaId'
       });
     }
   }
