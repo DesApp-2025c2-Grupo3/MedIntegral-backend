@@ -1,4 +1,5 @@
 const app = require('./main')
-const { telefonoRutas } = require('./routes')
+const { telefonoRutas, provinciaRutas } = require('./routes')
 
 app.use('/telefonos', telefonoRutas)
+app.use('/provincias', provinciaRutas)
