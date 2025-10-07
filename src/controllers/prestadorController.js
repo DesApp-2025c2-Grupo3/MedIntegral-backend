@@ -59,8 +59,8 @@ const crearPrestador = async (req, res) => {
 
 
 
-    
-    //___________________________________________
+
+    //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
     for (const lugar of lugaresAtencion) {
       const nuevaDireccion = await Direccion.create({
         calle: lugar.calle,
@@ -76,20 +76,18 @@ const crearPrestador = async (req, res) => {
         direccionId: nuevaDireccion.id,
       });
 
-      const horariosLugar = lugar.horarios.map((h) => ({
-        horaInicio: h.horaInicio,
-        horaFin: h.horaFin,
-      }));
-
-      for (const horario of lugar.horarios) {
-        //<-- No sé cómo obtener el array de objetos de horarios de cada lugar de atención
-        const horariosLugarAtencion = await HorarioAtencion.create({
-          horaInicio: horario.horaInicio,
-          horaFin: horario.horaFin,
-          lugarAtencionId: horario.horarioId,
+      //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
+      for (const horarioData of lugar.horarios) {
+        const nuevoHorario = await HorarioAtencion.create({
+          horaInicio: horarioData.horaInicio,
+          horaFin: horarioData.horaFin,
+          lugarAtencionId: nuevoLugarAtencion.id,
         });
-        await horario.addDias(dias);
+
+        //y usamos setDias para poblar la tabla intermedia que lo relaciona con los días
+        await nuevoHorario.setDias(horarioData.dias);
       }
+
     }
     //___________________________________________
 
