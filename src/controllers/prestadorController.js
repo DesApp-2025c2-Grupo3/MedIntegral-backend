@@ -1,4 +1,11 @@
-const { Prestador, Direccion, Email, Telefono } = require("../models");
+const {
+  Prestador,
+  Direccion,
+  Email,
+  Telefono,
+  LugarAtencion,
+  HorarioAtencion,
+} = require("../models");
 
 const crearPrestador = async (req, res) => {
   const {
@@ -41,11 +48,54 @@ const crearPrestador = async (req, res) => {
 
     //Cuando es centro médico ya viene profesionalIndependiente en false y centroMedicoQueIntegra en ""
     //Cuando no es centro medico pero sí es profesional independiente ya viene profesionalIndependiente en true y el centroMedicoQueIntegra en ""
-    if (!esCentroMedico && !profesionalIndependiente) {
-      nuevoPrestador.centroMedico = centroMedicoQueIntegra;
+    if (
+      !esCentroMedico &&
+      !profesionalIndependiente &&
+      centroMedicoQueIntegra
+    ) {
+      await nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
     }
 
-    //FALTAN LOS LUGARES DE ATENCION Y HORARIOS
+
+
+
+    
+    //___________________________________________
+    for (const lugar of lugaresAtencion) {
+      const nuevaDireccion = await Direccion.create({
+        calle: lugar.calle,
+        altura: lugar.altura,
+        pisoDepto: lugar.pisoDepto,
+        codigoPostal: lugar.codigoPostal,
+        localidad: lugar.localidad,
+        provinciaId: lugar.provinciaId,
+      });
+
+      const nuevoLugarAtencion = await LugarAtencion.create({
+        prestadorId: prestadorId,
+        direccionId: nuevaDireccion.id,
+      });
+
+      const horariosLugar = lugar.horarios.map((h) => ({
+        horaInicio: h.horaInicio,
+        horaFin: h.horaFin,
+      }));
+
+      for (const horario of lugar.horarios) {
+        //<-- No sé cómo obtener el array de objetos de horarios de cada lugar de atención
+        const horariosLugarAtencion = await HorarioAtencion.create({
+          horaInicio: horario.horaInicio,
+          horaFin: horario.horaFin,
+          lugarAtencionId: horario.horarioId,
+        });
+        await horario.addDias(dias);
+      }
+    }
+    //___________________________________________
+
+
+
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Error al crear el prestador." });
