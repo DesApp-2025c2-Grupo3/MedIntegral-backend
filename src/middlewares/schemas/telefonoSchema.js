@@ -1,6 +1,6 @@
 const Joi = require('joi')
 
-const schemaCreate = Joi.object({
+const telefonoSchemaCreate = Joi.object({
   numero: Joi.number()
     .integer()
     .min(8)
@@ -16,5 +16,5 @@ const schemaCreate = Joi.object({
 })
 
 module.exports = {
-  schemaCreate
+  telefonoSchemaCreate
 }
