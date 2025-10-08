@@ -43,14 +43,14 @@ const manejoDeErroresGlobales = (err, req, res, next) => {
   //console.error(err);  // Descomentar para debug
   if (err.name === 'SequelizeValidationError') {
     const messages = err.errors.map(e => e.message);
-    return res.status(400).json({ error: messages });
+    return errorPersonalizado(messages, 400, next);
   }
 
   if (err.status) {
-    return res.status(err.status).json({ error: err.message });
+    return errorPersonalizado(err.message, err.status, next);
   }
 
-  res.status(500).json({ error: 'Error interno del servidor' });
+  return errorPersonalizado('Error interno del servidor', 500, next);
 };
 
 
@@ -97,10 +97,10 @@ const schemaValidator = (schema) => {
                 const errores = error.details.map((e) => {
                     return { atributo: e.path[0], mensaje: e.message, tipoError: e.type };
                 });
-                return res.status(400).json({ errores });
+                return errorPersonalizado(JSON.stringify(errores), 400, next);
             }
         } catch (error) {
-          return status500(res,error);
+          return errorPersonalizado('Error en la validación del esquema', 500, next);
         }
         next();
     };
