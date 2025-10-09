@@ -55,7 +55,7 @@ const manejoDeErroresGlobales = (err, req, res, next) => {
 
 
 const validarCamposExactos = (modelo) => {
-  return (req, res, next) => {
+  return (req, _, next) => {
     const camposValidos = Object.keys(modelo.rawAttributes);
     const camposRecibidos = Object.keys(req.body);
     const camposInvalidos = camposRecibidos.filter(campo => !camposValidos.includes(campo));
@@ -67,6 +67,7 @@ const validarCamposExactos = (modelo) => {
   };
 };
 
+// Cuando necesitamos validar el id de una entidad relacionada a la que estamos accediendo
 const existModelRequest = (modelo) => {
   return async (req, _, next) => {
     const nombreModelo = modelo.name;
@@ -76,7 +77,7 @@ const existModelRequest = (modelo) => {
       return errorPersonalizado(`El ID del ${nombreModelo} es requerido`, 400, next);
     }
 
-    if (isNaN(modeloId)) {  // Sequelize: ID numérico (o podrías usar UUID si aplica)
+    if (isNaN(modeloId)) {
       return errorPersonalizado(`El ID del ${nombreModelo} es inválido`, 400, next);
     }
 

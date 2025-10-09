@@ -15,7 +15,13 @@ router.get('/',
     genericMiddleware.existsAnyByModel(Telefono),
     telefonoController.obtenerTelefonos)
 
-router.put('/:id', telefonoController.actualizarTelefono)
-router.delete('/:id', telefonoController.eliminarTelefono)
+router.put('/:id',
+    genericMiddleware.existsModelById(Telefono),
+    genericMiddleware.schemaValidator(telefonoSchema.telefonoSchemaUpdate), 
+    telefonoController.actualizarTelefono)
+
+router.delete('/:id',  
+    genericMiddleware.existsModelById(Telefono),
+    telefonoController.eliminarTelefono)
 
 module.exports = router;
