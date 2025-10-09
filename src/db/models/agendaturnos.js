@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
       AgendaTurnos.belongsTo(models.LugarAtencion, {
         foreignKey: 'lugarAtencionId'
       });
-      AgendaTurnos.belongsTo(models.HorarioAtencion, {
-        foreignKey: 'horarioAtencionId'
+      AgendaTurnos.hasMany(models.HorarioAtencion, {
+        foreignKey: 'agendaTurnosId'
       });
     }
   }
