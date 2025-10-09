@@ -5,8 +5,8 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Telefono extends Model {
     static associate(models) {
-      Telefono.hasOne(models.Prestador, {
-        foreignKey: 'telefonoId'
+      Telefono.belongsTo(models.Prestador, {
+        foreignKey: 'prestadorId'
       });
     }
   }

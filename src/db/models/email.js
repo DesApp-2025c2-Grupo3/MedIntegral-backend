@@ -5,8 +5,8 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Email extends Model {
     static associate(models) {
-      Email.hasOne(models.Prestador, {
-        foreignKey: 'emailId'
+      Email.belongsTo(models.Prestador, {
+        foreignKey: 'prestadorId'
       });
     }
   }

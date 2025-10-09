@@ -5,6 +5,7 @@ const { Telefono } = require("../db/models");
 const { telefonoSchema }  = require("../middlewares/schemas");
 const router = Router()
 
+
 router.post('/', 
     genericMiddleware.schemaValidator(telefonoSchema.telefonoSchemaCreate),
     genericMiddleware.validarCamposExactos(Telefono), 
@@ -13,5 +14,8 @@ router.post('/',
 router.get('/', 
     genericMiddleware.existsAnyByModel(Telefono),
     telefonoController.obtenerTelefonos)
+
+router.put('/:id', telefonoController.actualizarTelefono)
+router.delete('/:id', telefonoController.eliminarTelefono)
 
 module.exports = router;
