@@ -12,7 +12,7 @@ const crearPrestador = async (req, res) => {
     nombre,
     cuilCuit,
     esCentroMedico,
-    profesionalIndependiente,
+    integraCentroMedico,
     centroMedicoQueIntegra,
     especialidades, // Array de IDs o de objetos { id: X }
     emails, // Array de objetos { direccion:... }
@@ -25,6 +25,7 @@ const crearPrestador = async (req, res) => {
       nombre,
       cuilCuit,
       esCentroMedico,
+      centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null) //Agregar en el middleware
     });
 
     const prestadorId = nuevoPrestador.id;
@@ -45,20 +46,6 @@ const crearPrestador = async (req, res) => {
 
     //asignamos todas las especialidades a la tabla intermedia
     await nuevoPrestador.setEspecialidades(especialidades);
-
-    //Cuando es centro médico ya viene profesionalIndependiente en false y centroMedicoQueIntegra en ""
-    //Cuando no es centro medico pero sí es profesional independiente ya viene profesionalIndependiente en true y el centroMedicoQueIntegra en ""
-    if (
-      !esCentroMedico &&
-      !profesionalIndependiente &&
-      centroMedicoQueIntegra
-    ) {
-      await nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
-    }
-
-
-
-
 
     //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
     for (const lugar of lugaresAtencion) {
@@ -87,13 +74,8 @@ const crearPrestador = async (req, res) => {
         //y usamos setDias para poblar la tabla intermedia que lo relaciona con los días
         await nuevoHorario.setDias(horarioData.dias);
       }
-
     }
     //___________________________________________
-
-
-
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Error al crear el prestador." });
