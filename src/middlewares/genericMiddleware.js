@@ -1,8 +1,10 @@
+// se utiliza para ver que peticion se hizo y que se envio, es para debuggear
 const logRequest = (req, _, next) => {
     console.log({ method: req.method, url: req.url, fechaHora: new Date(), body: req.body, params: req.params });
     next();
 };
 
+// Se utiliza para verificar que exista la instancia de ese modelo con ese id en la base de datos
 const existsModelById = (modelo) => {
   return async (req, _, next) => {
     try {
@@ -18,6 +20,7 @@ const existsModelById = (modelo) => {
   };
 };
 
+// Se utiliza para verificar que al menos exista una instancia de ese modelo en la base de datos
 const existsAnyByModel = (modelo) => {
   return async (req, res, next) => {
     try {
@@ -32,13 +35,14 @@ const existsAnyByModel = (modelo) => {
   };
 };
 
-
+// Se utilizar para crear mensajes de error personalizados
 const errorPersonalizado = (message, status, next) => {
     const err = new Error(message);
     err.status = status;
     return next(err);
 };
 
+// Maneja todos los errores que ocurren en las rutas
 const manejoDeErroresGlobales = (err, req, res, next) => {        
   //console.error(err);  // Descomentar para debug
   if (err.name === 'SequelizeValidationError') {
@@ -53,7 +57,7 @@ const manejoDeErroresGlobales = (err, req, res, next) => {
   return errorPersonalizado('Error interno del servidor', 500, next);
 };
 
-
+// Valida que los campos enviados en el body sean exactamente los mismos que los del modelo
 const validarCamposExactos = (modelo) => {
   return (req, _, next) => {
     const camposValidos = Object.keys(modelo.rawAttributes);
@@ -89,7 +93,7 @@ const existModelRequest = (modelo) => {
   };
 };
 
-  
+// Valida el esquema de los datos en el body usando Joi
 const schemaValidator = (schema) => {
     return (req, res, next) => {
         try {

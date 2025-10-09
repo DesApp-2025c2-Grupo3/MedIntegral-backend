@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const {telefonoController} = require('../controllers')
+const { telefonoController } = require('../controllers')
 const { genericMiddleware, telefonoMiddleware } = require('../middlewares')
 const { Telefono } = require("../db/models");
 const { telefonoSchema }  = require("../middlewares/schemas");
