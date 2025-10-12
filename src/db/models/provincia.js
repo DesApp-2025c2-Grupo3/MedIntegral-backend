@@ -15,6 +15,9 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Provincia',
+    tableName: 'Provincias',
+    freezeTableName: true,
+    timestamps: false
   });
   return Provincia;
 };

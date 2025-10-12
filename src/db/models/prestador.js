@@ -21,20 +21,27 @@ module.exports = (sequelize, DataTypes) => {
       Prestador.hasMany(models.Direccion, {
         foreignKey: 'prestadorId'
       });
-      Prestador.hasOne(models.CentroMedico, {
+
+      Prestador.hasMany(models.Prestador, {
         foreignKey: 'prestadorId'
       });
-      Prestador.hasOne(models.Profesional, {
-        foreignKey: 'prestadorId'
+      Prestador.belongsTo(models.Prestador, {
+        foreignKey: 'prestadorId',
+        allowNull: true,
       });
+
     }
   }
   Prestador.init({
     nombre: DataTypes.STRING,
-    cuilCuit: DataTypes.INTEGER
+    cuilCuit: DataTypes.INTEGER,
+    esCentroMedico: DataTypes.BOOLEAN,
+    integraCentroMedico: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Prestador',
+    tableName: 'Prestadores',
+    freezeTableName: true
   });
   return Prestador;
 };

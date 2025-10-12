@@ -15,6 +15,12 @@ module.exports = {
       cuilCuit: {
         type: Sequelize.INTEGER
       },
+      esCentroMedico:{
+        type: Sequelize.BOOLEAN
+      },
+      integraCentroMedico:{
+        type: Sequelize.BOOLEAN
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -29,3 +35,4 @@ module.exports = {
     await queryInterface.dropTable('Prestadores');
   }
 };
+

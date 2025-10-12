@@ -1,7 +1,7 @@
-const telefonoMiddleware = require('./telefonoMiddleware');
 const genericMiddleware = require('./genericMiddleware');
+const prestadorMiddleware = require('./prestadorMiddleware');
 
 module.exports = {
-  telefonoMiddleware,
-  genericMiddleware
+  genericMiddleware,
+  prestadorMiddleware
 }

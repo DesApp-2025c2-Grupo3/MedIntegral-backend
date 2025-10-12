@@ -1,11 +1,25 @@
 const {
   Prestador,
   Direccion,
+  Provincia,
   Email,
   Telefono,
   LugarAtencion,
   HorarioAtencion,
-} = require("../models");
+  Dia
+} = require("../db/models");
+
+const asociarPrestadorACentroMedico = async (prestadorId, centroMedicoId) => {
+  const prestador = await Prestador.findByPk(prestadorId);
+  const centroMedico = await Prestador.findByPk(centroMedicoId);
+
+  if (prestador && centroMedico && centroMedico.esCentroMedico) {
+    prestador.prestadorId = centroMedicoId; // Asignar el ID del centro médico al campo prestadorId
+    await prestador.save();
+  } else {
+    throw new Error("Prestador o Centro Médico no encontrado, o el ID proporcionado no corresponde a un Centro Médico.");
+  }
+}
 
 const crearPrestador = async (req, res) => {
   const {
@@ -14,33 +28,38 @@ const crearPrestador = async (req, res) => {
     esCentroMedico,
     integraCentroMedico,
     centroMedicoQueIntegra,
-    especialidades, // Array de IDs o de objetos { id: X }
+    especialidades, // Array de IDs { id: X }
     emails, // Array de objetos { direccion:... }
     telefonos, // Array de objetos { numero: ... }
     lugaresAtencion, // Array de objetos , incluyendo la Dirección
   } = req.body;
 
-  try {
     const nuevoPrestador = await Prestador.create({
       nombre,
       cuilCuit,
       esCentroMedico,
-      centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null) //Agregar en el middleware
+      integraCentroMedico
     });
 
-    const prestadorId = nuevoPrestador.id;
+    const nuevoPrestadorId = nuevoPrestador.id;
+
+    if (integraCentroMedico) await asociarPrestadorACentroMedico(nuevoPrestadorId, centroMedicoQueIntegra);
 
     //Asignamos todos los mails
     const datosEmails = emails.map((e) => ({
       direccion: e.direccion,
-      prestadorId: prestadorId,
+      prestadorId: nuevoPrestadorId,
     }));
     await Email.bulkCreate(datosEmails); //<-- bulkCreate es un método de Sequelize para insertar múltiples registros en la db en una sola operación
+
+  // emails.map((e) => (
+  //   Email.create({direccion: e.direccion, prestadorId: prestadorId})
+  // ));
 
     //Asignamos todos los teléfonos
     const datosTelefonos = telefonos.map((t) => ({
       numero: t.numero,
-      prestadorId: prestadorId,
+      prestadorId: nuevoPrestadorId,
     }));
     await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate es un método de Sequelize para insertar múltiples registros en la db en una sola operación
 
@@ -49,17 +68,18 @@ const crearPrestador = async (req, res) => {
 
     //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
     for (const lugar of lugaresAtencion) {
+      const provincia = await Provincia.find({where: {nombre: lugar.provincia.nombre}});
       const nuevaDireccion = await Direccion.create({
         calle: lugar.calle,
         altura: lugar.altura,
         pisoDepto: lugar.pisoDepto,
         codigoPostal: lugar.codigoPostal,
         localidad: lugar.localidad,
-        provinciaId: lugar.provinciaId,
+        provinciaId: provincia.id,
       });
 
       const nuevoLugarAtencion = await LugarAtencion.create({
-        prestadorId: prestadorId,
+        prestadorId: nuevoPrestadorId,
         direccionId: nuevaDireccion.id,
       });
 
@@ -71,15 +91,17 @@ const crearPrestador = async (req, res) => {
           lugarAtencionId: nuevoLugarAtencion.id,
         });
 
+        // //Por cada horario extraemos el array de días
+        // for (const diaData of horarioData.dias) {
+        //   const diaExistente = await Dia.find({where: {nombre: diaData.nombre}});
+        //   if (diaExistente) {
+        //     await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
+        //   }
+        // }
         //y usamos setDias para poblar la tabla intermedia que lo relaciona con los días
         await nuevoHorario.setDias(horarioData.dias);
       }
     }
-    //___________________________________________
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Error al crear el prestador." });
-  }
 };
 
 module.exports = { crearPrestador };

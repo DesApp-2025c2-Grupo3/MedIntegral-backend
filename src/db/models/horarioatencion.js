@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
       HorarioAtencion.belongsTo(models.LugarAtencion, {
         foreignKey: 'lugarAtencionId'
       });
-      HorarioAtencion.belongsTo(models.Dia, { 
+      HorarioAtencion.belongsToMany(models.Dia, { 
+        through: "HorarioAtencionDia", // tabla intermedia
         foreignKey: 'diaId'
       });
     }
@@ -22,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'HorarioAtencion',
+    tableName: 'HorariosAtencion',
+    freezeTableName: true
   });
   return HorarioAtencion;
 };
