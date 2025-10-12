@@ -18,17 +18,9 @@ module.exports = (sequelize, DataTypes) => {
         through: "PrestadorEspecialidad", // tabla intermedia
         foreignKey: 'EspecialidadId'
       });
-      Prestador.hasMany(models.Direccion, {
+      Prestador.hasMany(models.LugarAtencion, {
         foreignKey: 'prestadorId'
       });
-
-      // Prestador.hasMany(models.Prestador, {
-      //   foreignKey: 'prestadorId'
-      // });
-      // Prestador.belongsTo(models.Prestador, {
-      //   foreignKey: 'prestadorId',
-      //   allowNull: true,
-      // });
 
     }
   }

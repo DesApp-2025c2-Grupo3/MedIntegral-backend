@@ -81,7 +81,7 @@ const prestadorSchemaCreate = Joi.object({
       calle: Joi.string().required(),
       altura: Joi.number().integer().required(),
       pisoDepto: Joi.string(),
-      codigoPostal: Joi.string().allow('', null),
+      codigoPostal: Joi.string(),
       localidad: Joi.string().required(),
       provincia: Joi.number().integer().required(),
       horarios: Joi.array().items(
@@ -89,14 +89,12 @@ const prestadorSchemaCreate = Joi.object({
           horaInicio: Joi.number().integer().required(),
           horaFin: Joi.number().integer().required(),
           dias: Joi.array().items(
-            Joi.object({
-              nombre: Joi.string()
-            })
+            Joi.number().integer().required()
           ).required()
         })
-      ).min(1).required()
+      ).required()
     })
-  ).min(1)
+  )
 })
 
 const prestadorSchemaUpdate = Joi.object({

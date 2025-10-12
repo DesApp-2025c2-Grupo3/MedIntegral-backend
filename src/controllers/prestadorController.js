@@ -77,6 +77,7 @@ const crearPrestador = async (req, res) => {
 
   //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
   for (const lugar of lugaresAtencion) {
+    console.log(lugar);
     const nuevaDireccion = await Direccion.create({
       calle: lugar.calle,
       altura: lugar.altura,
@@ -99,15 +100,15 @@ const crearPrestador = async (req, res) => {
         lugarAtencionId: nuevoLugarAtencion.id,
       });
 
-      // //Por cada horario extraemos el array de días
-      // for (const diaData of horarioData.dias) {
-      //   const diaExistente = await Dia.find({where: {nombre: diaData.nombre}});
-      //   if (diaExistente) {
-      //     await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-      //   }
-      // }
+       //Por cada horario extraemos el array de días
+      for (const diaData of horarioData.dias) {
+        const diaExistente = await Dia.findByPk(diaData);
+        if (diaExistente) {
+          await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
+        }
+      }
       //y usamos setDias para poblar la tabla intermedia que lo relaciona con los días
-      await nuevoHorario.setDias(horarioData.dias);
+      //await nuevoHorario.setDias(horarioData.dias);
     }
   }
   res.status(201).json(nuevoPrestador);
