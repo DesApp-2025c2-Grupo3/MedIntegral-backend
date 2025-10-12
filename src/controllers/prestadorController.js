@@ -10,18 +10,6 @@ const {
   Dia
 } = require("../db/models");
 
-const asociarPrestadorACentroMedico = async (prestadorId, centroMedicoId) => {
-  const prestador = await Prestador.findByPk(prestadorId);
-  const centroMedico = await Prestador.findByPk(centroMedicoId);
-
-  if (prestador && centroMedico && centroMedico.esCentroMedico) {
-    prestador.centroMedicoId = centroMedicoId; // Asignar el ID del centro médico al campo prestadorId
-    await prestador.save();
-  } else {
-    throw new Error("Prestador o Centro Médico no encontrado, o el ID proporcionado no corresponde a un Centro Médico.");
-  }
-}
-
 const crearPrestador = async (req, res) => {
   const {
     nombre,
@@ -45,25 +33,21 @@ const crearPrestador = async (req, res) => {
 
   const nuevoPrestadorId = nuevoPrestador.id;
 
-  if (integraCentroMedico) await asociarPrestadorACentroMedico(nuevoPrestadorId, centroMedicoQueIntegra);
+  if (integraCentroMedico) nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
 
   //Asignamos todos los mails
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
     prestadorId: nuevoPrestadorId,
   }));
-  await Email.bulkCreate(datosEmails); //<-- bulkCreate es un método de Sequelize para insertar múltiples registros en la db en una sola operación
-
-  // emails.map((e) => (
-  //   Email.create({direccion: e.direccion, prestadorId: prestadorId})
-  // ));
+  await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
   //Asignamos todos los teléfonos
   const datosTelefonos = telefonos.map((t) => ({
     numero: t.numero,
     prestadorId: nuevoPrestadorId,
   }));
-  await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate es un método de Sequelize para insertar múltiples registros en la db en una sola operación
+  await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
   especialidades.map(async (e) => {
     const esp = await Especialidad.findByPk(e);
@@ -71,9 +55,6 @@ const crearPrestador = async (req, res) => {
       nuevoPrestador.addEspecialidad(esp);
     }
   });
-
-  //asignamos todas las especialidades a la tabla intermedia
-  //await nuevoPrestador.setEspecialidades(especialidades);
 
   //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
   for (const lugar of lugaresAtencion) {
@@ -107,8 +88,6 @@ const crearPrestador = async (req, res) => {
           await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
         }
       }
-      //y usamos setDias para poblar la tabla intermedia que lo relaciona con los días
-      //await nuevoHorario.setDias(horarioData.dias);
     }
   }
   res.status(201).json(nuevoPrestador);
