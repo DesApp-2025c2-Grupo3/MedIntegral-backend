@@ -10,9 +10,9 @@ router.post('/',
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaCreate),
     agendaTurnosController.crearAgendaTurnos
 );
-// router.get('/',
-//     genericMiddleware.existsAnyByModel(AgendaTurnos),
-//     agendaTurnosController.obtenerAgendasTurnos
-// )
+router.get('/',
+    genericMiddleware.existsAnyByModel(AgendaTurnos),
+    agendaTurnosController.obtenerAgendasTurnos
+)
 
 module.exports = router;

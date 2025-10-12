@@ -63,4 +63,19 @@ const relacionarAgendaConDemasEntidades = async (agendaId, prestadorId, especial
     }
 }
 
-module.exports = { crearAgendaTurnos };
+const obtenerAgendasTurnos = async (req, res) => {
+    const agendas = await AgendaTurnos.findAll({
+        include: [
+            { model: Prestador },
+            { model: Especialidad },
+            { model: LugarAtencion },
+            {
+                model: HorarioAtencion,
+                include: [Dia]
+            }
+        ]
+    });
+    res.status(200).json(agendas);
+};
+
+module.exports = { crearAgendaTurnos, obtenerAgendasTurnos };
