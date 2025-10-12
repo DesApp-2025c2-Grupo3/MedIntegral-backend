@@ -16,7 +16,8 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       pisoDepto: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: true
       },
       codigoPostal: {
         type: Sequelize.STRING

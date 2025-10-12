@@ -22,13 +22,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'prestadorId'
       });
 
-      Prestador.hasMany(models.Prestador, {
-        foreignKey: 'prestadorId'
-      });
-      Prestador.belongsTo(models.Prestador, {
-        foreignKey: 'prestadorId',
-        allowNull: true,
-      });
+      // Prestador.hasMany(models.Prestador, {
+      //   foreignKey: 'prestadorId'
+      // });
+      // Prestador.belongsTo(models.Prestador, {
+      //   foreignKey: 'prestadorId',
+      //   allowNull: true,
+      // });
 
     }
   }
@@ -36,7 +36,17 @@ module.exports = (sequelize, DataTypes) => {
     nombre: DataTypes.STRING,
     cuilCuit: DataTypes.INTEGER,
     esCentroMedico: DataTypes.BOOLEAN,
-    integraCentroMedico: DataTypes.BOOLEAN
+    integraCentroMedico: DataTypes.BOOLEAN,
+    centroMedicoId:{
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'Prestadores', // Se referencia a sí misma
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    }
   }, {
     sequelize,
     modelName: 'Prestador',

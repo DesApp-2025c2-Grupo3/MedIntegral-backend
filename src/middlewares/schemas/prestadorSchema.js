@@ -80,12 +80,10 @@ const prestadorSchemaCreate = Joi.object({
     Joi.object({
       calle: Joi.string().required(),
       altura: Joi.number().integer().required(),
-      pisoDepto: Joi.string().allow('', null),
+      pisoDepto: Joi.string(),
       codigoPostal: Joi.string().allow('', null),
       localidad: Joi.string().required(),
-      provincia: Joi.object({
-        nombre: Joi.string().required()
-      }).required(),
+      provincia: Joi.number().integer().required(),
       horarios: Joi.array().items(
         Joi.object({
           horaInicio: Joi.number().integer().required(),

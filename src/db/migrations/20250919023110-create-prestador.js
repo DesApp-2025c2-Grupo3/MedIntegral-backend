@@ -21,6 +21,16 @@ module.exports = {
       integraCentroMedico:{
         type: Sequelize.BOOLEAN
       },
+      centroMedicoId:{
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Prestadores', // Se referencia a sí misma
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
