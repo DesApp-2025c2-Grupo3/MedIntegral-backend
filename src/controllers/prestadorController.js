@@ -33,7 +33,9 @@ const crearPrestador = async (req, res) => {
 
   const nuevoPrestadorId = nuevoPrestador.id;
 
-  if (integraCentroMedico) nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
+  const centroMedico = await Prestador.findByPk(centroMedicoQueIntegra); //Validar en middleware y devolver error 400 si no existe
+
+  if (integraCentroMedico && centroMedico) nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
 
   //Asignamos todos los mails
   const datosEmails = emails.map((e) => ({

@@ -7,9 +7,10 @@ const prestadorSchemaCreate = Joi.object({
     "string.max": "El nombre debe tener como máximo {#limit} caracteres",
     "any.required": "El nombre es obligatorio",
   }),
-  cuilCuit: Joi.number().integer().required().messages({
-    "number.base": "El CUIL/CUIT debe ser un número",
-    "number.integer": "El CUIL/CUIT debe contener sólo números",
+  cuilCuit: Joi.string().length(11).pattern(/^[0-9]+$/).required().messages({
+    "string.base": "El CUIL/CUIT debe ser una cadena de texto",
+    "string.length": "El CUIL/CUIT debe tener exactamente {#limit} dígitos",
+    "string.pattern": "El CUIL/CUIT debe contener sólo números",
     "any.required": "El CUIL/CUIT es obligatorio",
   }),
   esCentroMedico: Joi.boolean().required().messages({
