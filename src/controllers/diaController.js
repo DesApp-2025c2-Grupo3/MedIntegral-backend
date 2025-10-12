@@ -2,8 +2,8 @@ const { Dia } = require("../db/models");
 
 const crearDia = async (req, res) => {
   try {
-    const { dia } = req.body;
-    const nuevoDia = await Dia.create({dia});
+    const { nombre } = req.body;
+    const nuevoDia = await Dia.create({nombre});
     res.status(201).json(nuevoDia)
   } catch (error) {
     console.error(error);

@@ -4,6 +4,7 @@ const provinciaController = require('./provinciaController')
 const especialidadController = require('./especialidadController')
 const diaController = require('./diaController')
 const direccionController = require('./direccionController')
+const prestadorController = require('./prestadorController')
 
 module.exports = {
   telefonoController,
@@ -11,5 +12,6 @@ module.exports = {
   provinciaController,
   especialidadController,
   diaController,
-  direccionController
+  direccionController,
+  prestadorController
 }

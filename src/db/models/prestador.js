@@ -18,23 +18,32 @@ module.exports = (sequelize, DataTypes) => {
         through: "PrestadorEspecialidad", // tabla intermedia
         foreignKey: 'EspecialidadId'
       });
-      Prestador.hasMany(models.Direccion, {
+      Prestador.hasMany(models.LugarAtencion, {
         foreignKey: 'prestadorId'
       });
-      Prestador.hasOne(models.CentroMedico, {
-        foreignKey: 'prestadorId'
-      });
-      Prestador.hasOne(models.Profesional, {
-        foreignKey: 'prestadorId'
-      });
+
     }
   }
   Prestador.init({
     nombre: DataTypes.STRING,
-    cuilCuit: DataTypes.INTEGER
+    cuilCuit: DataTypes.INTEGER,
+    esCentroMedico: DataTypes.BOOLEAN,
+    integraCentroMedico: DataTypes.BOOLEAN,
+    centroMedicoId:{
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'Prestadores', // Se referencia a sí misma
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    }
   }, {
     sequelize,
     modelName: 'Prestador',
+    tableName: 'Prestadores',
+    freezeTableName: true
   });
   return Prestador;
 };

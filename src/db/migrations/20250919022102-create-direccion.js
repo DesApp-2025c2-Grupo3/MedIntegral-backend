@@ -16,21 +16,14 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       pisoDepto: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: true
       },
       codigoPostal: {
         type: Sequelize.STRING
       },
       localidad: {
         type: Sequelize.STRING
-      },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
       }
     });
   },

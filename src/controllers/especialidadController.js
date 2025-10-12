@@ -2,8 +2,8 @@ const { Especialidad } = require("../db/models");
 
 const crearEspecialidad = async (req, res) =>{
   try {
-    const { especialidad } = req.body;
-    const nuevaEspecialidad = await Especialidad.create({ especialidad })
+    const { nombre } = req.body;
+    const nuevaEspecialidad = await Especialidad.create({ nombre })
     res.status(201).json(nuevaEspecialidad)
   } catch (error) {
     console.error(error);

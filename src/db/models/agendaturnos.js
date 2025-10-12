@@ -24,6 +24,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'AgendaTurnos',
+    tableName: 'AgendasTurnos',
+    freezeTableName: true
   });
   return AgendaTurnos;
 };

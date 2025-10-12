@@ -2,8 +2,10 @@ const { Provincia } = require("../db/models");
 
 const crearProvincia = async (req, res) => {
   try {
-    const { provincia } = req.body;
-    const nuevaProvincia = await Provincia.create({ provincia });
+    const { nombre } = req.body;
+    console.log(req.body.nombre);
+    const nuevaProvincia = await Provincia.create({ nombre });
+    console.log(nuevaProvincia);
     res.status(201).json(nuevaProvincia);
   } catch (error) {
     console.error(error);

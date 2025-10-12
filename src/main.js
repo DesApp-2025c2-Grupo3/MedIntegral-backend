@@ -1,9 +1,10 @@
 const EXPRESS = require('express');
 const APP = EXPRESS();
 const DB = require('./db/models');
-const { telefonoRutas } = require('./routes')
+const { prestadorRutas, provinciaRutas, diaRutas } = require('./routes')
+const { genericMiddleware } = require("./middlewares");
 
-const CORS = require('cors');
+//const CORS = require('cors');
 
 APP.use(EXPRESS.json());
 
@@ -13,7 +14,12 @@ require('dotenv').config();
 
 const PORT = process.env.PORT || 3002;
 
-APP.use('/telefonos', telefonoRutas)
+APP.use(genericMiddleware.logRequest); // se utiliza para ver que peticion se hizo y que se envio, es para debuggear
+APP.use(genericMiddleware.manejoDeErroresGlobales); // Manejo de errores globales
+APP.use('/prestadores', prestadorRutas)
+//para debuggear
+APP.use('/provincias', provinciaRutas)
+APP.use('/dias', diaRutas)
 
 APP.listen(PORT, async () => {
     console.log(`App corriendo en el puerto ${PORT}`);
