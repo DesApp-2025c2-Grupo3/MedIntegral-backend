@@ -271,9 +271,91 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   }
 };
 
+//Actualizar lugares de atencion y horarios
+const actualizarLugaresAtencion = async (req, res) => {
+  const { id } = req.params;
+  const { lugaresAtencion } = req.body;
+
+  try {
+    const prestador = await Prestador.findByPk(id);
+    if (!prestador) {
+      return res.status(404).json({ error: "Prestador no encontrado." });
+    }
+
+    //Eliminacion:
+    const lugaresActuales = await LugarAtencion.findAll({
+      where: { prestadorId: id },
+      include: [{ model: HorarioAtencion, as: "HorarioAtencions" }],
+    });
+
+    for (const lugar of lugaresActuales) {
+      for (const horario of lugar.HorarioAtencions) {
+        await horario.setDia([]); //primero vacío todos los dias de la tabla intermedia de cada horario actual
+      }
+      await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
+      await lugar.destroy();
+      //destruyo las direcciones? porque otros lugares de atención podrían usarla también
+      await Direccion.destroy({ where: { id: lugar.direccionId } });
+    }
+
+    //Creacion:
+    for (const lugar of lugaresAtencion) {
+      //Si no elimino las direcciones, cómo sé que no estoy creando duplicados?
+      const nuevaDireccion = await Direccion.create({
+        calle: lugar.calle,
+        altura: lugar.altura,
+        pisoDepto: lugar.pisoDepto,
+        codigoPostal: lugar.codigoPostal,
+        localidad: lugar.localidad,
+        provinciaId: lugar.provincia,
+      });
+
+      const nuevoLugarAtencion = await LugarAtencion.create({
+        prestadorId: id,
+        direccionId: nuevaDireccion.id,
+      });
+
+      for (const lugar of lugaresAtencion) {
+        console.log(lugar.horarios);
+      }
+
+      for (const horarioData of lugar.horarios) {
+        const nuevoHorario = await HorarioAtencion.create({
+          horaInicio: horarioData.horaInicio,
+          horaFin: horarioData.horaFin,
+          lugarAtencionId: nuevoLugarAtencion.id,
+        });
+
+        //Por cada horario extraemos el array de días
+        for (const diaData of horarioData.dias) {
+          const diaExistente = await Dia.findByPk(diaData);
+          if (diaExistente) {
+            await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
+          }
+        }
+      }
+    }
+
+    return res
+      .status(200)
+      .json({
+        message:
+          "Lugares de atencion del Prestador actualizados correctamente.",
+        prestador,
+      });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error:
+        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
+    });
+  }
+};
+
 module.exports = {
   crearPrestador,
   obtenerPrestadores,
   obtenerPrestador,
   actualizarDatosPersonalesPrestador,
+  actualizarLugaresAtencion,
 };

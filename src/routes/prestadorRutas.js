@@ -21,4 +21,10 @@ router.put(
   prestadorController.actualizarDatosPersonalesPrestador
 );
 
+router.put(
+  "/:id/lugares-atencion",
+//   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  prestadorController.actualizarLugaresAtencion
+);
+
 module.exports = router;
