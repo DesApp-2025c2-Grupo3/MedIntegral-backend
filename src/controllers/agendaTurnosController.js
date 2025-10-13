@@ -113,7 +113,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
             direccion: direccion,
             duracion: agenda.duracion
         }
-        return { agendaNueva };
+        return { ...agendaNueva };
     });
     res.status(200).json(agendasFormateadas);
 }
