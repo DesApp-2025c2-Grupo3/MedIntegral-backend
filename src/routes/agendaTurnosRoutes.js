@@ -13,6 +13,10 @@ router.post('/',
 router.get('/',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnos
-)
+);
+router.get('/format',
+    genericMiddleware.existsAnyByModel(AgendaTurnos),
+    agendaTurnosController.obtenerAgendasTurnosFormateados
+);
 
 module.exports = router;

@@ -77,7 +77,6 @@ const crearPrestador = async (req, res) => {
 
   //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
   for (const lugar of lugaresAtencion) {
-    console.log(lugar);
     const nuevaDireccion = await Direccion.create({
       calle: lugar.calle,
       altura: lugar.altura,
@@ -114,4 +113,32 @@ const crearPrestador = async (req, res) => {
   res.status(201).json(nuevoPrestador);
 };
 
-module.exports = { crearPrestador };
+const obtenerPrestadores = async (req, res) => {
+  const prestadores = await Prestador.findAll({
+    include: [
+      { model: Email },
+      { model: Telefono },
+      { model: Especialidad, through: { attributes: [] } },
+      {
+        model: LugarAtencion,
+        include: [
+          {
+            model: Direccion,
+            include: [{ model: Provincia }]
+          },
+          {
+            model: HorarioAtencion,
+            include: [
+              {
+                model: Dia,
+                through: { attributes: [] }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+  res.status(200).json(prestadores);
+}
+module.exports = { crearPrestador, obtenerPrestadores };

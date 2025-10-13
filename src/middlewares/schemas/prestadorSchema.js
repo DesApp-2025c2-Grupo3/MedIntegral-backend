@@ -31,6 +31,20 @@ const prestadorSchemaCreate = Joi.object({
       'boolean.base': 'integraCentroMedico debe ser un valor booleano',
       'any.required': 'integraCentroMedico es obligatorio'
     }),
+  centroMedicoQueIntegra: Joi.when('integraCentroMedico', {
+    is: true,
+    then: Joi.number()
+      .integer()
+      .required()
+      .messages({
+        'number.base': 'El ID del centro médico debe ser un número',
+        'number.integer': 'El ID del centro médico debe contener sólo números',
+        'any.required': 'El ID del centro médico es obligatorio cuando integraCentroMedico es true'
+      }),
+    otherwise: Joi.forbidden().messages({
+      'any.unknown': 'No se debe proporcionar centroMedicoQueIntegra cuando integraCentroMedico es false'
+    })
+  }),
 
   // Campos nuevos permitidos:
   especialidades: Joi.array().items(Joi.number()).min(1)
