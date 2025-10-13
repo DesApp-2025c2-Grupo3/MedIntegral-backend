@@ -9,6 +9,6 @@ const { prestadorSchema }  = require("../middlewares/schemas");
 router.post('/', 
     genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaCreate),
     prestadorController.crearPrestador);
-//router.get('/', prestadorController.obtenerPrestadores)
+router.get('/', prestadorController.obtenerPrestadores)
 
 module.exports = router;
