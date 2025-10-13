@@ -14,7 +14,7 @@ router.get('/',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnos
 );
-router.get('/format',
+router.get('/listado',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnosFormateados
 );
