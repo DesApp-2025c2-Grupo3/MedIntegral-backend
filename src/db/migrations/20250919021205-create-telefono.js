@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       numero: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

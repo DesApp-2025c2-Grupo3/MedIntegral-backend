@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Prestador.init({
     nombre: DataTypes.STRING,
-    cuilCuit: DataTypes.INTEGER,
+    cuilCuit: DataTypes.STRING,
     esCentroMedico: DataTypes.BOOLEAN,
     integraCentroMedico: DataTypes.BOOLEAN,
     centroMedicoId:{

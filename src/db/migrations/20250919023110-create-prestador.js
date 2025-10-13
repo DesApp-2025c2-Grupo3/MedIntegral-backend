@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       cuilCuit: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       esCentroMedico:{
         type: Sequelize.BOOLEAN

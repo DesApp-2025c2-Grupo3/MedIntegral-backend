@@ -1,36 +1,31 @@
-const Joi = require('joi')
+const Joi = require("joi");
 
 const prestadorSchemaCreate = Joi.object({
-  nombre: Joi.string()
-    .min(3)
-    .max(100)
-    .required()
-    .messages({
-      'string.base': 'El nombre debe ser una cadena de texto',
-      'string.min': 'El nombre debe tener al menos {#limit} caracteres',
-      'string.max': 'El nombre debe tener como máximo {#limit} caracteres',
-      'any.required': 'El nombre es obligatorio'
-    }),
-  cuilCuit: Joi.number()
-    .integer()
-    .required()
-    .messages({
-      'number.base': 'El CUIL/CUIT debe ser un número',
-      'number.integer': 'El CUIL/CUIT debe contener sólo números',
-      'any.required': 'El CUIL/CUIT es obligatorio'
-    }),
-  esCentroMedico: Joi.boolean()
-    .required()
-    .messages({
-      'boolean.base': 'esCentroMedico debe ser un valor booleano',
-      'any.required': 'esCentroMedico es obligatorio'
-    }),
-  integraCentroMedico: Joi.boolean()
-    .required()
-    .messages({
-      'boolean.base': 'integraCentroMedico debe ser un valor booleano',
-      'any.required': 'integraCentroMedico es obligatorio'
-    }),
+  
+  nombre: Joi.string().min(3).max(100).required().messages({
+    "string.base": "El nombre debe ser una cadena de texto",
+    "string.min": "El nombre debe tener al menos {#limit} caracteres",
+    "string.max": "El nombre debe tener como máximo {#limit} caracteres",
+    "any.required": "El nombre es obligatorio",
+  }),
+
+  cuilCuit: Joi.string().length(11).pattern(/^[0-9]+$/).required().messages({
+    "string.base": "El CUIL/CUIT debe ser una cadena de texto",
+    "string.length": "El CUIL/CUIT debe tener exactamente {#limit} dígitos",
+    "string.pattern": "El CUIL/CUIT debe contener sólo números",
+    "any.required": "El CUIL/CUIT es obligatorio",
+  }),
+
+  esCentroMedico: Joi.boolean().required().messages({
+    "boolean.base": "esCentroMedico debe ser un valor booleano",
+    "any.required": "esCentroMedico es obligatorio",
+  }),
+
+  integraCentroMedico: Joi.boolean().required().messages({
+    "boolean.base": "integraCentroMedico debe ser un valor booleano",
+    "any.required": "integraCentroMedico es obligatorio",
+  }),
+
   centroMedicoQueIntegra: Joi.when('integraCentroMedico', {
     is: true,
     then: Joi.number()
@@ -47,47 +42,45 @@ const prestadorSchemaCreate = Joi.object({
   }),
 
   // Campos nuevos permitidos:
-  especialidades: Joi.array().items(Joi.number()).min(1)
-    .required()
-    .messages({
-      'array.base': 'Las especialidades deben estar dentro de un array',
-      'array.min': 'Debe haber al menos {#limit} especialidad(es)',
-      'any.required': 'Las especialidades son obligatorias'
-    }),
+  especialidades: Joi.array().items(Joi.number()).min(1).required().messages({
+    "array.base": "Las especialidades deben estar dentro de un array",
+    "array.min": "Debe haber al menos {#limit} especialidad(es)",
+    "any.required": "Las especialidades son obligatorias",
+  }),
 
-
-  emails: Joi.array().items(
-    Joi.object({
-      direccion: Joi.string().email().required().messages({
-        'string.base': 'El email debe ser una cadena de texto',
-        'string.email': 'El email debe tener un formato válido',
-        'any.required': 'El email es obligatorio'
+  emails: Joi.array()
+    .items(
+      Joi.object({
+        direccion: Joi.string().email().required().messages({
+          "string.base": "El email debe ser una cadena de texto",
+          "string.email": "El email debe tener un formato válido",
+          "any.required": "El email es obligatorio",
+        }),
       })
-    })
-  )
+    )
     .required()
     .messages({
-      'array.base': 'Los emails deben estar dentro de un array',
-      'any.required': 'Los emails son obligatorios'
+      "array.base": "Los emails deben estar dentro de un array",
+      "any.required": "Los emails son obligatorios",
     }),
 
-  telefonos: Joi.array().items(
-    Joi.object({
-      numero: Joi.number()
-        .integer()
-        .required()
-        .messages({
-          'number.base': 'El teléfono debe ser un número',
-          'number.integer': 'El teléfono debe contener sólo números',
-          'any.required': 'Es obligatorio ingresar al menos un número de teléfono'
-        })
-    })
-  ).min(1)
+  telefonos: Joi.array()
+    .items(
+      Joi.object({
+        numero: Joi.number().integer().required().messages({
+          "number.base": "El teléfono debe ser un número",
+          "number.integer": "El teléfono debe contener sólo números",
+          "any.required":
+            "Es obligatorio ingresar al menos un número de teléfono",
+        }),
+      })
+    )
+    .min(1)
     .required()
     .messages({
-      'array.base': 'Los teléfonos deben estar dentro de un array',
-      'array.min': 'Debe haber al menos {#limit} teléfono(s)',
-      'any.required': 'Los teléfonos son obligatorios'
+      "array.base": "Los teléfonos deben estar dentro de un array",
+      "array.min": "Debe haber al menos {#limit} teléfono(s)",
+      "any.required": "Los teléfonos son obligatorios",
     }),
 
   lugaresAtencion: Joi.array().items(
@@ -98,24 +91,24 @@ const prestadorSchemaCreate = Joi.object({
       codigoPostal: Joi.string(),
       localidad: Joi.string().required(),
       provincia: Joi.number().integer().required(),
-      horarios: Joi.array().items(
-        Joi.object({
-          horaInicio: Joi.number().integer().required(),
-          horaFin: Joi.number().integer().required(),
-          dias: Joi.array().items(
-            Joi.number().integer().required()
-          ).required()
-        })
-      ).required()
+      horarios: Joi.array()
+        .items(
+          Joi.object({
+            horaInicio: Joi.number().integer().required(),
+            horaFin: Joi.number().integer().required(),
+            dias: Joi.array()
+              .items(Joi.number().integer().required())
+              .required(),
+          })
+        )
+        .required(),
     })
-  )
-})
+  ),
+});
 
-const prestadorSchemaUpdate = Joi.object({
-
-})
+const prestadorSchemaUpdate = Joi.object({});
 
 module.exports = {
   prestadorSchemaCreate,
-  prestadorSchemaUpdate
-}
+  prestadorSchemaUpdate,
+};
