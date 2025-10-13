@@ -35,22 +35,30 @@ const agendaTurnosSchemaCreate = Joi.object({
         }),
     horarios: Joi.array().items(
         Joi.object({
-            horaInicio: Joi.number()
+            horaInicio: Joi.string()
+                .pattern(/^([0-1]\d|2[0-3]):([0-5]\d)$/) // Formato HH:MM 24 horas
                 .required()
                 .messages({
-                    'number.base': 'La hora de inicio debe ser un número',
+                    'string.base': 'La hora de inicio debe ser una cadena de texto',
+                    'string.pattern.base': 'La hora de inicio debe tener el formato HH:MM (24 horas)',
                     'any.required': 'La hora de inicio es obligatoria'
                 }),
-            horaFin: Joi.number()
+            horaFin: Joi.string()
+                .pattern(/^([0-1]\d|2[0-3]):([0-5]\d)$/) // Formato HH:MM 24 horas
                 .required()
                 .messages({
-                    'number.base': 'La hora de fin debe ser un número',
+                    'string.base': 'La hora de fin debe ser una cadena de texto',
+                    'string.pattern.base': 'La hora de fin debe tener el formato HH:MM (24 horas)',
                     'any.required': 'La hora de fin es obligatoria'
                 }),
             dias: Joi.array().items(
                 Joi.number()
                     .integer()
-                    .required()
+                    .required().messages({
+                        'number.base': 'El ID del día debe ser un número',
+                        'number.integer': 'El ID del día debe ser un número entero',
+                        'any.required': 'El ID del día es obligatorio'
+                    })
             ).required()
         })
     ).required().messages({
