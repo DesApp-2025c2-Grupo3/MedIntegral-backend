@@ -164,7 +164,71 @@ const obtenerPrestadores = async (_, res) => {
   }
 };
 
+// Obtener prestador por id
+const obtenerPrestador = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const prestador = await Prestador.findByPk(id, {
+      attributes: { 
+        exclude: ['createdAt', 'updatedAt']
+      },
+      include: [
+        { model: Email, attributes: ["direccion"] },
+        { model: Telefono, attributes: ["numero"] },
+        {
+          model: Especialidad,
+          attributes: ["nombre"],
+          through: { attributes: [] },
+        },
+        {
+          model: LugarAtencion,
+          attributes: { 
+            exclude: ['createdAt', 'updatedAt']
+          },
+          include: [
+            {
+              model: Direccion,
+              as: "Direccion",
+              attributes: ["calle", "altura", "pisoDepto", "localidad"],
+              include: [
+                {
+                  model: Provincia,
+                  attributes: ["nombre"],
+                },
+              ],
+            },
+            {
+              model: HorarioAtencion,
+              attributes: ["horaInicio", "horaFin"],
+              include: [
+                {
+                  model: Dia,
+                  attributes: ["nombre"],
+                  through: { attributes: [] },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // ToDo: Si no se encuentra, devolver un 404
+    if (!prestador) {
+      return res.status(404).json({ error: "Prestador no encontrado." });
+    }
+
+    return res.status(200).json(prestador);
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error al obtener el prestador." });
+  }
+};
+
 module.exports = {
   crearPrestador,
-  obtenerPrestadores
+  obtenerPrestadores,
+  obtenerPrestador
 };
