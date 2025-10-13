@@ -1,17 +1,11 @@
 const Joi = require('joi')
 
 const telefonoSchema = Joi.object({
-  numero: Joi.number()
-    .integer()
-    .min(8)
-    .max(12)
-    .required()
-    .messages({
-      'number.base': 'El teléfono debe ser un número',
-      'number.integer': 'El teléfono debe contener sólo números',
-      'number.min': 'El teléfono debe contener al menos {#limit} dígitos',
-      'number.max': 'El teléfono debe contener como máximo {#limit} dígitos',
-      'any.required': 'Es obligatorio ingresar al menos un número de teléfono'
+  numero: Joi.string().length(10).pattern(/^[0-9]+$/).required().messages({
+      'string.base': 'El teléfono debe ser un número',
+      'string.empty': 'Es obligatorio ingresar al menos un número de teléfono',
+      'string.length': 'El teléfono debe contener exactamente {#limit} dígitos',
+      'string.pattern.base': 'El teléfono debe contener sólo números'
     })
 })
 
