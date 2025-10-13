@@ -7,7 +7,7 @@ const {
   LugarAtencion,
   HorarioAtencion,
   Especialidad,
-  Dia
+  Dia,
 } = require("../db/models");
 
 //Crear prestador
@@ -21,17 +21,22 @@ const crearPrestador = async (req, res) => {
     especialidades, // Array de IDs { id: X }
     emails, // Array de objetos { direccion:... }
     telefonos, // Array de objetos { numero: ... }
-    lugaresAtencion // Array de objetos , incluyendo la Dirección
-    
+    lugaresAtencion, // Array de objetos , incluyendo la Dirección
   } = req.body;
 
-  if (integraCentroMedico) { //ToDo: Middleware --> existe y esCentroMedico true
+  if (integraCentroMedico) {
+    //ToDo: Middleware --> existe y esCentroMedico true
     const centroMedico = await Prestador.findByPk(centroMedicoQueIntegra); //ToDo: Validar en middleware y devolver error 400 si no existe
     if (!centroMedico) {
-      return res.status(400).json({ error: "El centro médico que se intenta integrar no existe." });
+      return res
+        .status(400)
+        .json({ error: "El centro médico que se intenta integrar no existe." });
     }
     if (!centroMedico.esCentroMedico) {
-      return res.status(400).json({ error: "El prestador que se intenta asignar como centro médico no es un centro médico." });
+      return res.status(400).json({
+        error:
+          "El prestador que se intenta asignar como centro médico no es un centro médico.",
+      });
     }
   }
 
@@ -39,7 +44,7 @@ const crearPrestador = async (req, res) => {
     nombre,
     cuilCuit,
     esCentroMedico,
-    integraCentroMedico
+    integraCentroMedico,
   });
 
   const nuevoPrestadorId = nuevoPrestador.id;
@@ -78,7 +83,7 @@ const crearPrestador = async (req, res) => {
       pisoDepto: lugar.pisoDepto,
       codigoPostal: lugar.codigoPostal,
       localidad: lugar.localidad,
-      provinciaId: lugar.provincia
+      provinciaId: lugar.provincia,
     });
 
     const nuevoLugarAtencion = await LugarAtencion.create({
@@ -94,7 +99,7 @@ const crearPrestador = async (req, res) => {
         lugarAtencionId: nuevoLugarAtencion.id,
       });
 
-       //Por cada horario extraemos el array de días
+      //Por cada horario extraemos el array de días
       for (const diaData of horarioData.dias) {
         const diaExistente = await Dia.findByPk(diaData);
         if (diaExistente) {
@@ -110,8 +115,8 @@ const crearPrestador = async (req, res) => {
 const obtenerPrestadores = async (_, res) => {
   try {
     const prestadores = await Prestador.findAll({
-      attributes: { 
-        exclude: ['createdAt', 'updatedAt']
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
       },
       include: [
         { model: Email, attributes: ["direccion"] },
@@ -123,8 +128,8 @@ const obtenerPrestadores = async (_, res) => {
         },
         {
           model: LugarAtencion,
-          attributes: { 
-            exclude: ['createdAt', 'updatedAt']
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
           },
           include: [
             {
@@ -170,8 +175,8 @@ const obtenerPrestador = async (req, res) => {
     const { id } = req.params;
 
     const prestador = await Prestador.findByPk(id, {
-      attributes: { 
-        exclude: ['createdAt', 'updatedAt']
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
       },
       include: [
         { model: Email, attributes: ["direccion"] },
@@ -183,8 +188,8 @@ const obtenerPrestador = async (req, res) => {
         },
         {
           model: LugarAtencion,
-          attributes: { 
-            exclude: ['createdAt', 'updatedAt']
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
           },
           include: [
             {
@@ -220,15 +225,55 @@ const obtenerPrestador = async (req, res) => {
     }
 
     return res.status(200).json(prestador);
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Error al obtener el prestador." });
   }
 };
 
+//Actualizar datos personales de un prestador
+const actualizarDatosPersonalesPrestador = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, cuilCuit, emails, telefonos } = req.body;
+
+  try {
+    const prestador = await Prestador.findByPk(id);
+
+    await prestador.update({ nombre, cuilCuit });
+
+    //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
+    await Email.destroy({ where: { prestadorId: id } });
+
+    const datosEmails = emails.map((e) => ({
+      direccion: e.direccion,
+      prestadorId: id,
+    }));
+    await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
+
+    //Teléfonos (borramos los viejos e insertamos los nuevos)
+    await Telefono.destroy({ where: { prestadorId: id } });
+
+    const datosTelefonos = telefonos.map((tel) => ({
+      numero: tel.numero,
+      prestadorId: id,
+    }));
+    await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
+
+    return res
+      .status(200)
+      .json({ message: "Prestador actualizado correctamente." }, prestador);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error:
+        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
+    });
+  }
+};
+
 module.exports = {
   crearPrestador,
   obtenerPrestadores,
-  obtenerPrestador
+  obtenerPrestador,
+  actualizarDatosPersonalesPrestador,
 };
