@@ -43,7 +43,7 @@ const agendaTurnosSchemaCreate = Joi.object({
                     'string.pattern.base': 'La hora de fin debe tener el formato HH:MM (24 horas)',
                     'any.required': 'La hora de fin es obligatoria'
                 }),
-            duracionTurno: Joi.number()
+            duracion: Joi.number()
                 .integer()
                 .min(1)
                 .max(60)
