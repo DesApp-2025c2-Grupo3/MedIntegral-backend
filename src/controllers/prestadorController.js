@@ -148,54 +148,53 @@ const obtenerPrestadores = async (_, res) => {
 
 // Obtener prestador por id
 const obtenerPrestador = async (req, res) => {
+  const { id } = req.params;
 
-    const { id } = req.params;
-
-    const prestador = await Prestador.findByPk(id, {
-      attributes: {
-        exclude: ["createdAt", "updatedAt"],
+  const prestador = await Prestador.findByPk(id, {
+    attributes: {
+      exclude: ["createdAt", "updatedAt"],
+    },
+    include: [
+      { model: Email, attributes: ["direccion"] },
+      { model: Telefono, attributes: ["numero"] },
+      {
+        model: Especialidad,
+        attributes: ["nombre"],
+        through: { attributes: [] },
       },
-      include: [
-        { model: Email, attributes: ["direccion"] },
-        { model: Telefono, attributes: ["numero"] },
-        {
-          model: Especialidad,
-          attributes: ["nombre"],
-          through: { attributes: [] },
+      {
+        model: LugarAtencion,
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
         },
-        {
-          model: LugarAtencion,
-          attributes: {
-            exclude: ["createdAt", "updatedAt"],
+        include: [
+          {
+            model: Direccion,
+            as: "Direccion",
+            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            include: [
+              {
+                model: Provincia,
+                attributes: ["nombre"],
+              },
+            ],
           },
-          include: [
-            {
-              model: Direccion,
-              as: "Direccion",
-              attributes: ["calle", "altura", "pisoDepto", "localidad"],
-              include: [
-                {
-                  model: Provincia,
-                  attributes: ["nombre"],
-                },
-              ],
-            },
-            {
-              model: HorarioAtencion,
-              attributes: ["horaInicio", "horaFin"],
-              include: [
-                {
-                  model: Dia,
-                  attributes: ["nombre"],
-                  through: { attributes: [] },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-    return res.status(200).json(prestador);
+          {
+            model: HorarioAtencion,
+            attributes: ["horaInicio", "horaFin"],
+            include: [
+              {
+                model: Dia,
+                attributes: ["nombre"],
+                through: { attributes: [] },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+  return res.status(200).json(prestador);
 };
 
 //Actualizar datos personales de un prestador
@@ -239,7 +238,7 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
 };
 
 //Actualizar lugares de atencion y horarios
-const actualizarLugaresAtencion = async (req, res) => {
+const actualizarLugaresAtencionPrestador = async (req, res) => {
   const { id } = req.params;
   const { lugaresAtencion } = req.body;
 
@@ -257,7 +256,7 @@ const actualizarLugaresAtencion = async (req, res) => {
 
     for (const lugar of lugaresActuales) {
       for (const horario of lugar.HorarioAtencions) {
-        await horario.setDia([]); //primero vacío todos los dias de la tabla intermedia de cada horario actual
+        await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
       }
       await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
       await lugar.destroy();
@@ -303,13 +302,64 @@ const actualizarLugaresAtencion = async (req, res) => {
       }
     }
 
+    return res.status(200).json({
+      message: "Lugares de atencion del Prestador actualizados correctamente.",
+      prestador,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error:
+        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
+    });
+  }
+};
+
+//actualizar especialidades
+const actualizarEspecialidadesPrestador = async (req, res) => {
+  const { id } = req.params;
+  const { especialidades } = req.body;
+
+  try {
+    const prestador = await Prestador.findByPk(id);
+
+    //Vacío el array de especialidades actuales
+    await prestador.setEspecialidads([]); // funciona con Especialidads porque así lo generó Sequelize
+
+    for (const espId of especialidades) {
+      const esp = await Especialidad.findByPk(espId);
+      if (esp) {
+        await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
+      }
+    }
+
     return res
       .status(200)
-      .json({
-        message:
-          "Lugares de atencion del Prestador actualizados correctamente.",
-        prestador,
-      });
+      .json({ message: "Especialidades actualizadas correctamente." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error:
+        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
+    });
+  }
+};
+
+//actualizar si es centro médico
+const actualizarCentroMedicoPrestador = async (req, res) => {
+  const { id } = req.params;
+  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } =
+    req.body;
+  try {
+    const prestador = await Prestador.findByPk(id);
+    await prestador.update({
+      esCentroMedico,
+      integraCentroMedico,
+      centroMedicoId: integraCentroMedico ? centroMedicoQueIntegra : null,
+    });
+    return res
+      .status(200)
+      .json({ message: "Prestador actualizado correctamente." }, prestador);
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -324,5 +374,7 @@ module.exports = {
   obtenerPrestadores,
   obtenerPrestador,
   actualizarDatosPersonalesPrestador,
-  actualizarLugaresAtencion,
+  actualizarLugaresAtencionPrestador,
+  actualizarEspecialidadesPrestador,
+  actualizarCentroMedicoPrestador,
 };

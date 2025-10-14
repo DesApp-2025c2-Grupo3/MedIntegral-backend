@@ -28,7 +28,19 @@ router.put("/:id/datos-personales",
 router.put(
   "/:id/lugares-atencion",
 //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
-  prestadorController.actualizarLugaresAtencion
+  prestadorController.actualizarLugaresAtencionPrestador
+);
+
+router.put(
+  "/:id/especialidades",
+  //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  prestadorController.actualizarEspecialidadesPrestador
+);
+
+router.put(
+  "/:id/centro-medico",
+  //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  prestadorController.actualizarCentroMedicoPrestador
 );
 
 module.exports = router;
