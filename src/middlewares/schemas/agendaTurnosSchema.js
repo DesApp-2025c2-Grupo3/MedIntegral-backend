@@ -9,7 +9,7 @@ const agendaTurnosSchemaCreate = Joi.object({
             'number.integer': 'La duración debe ser un número entero',
             'any.required': 'La duración es obligatoria'
         }),
-    prestador: Joi.number()
+    prestadorId: Joi.number()
         .integer()
         .required()
         .messages({
@@ -17,7 +17,7 @@ const agendaTurnosSchemaCreate = Joi.object({
             'number.integer': 'El ID del prestador debe ser un número entero',
             'any.required': 'El ID del prestador es obligatorio'
         }),
-    especialidad: Joi.number()
+    especialidadId: Joi.number()
         .integer()
         .required()
         .messages({
@@ -25,7 +25,7 @@ const agendaTurnosSchemaCreate = Joi.object({
             'number.integer': 'El ID de la especialidad debe ser un número entero',
             'any.required': 'El ID de la especialidad es obligatorio'
         }),
-    lugarAtencion: Joi.number()
+    lugaratencionId: Joi.number()
         .integer()
         .required()
         .messages({

@@ -11,9 +11,9 @@ const {
 
 const crearAgendaTurnos = async (req, res) => {
     const {
-        prestador,
-        especialidad,
-        lugarAtencion,
+        prestadorId,
+        especialidadId,
+        lugaratencionId,
         horarios,
         duracion
     } = req.body;
@@ -24,7 +24,7 @@ const crearAgendaTurnos = async (req, res) => {
 
     const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
 
-    relacionarAgendaConDemasEntidades(nuevaAgendaTurnosId, prestador, especialidad, lugarAtencion);
+    relacionarAgendaConDemasEntidades(nuevaAgendaTurnosId, prestadorId, especialidadId, lugaratencionId);
 
     for (const horario of horarios) {
         const nuevoHorario = await HorarioAtencion.create({
@@ -46,20 +46,13 @@ const crearAgendaTurnos = async (req, res) => {
 }
 
 const relacionarAgendaConDemasEntidades = async (agendaId, prestadorId, especialidadId, lugarAtencionId) => {
-    const prestador = await Prestador.findByPk(prestadorId);
-    const especialidad = await Especialidad.findByPk(especialidadId);
-    const lugarAtencion = await LugarAtencion.findByPk(lugarAtencionId);
-    if (prestador && especialidad && lugarAtencion) {
-        await AgendaTurnos.update({
-            prestadorId: prestador.id,
-            especialidadId: especialidad.id,
-            lugarAtencionId: lugarAtencion.id
-        }, {
-            where: { id: agendaId }
-        });
-    } else {
-        throw new Error("Prestador, Especialidad o Lugar de Atención no encontrado.");
-    }
+    await AgendaTurnos.update({
+        prestadorId,
+        especialidadId,
+        lugarAtencionId
+    }, {
+        where: { id: agendaId }
+    });
 }
 
 const obtenerAgendasTurnos = async (req, res) => {
@@ -83,7 +76,6 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
             { model: HorarioAtencion, include: { model: Dia } }
         ]
     });
-
 
     const agendasFormateadas = agendas.map(agenda => {
 
