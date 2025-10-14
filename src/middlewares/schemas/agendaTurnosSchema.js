@@ -1,14 +1,6 @@
 const Joi = require('joi')
 
 const agendaTurnosSchemaCreate = Joi.object({
-    duracion: Joi.number()
-        .integer()
-        .required()
-        .messages({
-            'number.base': 'La duración debe ser un número',
-            'number.integer': 'La duración debe ser un número entero',
-            'any.required': 'La duración es obligatoria'
-        }),
     prestadorId: Joi.number()
         .integer()
         .required()
@@ -50,6 +42,18 @@ const agendaTurnosSchemaCreate = Joi.object({
                     'string.base': 'La hora de fin debe ser una cadena de texto',
                     'string.pattern.base': 'La hora de fin debe tener el formato HH:MM (24 horas)',
                     'any.required': 'La hora de fin es obligatoria'
+                }),
+            duracionTurno: Joi.number()
+                .integer()
+                .min(1)
+                .max(60)
+                .required()
+                .messages({
+                    'number.base': 'La duración del turno debe ser un número',
+                    'number.integer': 'La duración del turno debe ser un número entero',
+                    'number.min': 'La duración del turno debe ser al menos 1 minuto',
+                    'number.max': 'La duración del turno no puede exceder los 60 minutos',
+                    'any.required': 'La duración del turno es obligatoria'
                 }),
             dias: Joi.array().items(
                 Joi.number()

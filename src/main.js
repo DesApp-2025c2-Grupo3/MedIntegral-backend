@@ -2,7 +2,7 @@ const EXPRESS = require('express');
 const APP = EXPRESS();
 const CORS = require('cors');
 const DB = require('./db/models');
-const { prestadorRutas, provinciaRutas, diaRutas, agendaTurnosRutas } = require('./routes');
+const { prestadorRutas, agendaTurnosRutas } = require('./routes');
 const { genericMiddleware } = require("./middlewares");
 require('dotenv').config();
 
@@ -20,9 +20,6 @@ APP.use(genericMiddleware.logRequest);
 APP.use(genericMiddleware.manejoDeErroresGlobales);
 APP.use('/prestadores', prestadorRutas);
 APP.use('/api/agenda-turnos', agendaTurnosRutas);
-APP.use('/provincias', provinciaRutas);
-APP.use('/dias', diaRutas);
-
 APP.listen(PORT, async () => {
   console.log(`App corriendo en el puerto ${PORT}`);
   await DB.sequelize.sync(
