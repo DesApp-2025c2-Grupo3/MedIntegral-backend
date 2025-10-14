@@ -28,7 +28,7 @@ const crearAgendaTurnos = async (req, res) => {
             agendaTurnosId: nuevaAgendaTurnosId,
             horaInicio: horario.horaInicio,
             horaFin: horario.horaFin,
-            duracionTurno: horario.duracionTurno
+            duracionTurno: horario.duracion
         });
 
         for (const diaId of horario.dias) {
