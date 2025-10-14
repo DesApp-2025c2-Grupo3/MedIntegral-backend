@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   HorarioAtencion.init({
     horaInicio: DataTypes.STRING,
-    horaFin: DataTypes.STRING
+    horaFin: DataTypes.STRING,
+    duracionTurno: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'HorarioAtencion',

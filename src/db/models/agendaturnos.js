@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   AgendaTurnos.init({
-    duracion: DataTypes.INTEGER
+    
   }, {
     sequelize,
     modelName: 'AgendaTurnos',

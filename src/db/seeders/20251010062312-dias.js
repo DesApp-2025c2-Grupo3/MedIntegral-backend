@@ -5,13 +5,13 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('Dias',
       [
-        { nombre: 'Domingo' },
         { nombre: 'Lunes' },
         { nombre: 'Martes' },
         { nombre: 'Miércoles' },
         { nombre: 'Jueves' },
         { nombre: 'Viernes' },
-        { nombre: 'Sábado' }
+        { nombre: 'Sábado' },
+        { nombre: 'Domingo' }
       ], {});
   },
 
