@@ -37,6 +37,7 @@ const prestadorSchemaCreate = Joi.object({
     then: Joi.number()
       .integer()
       .required()
+    
       .messages({
         'number.base': 'El ID del centro médico debe ser un número',
         'number.integer': 'El ID del centro médico debe contener sólo números',

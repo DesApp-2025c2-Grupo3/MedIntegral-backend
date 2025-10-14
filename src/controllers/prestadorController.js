@@ -24,22 +24,6 @@ const crearPrestador = async (req, res) => {
     lugaresAtencion, // Array de objetos , incluyendo la Dirección
   } = req.body;
 
-  if (integraCentroMedico) {
-    //ToDo: Middleware --> existe y esCentroMedico true
-    const centroMedico = await Prestador.findByPk(centroMedicoQueIntegra); //ToDo: Validar en middleware y devolver error 400 si no existe
-    if (!centroMedico) {
-      return res
-        .status(400)
-        .json({ error: "El centro médico que se intenta integrar no existe." });
-    }
-    if (!centroMedico.esCentroMedico) {
-      return res.status(400).json({
-        error:
-          "El prestador que se intenta asignar como centro médico no es un centro médico.",
-      });
-    }
-  }
-
   const nuevoPrestador = await Prestador.create({
     nombre,
     cuilCuit,
@@ -112,65 +96,59 @@ const crearPrestador = async (req, res) => {
 
 //obtener prestadores
 const obtenerPrestadores = async (_, res) => {
-  try {
-    const prestadores = await Prestador.findAll({
-      attributes: {
-        exclude: ["createdAt", "updatedAt"],
+  const prestadores = await Prestador.findAll({
+    attributes: {
+      exclude: ["createdAt", "updatedAt"],
+    },
+    include: [
+      { model: Email, attributes: ["direccion"] },
+      { model: Telefono, attributes: ["numero"] },
+      {
+        model: Especialidad,
+        attributes: ["nombre"],
+        through: { attributes: [] },
       },
-      include: [
-        { model: Email, attributes: ["direccion"] },
-        { model: Telefono, attributes: ["numero"] },
-        {
-          model: Especialidad,
-          attributes: ["nombre"],
-          through: { attributes: [] },
+      {
+        model: LugarAtencion,
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
         },
-        {
-          model: LugarAtencion,
-          attributes: {
-            exclude: ["createdAt", "updatedAt"],
+        include: [
+          {
+            model: Direccion,
+            as: "Direccion",
+            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            include: [
+              {
+                model: Provincia,
+                attributes: ["nombre"],
+              },
+            ],
           },
-          include: [
-            {
-              model: Direccion,
-              as: "Direccion",
-              attributes: ["calle", "altura", "pisoDepto", "localidad"],
-              include: [
-                {
-                  model: Provincia,
-                  attributes: ["nombre"],
-                },
-              ],
-            },
-            {
-              model: HorarioAtencion,
-              attributes: ["horaInicio", "horaFin"],
-              include: [
-                {
-                  model: Dia,
-                  attributes: ["nombre"],
-                  through: { attributes: [] },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      order: [
-        ["nombre", "ASC"], //ToDo: Opcional: ordenar los resultados alfabéticamente
-      ],
-    });
-
-    return res.status(200).json(prestadores);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Error al obtener los prestadores." });
-  }
+          {
+            model: HorarioAtencion,
+            attributes: ["horaInicio", "horaFin"],
+            include: [
+              {
+                model: Dia,
+                attributes: ["nombre"],
+                through: { attributes: [] },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    order: [
+      ["nombre", "ASC"], //ToDo: Opcional: ordenar los resultados alfabéticamente
+    ],
+  });
+  return res.status(200).json(prestadores);
 };
 
 // Obtener prestador por id
 const obtenerPrestador = async (req, res) => {
-  try {
+
     const { id } = req.params;
 
     const prestador = await Prestador.findByPk(id, {
@@ -217,17 +195,7 @@ const obtenerPrestador = async (req, res) => {
         },
       ],
     });
-
-    // ToDo: Si no se encuentra, devolver un 404
-    if (!prestador) {
-      return res.status(404).json({ error: "Prestador no encontrado." });
-    }
-
     return res.status(200).json(prestador);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Error al obtener el prestador." });
-  }
 };
 
 //Actualizar datos personales de un prestador
