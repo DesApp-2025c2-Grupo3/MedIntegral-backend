@@ -2,7 +2,7 @@ const EXPRESS = require('express');
 const APP = EXPRESS();
 const CORS = require('cors');
 const DB = require('./db/models');
-const { prestadorRutas, provinciaRutas, diaRutas, agendaTurnosRutas } = require('./routes');
+const { prestadorRutas, provinciaRutas, diaRutas, agendaTurnosRutas, especialidadesRutas } = require('./routes');
 const { genericMiddleware } = require("./middlewares");
 require('dotenv').config();
 
@@ -22,6 +22,7 @@ APP.use('/prestadores', prestadorRutas);
 APP.use('/api/agenda-turnos', agendaTurnosRutas);
 APP.use('/provincias', provinciaRutas);
 APP.use('/dias', diaRutas);
+APP.use('/especialidades', especialidadesRutas);
 
 APP.listen(PORT, async () => {
   console.log(`App corriendo en el puerto ${PORT}`);
