@@ -15,12 +15,9 @@ const crearAgendaTurnos = async (req, res) => {
         especialidadId,
         lugaratencionId,
         horarios,
-        duracion
     } = req.body;
 
-    const nuevaAgendaTurnos = await AgendaTurnos.create({
-        duracion
-    });
+    const nuevaAgendaTurnos = await AgendaTurnos.create();
 
     const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
 
@@ -30,7 +27,8 @@ const crearAgendaTurnos = async (req, res) => {
         const nuevoHorario = await HorarioAtencion.create({
             agendaTurnosId: nuevaAgendaTurnosId,
             horaInicio: horario.horaInicio,
-            horaFin: horario.horaFin
+            horaFin: horario.horaFin,
+            duracionTurno: horario.duracionTurno
         });
 
         for (const diaId of horario.dias) {
@@ -82,7 +80,8 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
         const horarios = agenda.HorarioAtencions.map(horario => ({
             dias: horario.Dia.map(dia => dia.nombre),
             horaInicio: horario.horaInicio,
-            horaFin: horario.horaFin
+            horaFin: horario.horaFin,
+            duracion: horario.duracionTurno
         }));
 
         const direccionData = agenda.LugarAtencion.Direccion;
@@ -102,8 +101,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
             prestador: agenda.Prestador.nombre,
             especialidad: agenda.Especialidad.nombre,
             horariosAtencion: horarios,
-            direccion: direccion,
-            duracion: agenda.duracion
+            direccion: direccion
         }
         return { ...agendaNueva };
     });
