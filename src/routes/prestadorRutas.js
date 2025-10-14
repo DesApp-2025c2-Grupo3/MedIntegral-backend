@@ -17,12 +17,30 @@ router.get('/',
 );
 
 router.get("/:id", 
-  genericMiddleware.existsModelById,
+  genericMiddleware.existsModelById(Prestador),
   prestadorController.obtenerPrestador);
 
 router.put("/:id/datos-personales",
 //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
   prestadorController.actualizarDatosPersonalesPrestador
+);
+
+router.put(
+  "/:id/lugares-atencion",
+//   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  prestadorController.actualizarLugaresAtencionPrestador
+);
+
+router.put(
+  "/:id/especialidades",
+  //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  prestadorController.actualizarEspecialidadesPrestador
+);
+
+router.put(
+  "/:id/centro-medico",
+  //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  prestadorController.actualizarCentroMedicoPrestador
 );
 
 module.exports = router;
