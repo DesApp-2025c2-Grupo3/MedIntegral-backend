@@ -1,0 +1,114 @@
+const {
+    HorarioAtencion,
+    AgendaTurnos,
+    Dia,
+    Prestador,
+    Especialidad,
+    LugarAtencion,
+    Direccion,
+    Provincia
+} = require("../db/models");
+
+const crearAgendaTurnos = async (req, res) => {
+    const {
+        prestadorId,
+        especialidadId,
+        lugaratencionId,
+        horarios,
+        duracion
+    } = req.body;
+
+    const nuevaAgendaTurnos = await AgendaTurnos.create({
+        duracion
+    });
+
+    const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
+
+    relacionarAgendaConDemasEntidades(nuevaAgendaTurnosId, prestadorId, especialidadId, lugaratencionId);
+
+    for (const horario of horarios) {
+        const nuevoHorario = await HorarioAtencion.create({
+            agendaTurnosId: nuevaAgendaTurnosId,
+            horaInicio: horario.horaInicio,
+            horaFin: horario.horaFin
+        });
+
+        for (const diaId of horario.dias) {
+            const diaExistente = await Dia.findByPk(diaId);
+            if (diaExistente) {
+                await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
+            }
+        }
+    }
+
+    res.status(201).json(nuevaAgendaTurnos);
+
+}
+
+const relacionarAgendaConDemasEntidades = async (agendaId, prestadorId, especialidadId, lugarAtencionId) => {
+    await AgendaTurnos.update({
+        prestadorId,
+        especialidadId,
+        lugarAtencionId
+    }, {
+        where: { id: agendaId }
+    });
+}
+
+const obtenerAgendasTurnos = async (req, res) => {
+    const agendas = await AgendaTurnos.findAll({
+        include: [
+            { model: Prestador },
+            { model: Especialidad },
+            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
+            { model: HorarioAtencion, include: { model: Dia } }
+        ]
+    });
+    res.status(200).json(agendas);
+};
+
+const obtenerAgendasTurnosFormateados = async (req, res) => {
+    const agendas = await AgendaTurnos.findAll({
+        include: [
+            { model: Prestador },
+            { model: Especialidad },
+            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
+            { model: HorarioAtencion, include: { model: Dia } }
+        ]
+    });
+
+    const agendasFormateadas = agendas.map(agenda => {
+
+        const horarios = agenda.HorarioAtencions.map(horario => ({
+            dias: horario.Dia.map(dia => dia.nombre),
+            horaInicio: horario.horaInicio,
+            horaFin: horario.horaFin
+        }));
+
+        const direccionData = agenda.LugarAtencion.Direccion;
+
+        const provincia = direccionData.Provincium;
+
+        const direccion = {
+            calle: direccionData.calle,
+            altura: direccionData.altura,
+            pisoDepto: direccionData.pisoDepto,
+            localidad: direccionData.localidad,
+            provincia: provincia.nombre
+        }
+
+        const agendaNueva = {
+            id: agenda.id,
+            prestador: agenda.Prestador.nombre,
+            especialidad: agenda.Especialidad.nombre,
+            horariosAtencion: horarios,
+            direccion: direccion,
+            duracion: agenda.duracion
+        }
+        return { ...agendaNueva };
+    });
+    res.status(200).json(agendasFormateadas);
+}
+
+
+module.exports = { crearAgendaTurnos, obtenerAgendasTurnos, obtenerAgendasTurnosFormateados };

@@ -1,43 +1,61 @@
 const Joi = require("joi");
 
 const prestadorSchemaCreate = Joi.object({
+
   nombre: Joi.string().min(3).max(100).required().messages({
     "string.base": "El nombre debe ser una cadena de texto",
     "string.min": "El nombre debe tener al menos {#limit} caracteres",
     "string.max": "El nombre debe tener como máximo {#limit} caracteres",
     "any.required": "El nombre es obligatorio",
   }),
+
   cuilCuit: Joi.string().length(11).pattern(/^[0-9]+$/).required().messages({
     "string.base": "El CUIL/CUIT debe ser una cadena de texto",
     "string.length": "El CUIL/CUIT debe tener exactamente {#limit} dígitos",
     "string.pattern": "El CUIL/CUIT debe contener sólo números",
     "any.required": "El CUIL/CUIT es obligatorio",
   }),
+
   esCentroMedico: Joi.boolean().required().messages({
     "boolean.base": "esCentroMedico debe ser un valor booleano",
     "any.required": "esCentroMedico es obligatorio",
   }),
-  integraCentroMedico: Joi.boolean().required().messages({
-    "boolean.base": "integraCentroMedico debe ser un valor booleano",
-    "any.required": "integraCentroMedico es obligatorio",
-  }),
 
-  centroMedicoQueIntegra: Joi.when("integraCentroMedico", {
-    is: true,
-    then: Joi.number().integer().required().messages({
-      "number.base": "El ID del centro médico debe ser un número",
-      "number.integer": "El ID del centro médico debe contener sólo números",
-      "any.required":
-        "El ID del centro médico es obligatorio cuando integraCentroMedico es true",
+  integraCentroMedico: Joi.when('esCentroMedico', {
+    is: false,
+    then: Joi.boolean().required().messages({
+      'boolean.base': 'integraCentroMedico debe ser un valor booleano',
+      'any.required': 'integraCentroMedico es obligatorio cuando esCentroMedico es false'
     }),
     otherwise: Joi.forbidden().messages({
-      "any.unknown":
-        "No se debe proporcionar centroMedicoQueIntegra cuando integraCentroMedico es false",
-    }),
+      'any.unknown': 'No se debe proporcionar integraCentroMedico cuando esCentroMedico es true'
+    })
+  }),
+
+  centroMedicoQueIntegra: Joi.when('integraCentroMedico', {
+    is: true,
+    then: Joi.number()
+      .integer()
+      .required()
+    
+      .messages({
+        'number.base': 'El ID del centro médico debe ser un número',
+        'number.integer': 'El ID del centro médico debe contener sólo números',
+        'any.required': 'El ID del centro médico es obligatorio cuando integraCentroMedico es true'
+      }),
+    otherwise: Joi.forbidden().messages({
+      'any.unknown': 'No se debe proporcionar centroMedicoQueIntegra cuando integraCentroMedico es false'
+    })
   }),
 
   // Campos nuevos permitidos:
-  especialidades: Joi.array().items(Joi.number()).min(1).required().messages({
+  especialidades: Joi.array().items(
+    Joi.number().integer().required().messages({
+      "number.base": "El ID de la especialidad debe ser un número",
+      "number.integer": "El ID de la especialidad debe ser un número entero",
+      "any.required": "El ID de la especialidad es obligatorio",
+    })
+  ).min(1).required().messages({
     "array.base": "Las especialidades deben estar dentro de un array",
     "array.min": "Debe haber al menos {#limit} especialidad(es)",
     "any.required": "Las especialidades son obligatorias",
@@ -62,11 +80,10 @@ const prestadorSchemaCreate = Joi.object({
   telefonos: Joi.array()
     .items(
       Joi.object({
-        numero: Joi.number().integer().required().messages({
-          "number.base": "El teléfono debe ser un número",
-          "number.integer": "El teléfono debe contener sólo números",
-          "any.required":
-            "Es obligatorio ingresar al menos un número de teléfono",
+        numero: Joi.string().pattern(/^[0-9]+$/).required().messages({
+          "string.base": "El teléfono debe ser una cadena de texto",
+          "string.pattern": "El teléfono debe contener sólo números",
+          "any.required": "El teléfono es obligatorio",
         }),
       })
     )
@@ -80,19 +97,49 @@ const prestadorSchemaCreate = Joi.object({
 
   lugaresAtencion: Joi.array().items(
     Joi.object({
-      calle: Joi.string().required(),
-      altura: Joi.number().integer().required(),
-      pisoDepto: Joi.string(),
-      codigoPostal: Joi.string(),
-      localidad: Joi.string().required(),
-      provincia: Joi.number().integer().required(),
+      calle: Joi.string().required().messages({
+        'string.base': 'La calle debe ser una cadena de texto',
+        'any.required': 'La calle es obligatoria'
+      }),
+      altura: Joi.number().integer().required().messages({
+        'number.base': 'La altura debe ser un número',
+        'number.integer': 'La altura debe ser un número entero',
+        'any.required': 'La altura es obligatoria'
+      }),
+      pisoDepto: Joi.string().messages({
+        'string.base': 'El piso/departamento debe ser una cadena de texto'
+      }),
+      codigoPostal: Joi.string().messages({
+        'string.base': 'El código postal debe ser una cadena de texto'
+      }),
+      localidad: Joi.string().required().messages({
+        'string.base': 'La localidad debe ser una cadena de texto',
+        'any.required': 'La localidad es obligatoria'
+      }),
+      provincia: Joi.number().integer().required().messages({
+        'number.base': 'El ID de la provincia debe ser un número',
+        'number.integer': 'El ID de la provincia debe ser un número entero',
+        'any.required': 'El ID de la provincia es obligatorio'
+      }),
       horarios: Joi.array()
         .items(
           Joi.object({
-            horaInicio: Joi.number().integer().required(),
-            horaFin: Joi.number().integer().required(),
+            horaInicio: Joi.string().pattern(/^([0-1]\d|2[0-3]):([0-5]\d)$/).required().messages({
+              'string.base': 'La hora de inicio debe ser una cadena de texto',
+              'string.pattern.base': 'La hora de inicio debe tener el formato HH:MM (24 horas)',
+              'any.required': 'La hora de inicio es obligatoria'
+            }),
+            horaFin: Joi.string().pattern(/^([0-1]\d|2[0-3]):([0-5]\d)$/).required().messages({
+              'string.base': 'La hora de fin debe ser una cadena de texto',
+              'string.pattern.base': 'La hora de fin debe tener el formato HH:MM (24 horas)',
+              'any.required': 'La hora de fin es obligatoria'
+            }),
             dias: Joi.array()
-              .items(Joi.number().integer().required())
+              .items(Joi.number().integer().required().messages({
+                'number.base': 'El ID del día debe ser un número',
+                'number.integer': 'El ID del día debe ser un número entero',
+                'any.required': 'El ID del día es obligatorio'
+              }))
               .required(),
           })
         )
