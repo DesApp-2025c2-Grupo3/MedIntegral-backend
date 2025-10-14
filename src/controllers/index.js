@@ -5,6 +5,7 @@ const especialidadController = require('./especialidadController')
 const diaController = require('./diaController')
 const direccionController = require('./direccionController')
 const prestadorController = require('./prestadorController')
+const agendaTurnosController = require('./agendaTurnosController')
 
 module.exports = {
   telefonoController,
@@ -13,5 +14,6 @@ module.exports = {
   especialidadController,
   diaController,
   direccionController,
-  prestadorController
+  prestadorController,
+  agendaTurnosController
 }
