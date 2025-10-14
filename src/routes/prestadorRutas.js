@@ -17,7 +17,7 @@ router.get('/',
 );
 
 router.get("/:id", 
-  genericMiddleware.existsModelById,
+  genericMiddleware.existsModelById(Prestador),
   prestadorController.obtenerPrestador);
 
 router.put("/:id/datos-personales",
