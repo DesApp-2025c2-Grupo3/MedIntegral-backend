@@ -2,13 +2,12 @@ const Joi = require("joi");
 
 const prestadorSchemaCreate = Joi.object({
 
-  nombre: Joi.string()
-    .min(3).max(100).required().messages({
-      "string.base": "El nombre debe ser una cadena de texto",
-      "string.min": "El nombre debe tener al menos {#limit} caracteres",
-      "string.max": "El nombre debe tener como máximo {#limit} caracteres",
-      "any.required": "El nombre es obligatorio",
-    }),
+  nombre: Joi.string().min(3).max(100).required().messages({
+    "string.base": "El nombre debe ser una cadena de texto",
+    "string.min": "El nombre debe tener al menos {#limit} caracteres",
+    "string.max": "El nombre debe tener como máximo {#limit} caracteres",
+    "any.required": "El nombre es obligatorio",
+  }),
 
   cuilCuit: Joi.string().length(11).pattern(/^[0-9]+$/).required().messages({
     "string.base": "El CUIL/CUIT debe ser una cadena de texto",
@@ -161,13 +160,12 @@ const prestadorSchemaCreate = Joi.object({
 
 const prestadorSchemaUpdateDatosPersonales = Joi.object({
 
-  nombre: Joi.string()
-    .min(3).max(100).required().messages({
-      "string.base": "El nombre debe ser una cadena de texto",
-      "string.min": "El nombre debe tener al menos {#limit} caracteres",
-      "string.max": "El nombre debe tener como máximo {#limit} caracteres",
-      "any.required": "El nombre es obligatorio",
-    }),
+  nombre: Joi.string().min(3).max(100).required().messages({
+    "string.base": "El nombre debe ser una cadena de texto",
+    "string.min": "El nombre debe tener al menos {#limit} caracteres",
+    "string.max": "El nombre debe tener como máximo {#limit} caracteres",
+    "any.required": "El nombre es obligatorio",
+  }),
 
   cuilCuit: Joi.string().length(11).pattern(/^[0-9]+$/).required().messages({
     "string.base": "El CUIL/CUIT debe ser una cadena de texto",
