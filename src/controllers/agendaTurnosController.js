@@ -160,11 +160,27 @@ const actualizarAgendaTurnos = async (req, res) => {
     res.status(200).json(agendaTurnos);
 };
 
+const eliminarAgendaTurnos = async (req, res) => {
+    const { id } = req.params;
+
+    const agendaTurnos = await AgendaTurnos.findByPk(id);
+
+    for (const horario of agendaTurnos.HorarioAtencions) {
+        await horario.setDia([]);
+    }
+
+    await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
+
+    await AgendaTurnos.destroy({ where: { id } });
+
+    res.status(200).json({ message: "Agenda de turnos eliminada correctamente" });
+}
 
 module.exports = {
     crearAgendaTurnos,
     obtenerAgendasTurnos,
     obtenerAgendasTurnosFormateados,
     obtenerUnaAgendaTurnos,
-    actualizarAgendaTurnos
+    actualizarAgendaTurnos,
+    eliminarAgendaTurnos
 };

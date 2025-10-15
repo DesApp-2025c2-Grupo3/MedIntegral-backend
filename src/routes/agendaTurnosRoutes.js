@@ -23,16 +23,24 @@ router.get('/listado',
     agendaTurnosController.obtenerAgendasTurnosFormateados
 );
 
+//sin probar
 router.get("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     agendaTurnosController.obtenerUnaAgendaTurnos
 );
 
+//sin probar
 router.put("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdate),
     agendaTurnosMiddleware.validarExistenciaDeModelos,
     agendaTurnosController.actualizarAgendaTurnos
+);
+
+//sin probar
+router.delete("/:id",
+    genericMiddleware.existsModelById(AgendaTurnos),
+    agendaTurnosController.eliminarAgendaTurnos
 );
 
 module.exports = router;
