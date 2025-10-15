@@ -35,7 +35,6 @@ router.put("/:id",
     agendaTurnosController.actualizarAgendaTurnos
 );
 
-//sin probar
 router.delete("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     agendaTurnosController.eliminarAgendaTurnos
