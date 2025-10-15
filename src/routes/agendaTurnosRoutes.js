@@ -13,13 +13,26 @@ router.post('/',
     genericMiddleware.existModelRequest(LugarAtencion),
     agendaTurnosController.crearAgendaTurnos
 );
+
 router.get('/',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnos
 );
+
 router.get('/listado',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnosFormateados
+);
+
+router.get("/:id",
+    genericMiddleware.existsModelById(AgendaTurnos),
+    agendaTurnosController.obtenerUnaAgendaTurnos
+);
+
+router.put("/:id",
+  genericMiddleware.existsModelById(AgendaTurnos),
+  genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdate),
+  agendaTurnosController.actualizarAgendaTurnos
 );
 
 module.exports = router;

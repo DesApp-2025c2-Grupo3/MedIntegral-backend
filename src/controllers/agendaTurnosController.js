@@ -108,5 +108,63 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
     res.status(200).json(agendasFormateadas);
 }
 
+const obtenerUnaAgendaTurnos = async (req, res) => {
+    const { id } = req.params;
+    const agenda = await AgendaTurnos.findByPk(id, {
+        include: [
+            { model: Prestador },
+            { model: Especialidad },
+            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
+            { model: HorarioAtencion, include: { model: Dia } }
+        ]
+    });
+    res.status(200).json(agenda);
+};
 
-module.exports = { crearAgendaTurnos, obtenerAgendasTurnos, obtenerAgendasTurnosFormateados };
+const actualizarAgendaTurnos = async (req, res) => {
+    const { id } = req.params;
+    const { horarios } = req.body;
+
+    const agendaTurnos = await AgendaTurnos.findByPk(id);
+
+    const entidadesRelacionadas = [Prestador, Especialidad, LugarAtencion];
+
+    entidadesRelacionadas.forEach(async (entidad) => {
+        const idModelo = req.body[entidad.name.toLowerCase() + "Id"];
+        if (idModelo) { // si hay algun dato para actualizar
+            const nombreAtributo = entidad.name[0].toLowerCase() + entidad.name.slice(1) + "Id"; // ej: lugarAtencionId
+            await AgendaTurnos.update({ [nombreAtributo]: idModelo }, { where: { id } }); // actualizo el atributo correspondiente
+        }
+    });
+
+    for (const horario of agendaTurnos.HorarioAtencions) {
+        await horario.setDia([]);
+    }
+    await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
+
+    for (const horario of horarios) {
+        const nuevoHorario = await HorarioAtencion.create({
+            agendaTurnosId: id,
+            horaInicio: horario.horaInicio,
+            horaFin: horario.horaFin,
+            duracionTurno: horario.duracion
+        });
+
+        for (const diaId of horario.dias) {
+            const diaExistente = await Dia.findByPk(diaId);
+            if (diaExistente) {
+                await nuevoHorario.addDia(diaExistente);
+            }
+        }
+    }
+    res.status(200).json(agendaTurnos);
+};
+
+
+module.exports = {
+    crearAgendaTurnos,
+    obtenerAgendasTurnos,
+    obtenerAgendasTurnosFormateados,
+    obtenerUnaAgendaTurnos,
+    actualizarAgendaTurnos
+};
