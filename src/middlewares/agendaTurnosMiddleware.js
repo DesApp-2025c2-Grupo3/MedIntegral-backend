@@ -10,7 +10,7 @@ const validarExistenciaDeModelos = async (req, res, next) => {
         if (idModelo) {
             const modeloExistente = await entidad.findByPk(idModelo);
             if (!modeloExistente) {
-                return errorPersonalizado(`El ${entidad.name} con id ${idModelo} no existe`, 400, next);
+                return errorPersonalizado(`${entidad.name} con id ${idModelo} no existe`, 400, next);
             }
         }
     });

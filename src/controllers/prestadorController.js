@@ -314,8 +314,8 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
   const prestador = await Prestador.findByPk(id);
   await prestador.update({
     esCentroMedico,
-    integraCentroMedico,
-    centroMedicoId: integraCentroMedico ? centroMedicoQueIntegra : null,
+    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico), // Si es centro médico, no puede integrar otro centro
+    centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null),
   });
   return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };

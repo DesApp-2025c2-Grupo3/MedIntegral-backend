@@ -125,7 +125,7 @@ const actualizarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { horarios } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id);
+    const agendaTurnos = await AgendaTurnos.findByPk(id, {include: [HorarioAtencion]});
 
     const entidadesRelacionadas = [Prestador, Especialidad, LugarAtencion];
 
@@ -163,7 +163,7 @@ const actualizarAgendaTurnos = async (req, res) => {
 const eliminarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id);
+    const agendaTurnos = await AgendaTurnos.findByPk(id, {include: [HorarioAtencion]});
 
     for (const horario of agendaTurnos.HorarioAtencions) {
         await horario.setDia([]);

@@ -23,13 +23,11 @@ router.get('/listado',
     agendaTurnosController.obtenerAgendasTurnosFormateados
 );
 
-//sin probar
 router.get("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     agendaTurnosController.obtenerUnaAgendaTurnos
 );
 
-//sin probar
 router.put("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdate),
