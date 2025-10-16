@@ -5,41 +5,42 @@ const { genericMiddleware, prestadorMiddleware } = require("../middlewares");
 const { Prestador } = require("../db/models");
 const { prestadorSchema } = require("../middlewares/schemas");
 
-router.post('/', 
-    genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaCreate),
-    prestadorMiddleware.validarExistenciaCentroMedico,
-    prestadorController.crearPrestador
+router.post('/',
+  genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaCreate),
+  prestadorMiddleware.validarExistenciaCentroMedico,
+  prestadorController.crearPrestador
 );
 
-router.get('/', 
-    genericMiddleware.existsAnyByModel(Prestador),
-    prestadorController.obtenerPrestadores
+router.get('/',
+  genericMiddleware.existsAnyByModel(Prestador),
+  prestadorController.obtenerPrestadores
 );
 
-router.get("/:id", 
+router.get("/:id",
   genericMiddleware.existsModelById(Prestador),
   prestadorController.obtenerPrestador);
 
 router.put("/:id/datos-personales",
-//   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+  genericMiddleware.existsModelById(Prestador),
+  genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdateDatosPersonales),
   prestadorController.actualizarDatosPersonalesPrestador
 );
 
-router.put(
-  "/:id/lugares-atencion",
-//   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+router.put("/:id/lugares-atencion",
+  genericMiddleware.existsModelById(Prestador),
+  genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdateLugaresAtencion),
   prestadorController.actualizarLugaresAtencionPrestador
 );
 
-router.put(
-  "/:id/especialidades",
-  //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+router.put("/:id/especialidades",
+  genericMiddleware.existsModelById(Prestador),
+  genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdateEspecialidades),
   prestadorController.actualizarEspecialidadesPrestador
 );
 
-router.put(
-  "/:id/centro-medico",
-  //   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdate),
+router.put("/:id/centro-medico",
+  genericMiddleware.existsModelById(Prestador),
+  genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdateCentroMedico),
   prestadorController.actualizarCentroMedicoPrestador
 );
 

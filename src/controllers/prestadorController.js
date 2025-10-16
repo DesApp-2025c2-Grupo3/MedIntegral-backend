@@ -202,39 +202,29 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   const { id } = req.params;
   const { nombre, cuilCuit, emails, telefonos } = req.body;
 
-  try {
-    const prestador = await Prestador.findByPk(id);
+  const prestador = await Prestador.findByPk(id);
 
-    await prestador.update({ nombre, cuilCuit });
+  await prestador.update({ nombre, cuilCuit });
 
-    //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
-    await Email.destroy({ where: { prestadorId: id } });
+  //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
+  await Email.destroy({ where: { prestadorId: id } });
 
-    const datosEmails = emails.map((e) => ({
-      direccion: e.direccion,
-      prestadorId: id,
-    }));
-    await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
+  const datosEmails = emails.map((e) => ({
+    direccion: e.direccion,
+    prestadorId: id,
+  }));
+  await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
-    //Teléfonos (borramos los viejos e insertamos los nuevos)
-    await Telefono.destroy({ where: { prestadorId: id } });
+  //Teléfonos (borramos los viejos e insertamos los nuevos)
+  await Telefono.destroy({ where: { prestadorId: id } });
 
-    const datosTelefonos = telefonos.map((tel) => ({
-      numero: tel.numero,
-      prestadorId: id,
-    }));
-    await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
+  const datosTelefonos = telefonos.map((tel) => ({
+    numero: tel.numero,
+    prestadorId: id,
+  }));
+  await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
 
-    return res
-      .status(200)
-      .json({ message: "Prestador actualizado correctamente." }, prestador);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error:
-        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
-    });
-  }
+  return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
 //Actualizar lugares de atencion y horarios
@@ -242,77 +232,59 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   const { id } = req.params;
   const { lugaresAtencion } = req.body;
 
-  try {
-    const prestador = await Prestador.findByPk(id);
-    if (!prestador) {
-      return res.status(404).json({ error: "Prestador no encontrado." });
-    }
+  const prestador = await Prestador.findByPk(id);
 
-    //Eliminacion:
-    const lugaresActuales = await LugarAtencion.findAll({
-      where: { prestadorId: id },
-      include: [{ model: HorarioAtencion, as: "HorarioAtencions" }],
+  //Eliminacion:
+  const lugaresActuales = await LugarAtencion.findAll({
+    where: { prestadorId: id },
+    include: [{ model: HorarioAtencion, as: "HorarioAtencions" }],
+  });
+
+  for (const lugar of lugaresActuales) {
+    for (const horario of lugar.HorarioAtencions) {
+      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
+    }
+    await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
+    await lugar.destroy();
+    //destruyo las direcciones? porque otros lugares de atención podrían usarla también
+    await Direccion.destroy({ where: { id: lugar.direccionId } });
+  }
+
+  //Creacion:
+  for (const lugar of lugaresAtencion) {
+    //Si no elimino las direcciones, cómo sé que no estoy creando duplicados?
+    const nuevaDireccion = await Direccion.create({
+      calle: lugar.calle,
+      altura: lugar.altura,
+      pisoDepto: lugar.pisoDepto,
+      codigoPostal: lugar.codigoPostal,
+      localidad: lugar.localidad,
+      provinciaId: lugar.provincia,
     });
 
-    for (const lugar of lugaresActuales) {
-      for (const horario of lugar.HorarioAtencions) {
-        await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
-      }
-      await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
-      await lugar.destroy();
-      //destruyo las direcciones? porque otros lugares de atención podrían usarla también
-      await Direccion.destroy({ where: { id: lugar.direccionId } });
-    }
+    const nuevoLugarAtencion = await LugarAtencion.create({
+      prestadorId: id,
+      direccionId: nuevaDireccion.id,
+    });
 
-    //Creacion:
-    for (const lugar of lugaresAtencion) {
-      //Si no elimino las direcciones, cómo sé que no estoy creando duplicados?
-      const nuevaDireccion = await Direccion.create({
-        calle: lugar.calle,
-        altura: lugar.altura,
-        pisoDepto: lugar.pisoDepto,
-        codigoPostal: lugar.codigoPostal,
-        localidad: lugar.localidad,
-        provinciaId: lugar.provincia,
+    for (const horarioData of lugar.horarios) {
+      const nuevoHorario = await HorarioAtencion.create({
+        horaInicio: horarioData.horaInicio,
+        horaFin: horarioData.horaFin,
+        lugarAtencionId: nuevoLugarAtencion.id,
       });
 
-      const nuevoLugarAtencion = await LugarAtencion.create({
-        prestadorId: id,
-        direccionId: nuevaDireccion.id,
-      });
-
-      for (const lugar of lugaresAtencion) {
-        console.log(lugar.horarios);
-      }
-
-      for (const horarioData of lugar.horarios) {
-        const nuevoHorario = await HorarioAtencion.create({
-          horaInicio: horarioData.horaInicio,
-          horaFin: horarioData.horaFin,
-          lugarAtencionId: nuevoLugarAtencion.id,
-        });
-
-        //Por cada horario extraemos el array de días
-        for (const diaData of horarioData.dias) {
-          const diaExistente = await Dia.findByPk(diaData);
-          if (diaExistente) {
-            await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-          }
+      //Por cada horario extraemos el array de días
+      for (const diaData of horarioData.dias) {
+        const diaExistente = await Dia.findByPk(diaData);
+        if (diaExistente) {
+          await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
         }
       }
     }
-
-    return res.status(200).json({
-      message: "Lugares de atencion del Prestador actualizados correctamente.",
-      prestador,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error:
-        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
-    });
   }
+
+  return res.status(200).json({ message: "Lugares de atencion del Prestador actualizados correctamente.", prestador });
 };
 
 //actualizar especialidades
@@ -320,53 +292,32 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
   const { id } = req.params;
   const { especialidades } = req.body;
 
-  try {
-    const prestador = await Prestador.findByPk(id);
+  const prestador = await Prestador.findByPk(id);
 
-    //Vacío el array de especialidades actuales
-    await prestador.setEspecialidads([]); // funciona con Especialidads porque así lo generó Sequelize
+  //Vacío el array de especialidades actuales
+  await prestador.setEspecialidads([]); // funciona con Especialidads porque así lo generó Sequelize
 
-    for (const espId of especialidades) {
-      const esp = await Especialidad.findByPk(espId);
-      if (esp) {
-        await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
-      }
+  for (const espId of especialidades) {
+    const esp = await Especialidad.findByPk(espId);
+    if (esp) {
+      await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
     }
-
-    return res
-      .status(200)
-      .json({ message: "Especialidades actualizadas correctamente." });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error:
-        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
-    });
   }
+  return res.status(200).json({ message: "Especialidades actualizadas correctamente." });
 };
 
 //actualizar si es centro médico
 const actualizarCentroMedicoPrestador = async (req, res) => {
   const { id } = req.params;
-  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } =
-    req.body;
-  try {
-    const prestador = await Prestador.findByPk(id);
-    await prestador.update({
-      esCentroMedico,
-      integraCentroMedico,
-      centroMedicoId: integraCentroMedico ? centroMedicoQueIntegra : null,
-    });
-    return res
-      .status(200)
-      .json({ message: "Prestador actualizado correctamente." }, prestador);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error:
-        "Error al actualizar el prestador: Los datos pueden haber quedado inconsistentes.",
-    });
-  }
+  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } = req.body;
+
+  const prestador = await Prestador.findByPk(id);
+  await prestador.update({
+    esCentroMedico,
+    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico), // Si es centro médico, no puede integrar otro centro
+    centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null),
+  });
+  return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
 module.exports = {
