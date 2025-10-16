@@ -56,11 +56,11 @@ const relacionarAgendaConDemasEntidades = async (agendaId, prestadorId, especial
 const obtenerAgendasTurnos = async (req, res) => {
     const agendas = await AgendaTurnos.findAll({
         include: [
-            { model: Prestador },
-            { model: Especialidad },
-            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
-            { model: HorarioAtencion, include: { model: Dia } }
-        ]
+            { model: Prestador, attributes: ["nombre"] },
+            { model: Especialidad, attributes: ["nombre"] },
+            { model: LugarAtencion, attributes: { exclude: ["createdAt", "updatedAt"] }, include: [{ model: Direccion, attributes: ["calle", "altura", "pisoDepto", "localidad"], include: { model: Provincia, attributes: ["nombre"] } }] },
+            { model: HorarioAtencion, attributes: ["horaInicio", "horaFin", "duracionTurno"], include: { model: Dia, attributes: { exclude: ["createdAt", "updatedAt"] } } }
+        ], attributes: { exclude: ["createdAt", "updatedAt"] }
     });
     res.status(200).json(agendas);
 };
@@ -125,7 +125,7 @@ const actualizarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { horarios } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, {include: [HorarioAtencion]});
+    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
 
     const entidadesRelacionadas = [Prestador, Especialidad, LugarAtencion];
 
@@ -163,7 +163,7 @@ const actualizarAgendaTurnos = async (req, res) => {
 const eliminarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, {include: [HorarioAtencion]});
+    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
 
     for (const horario of agendaTurnos.HorarioAtencions) {
         await horario.setDia([]);
