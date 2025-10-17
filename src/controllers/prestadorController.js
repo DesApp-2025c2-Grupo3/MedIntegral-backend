@@ -366,5 +366,6 @@ module.exports = {
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
-  obtenerPrestadoresSinAgenda
+  obtenerPrestadoresSinAgenda,
+  eliminarPrestador
 };
