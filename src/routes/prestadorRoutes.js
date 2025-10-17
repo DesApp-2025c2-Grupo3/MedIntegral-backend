@@ -51,4 +51,9 @@ router.put("/:id/centro-medico",
   prestadorController.actualizarCentroMedicoPrestador
 );
 
+router.delete("/:id",
+    genericMiddleware.existsModelById(Prestador),
+    prestadorController.eliminarPrestador
+);
+
 module.exports = router;

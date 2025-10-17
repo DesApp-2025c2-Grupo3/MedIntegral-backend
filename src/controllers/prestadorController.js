@@ -321,6 +321,30 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
   return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
+//falta eliminar entidades relacionadas
+//si es centro medico y tiene prestadores asociados, no dejar eliminar 
+//o a cada prestador asignarle null en centroMedicoId y false en integra centro medico
+const eliminarPrestador = async (req, res) => {
+  const { id } = req.params;
+
+  const prestador = await Prestador.findByPk(id, {
+    include: [
+      { model: Email },
+      { model: Telefono },
+      { model: Especialidad },
+      { model: LugarAtencion, include: [
+          { model: Direccion, include: { model: Provincia } },
+          { model: HorarioAtencion, include: { model: Dia } }
+        ],
+      }
+    ]
+  });
+
+  await prestador.destroy();
+
+  return res.status(200).json({ message: "Prestador eliminado correctamente." });
+}
+
 const obtenerPrestadoresSinAgenda = async (req, res) => {
   const prestadoresConAgenda = await AgendaTurnos.findAll({
     attributes: ['prestadorId'],
