@@ -121,22 +121,15 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     res.status(200).json(agenda);
 };
 
-//prestador no deberia cambiar ni el lugar
 const actualizarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
-    const { horarios } = req.body;
+    const { horarios, especialidadId } = req.body;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
-
-    const entidadesRelacionadas = [Prestador, Especialidad, LugarAtencion];
-
-    entidadesRelacionadas.forEach(async (entidad) => {
-        const idModelo = req.body[entidad.name.toLowerCase() + "Id"];
-        if (idModelo) { // si hay algun dato para actualizar
-            const nombreAtributo = entidad.name[0].toLowerCase() + entidad.name.slice(1) + "Id"; // ej: lugarAtencionId
-            await AgendaTurnos.update({ [nombreAtributo]: idModelo }, { where: { id } }); // actualizo el atributo correspondiente
-        }
-    });
+   
+    if (especialidadId) { 
+        await AgendaTurnos.update({ especialidadId }, { where: { id } });
+    }
 
     for (const horario of agendaTurnos.HorarioAtencions) {
         await horario.setDia([]);
