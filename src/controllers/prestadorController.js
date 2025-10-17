@@ -8,6 +8,7 @@ const {
   HorarioAtencion,
   Especialidad,
   Dia,
+  AgendaTurnos
 } = require("../db/models");
 
 //Crear prestador
@@ -314,11 +315,51 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
   const prestador = await Prestador.findByPk(id);
   await prestador.update({
     esCentroMedico,
-    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico), // Si es centro médico, no puede integrar otro centro
+    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico),
     centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null),
   });
   return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };
+
+const obtenerPrestadoresSinAgenda = async (req, res) => {
+
+  console.log("Obteniendo prestadores sin agenda...");
+  const prestadores = await Prestador.findAll({
+    include: [
+      { model: Email },
+      { model: Telefono },
+      { model: Especialidad },
+      { model: LugarAtencion, include: [
+          { model: Direccion, include: { model: Provincia } },
+          { model: HorarioAtencion, include: { model: Dia } }
+        ],
+      },
+    ]
+  });
+
+  console.log("Prestadores :");
+  console.log(prestadores);
+
+  const prestadoresConAgenda = await AgendaTurnos.findAll({
+    attributes: ['prestadorId'],
+    group: ['prestadorId']
+  });
+
+  console.log("Prestadores con agenda:");
+  console.log(prestadoresConAgenda);
+
+  const prestadoresConAgendaIds = prestadoresConAgenda.map(a => a.prestadorId);
+
+  console.log("id de Prestadores con agenda:");
+  console.log(prestadoresConAgendaIds);
+
+  const prestadoresSinAgenda = prestadores.filter(p => !prestadoresConAgendaIds.includes(p.id));
+
+console.log("Prestadores sin agenda:");
+  console.log(prestadoresSinAgenda);
+
+  return res.status(200).json(prestadoresSinAgenda);
+}
 
 module.exports = {
   crearPrestador,
@@ -328,4 +369,5 @@ module.exports = {
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
+  obtenerPrestadoresSinAgenda
 };
