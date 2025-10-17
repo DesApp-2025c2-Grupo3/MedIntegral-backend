@@ -321,10 +321,13 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
   return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
-const obtenerPrestadoresSinAgenda = async (req, res) => {
+//falta eliminar entidades relacionadas
+//si es centro medico y tiene prestadores asociados, no dejar eliminar 
+//o a cada prestador asignarle null en centroMedicoId y false en integra centro medico
+const eliminarPrestador = async (req, res) => {
+  const { id } = req.params;
 
-  console.log("Obteniendo prestadores sin agenda...");
-  const prestadores = await Prestador.findAll({
+  const prestador = await Prestador.findByPk(id, {
     include: [
       { model: Email },
       { model: Telefono },
@@ -333,33 +336,27 @@ const obtenerPrestadoresSinAgenda = async (req, res) => {
           { model: Direccion, include: { model: Provincia } },
           { model: HorarioAtencion, include: { model: Dia } }
         ],
-      },
+      }
     ]
   });
 
-  console.log("Prestadores :");
-  console.log(prestadores);
+  await prestador.destroy();
 
+  return res.status(200).json({ message: "Prestador eliminado correctamente." });
+}
+
+const obtenerPrestadoresSinAgenda = async (req, res) => {
   const prestadoresConAgenda = await AgendaTurnos.findAll({
     attributes: ['prestadorId'],
     group: ['prestadorId']
   });
-
-  console.log("Prestadores con agenda:");
-  console.log(prestadoresConAgenda);
-
-  const prestadoresConAgendaIds = prestadoresConAgenda.map(a => a.prestadorId);
-
-  console.log("id de Prestadores con agenda:");
-  console.log(prestadoresConAgendaIds);
-
-  const prestadoresSinAgenda = prestadores.filter(p => !prestadoresConAgendaIds.includes(p.id));
-
-console.log("Prestadores sin agenda:");
-  console.log(prestadoresSinAgenda);
-
+  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(pa => pa.prestadorId);
+  const prestadores = await Prestador.findAll({
+    attributes: ["id", "nombre"]
+  });
+  const prestadoresSinAgenda = prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id));
   return res.status(200).json(prestadoresSinAgenda);
-}
+};
 
 module.exports = {
   crearPrestador,
