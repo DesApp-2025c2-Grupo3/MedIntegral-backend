@@ -53,6 +53,7 @@ router.put("/:id/centro-medico",
 
 router.delete("/:id",
     genericMiddleware.existsModelById(Prestador),
+    prestadorMiddleware.validarQueNoSeaCentroMedicoONoTengaIntegrantes,
     prestadorController.eliminarPrestador
 );
 

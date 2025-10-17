@@ -322,8 +322,6 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
 };
 
 //falta eliminar entidades relacionadas
-//si es centro medico y tiene prestadores asociados, no dejar eliminar 
-//o a cada prestador asignarle null en centroMedicoId y false en integra centro medico
 const eliminarPrestador = async (req, res) => {
   const { id } = req.params;
 
@@ -339,6 +337,25 @@ const eliminarPrestador = async (req, res) => {
       }
     ]
   });
+
+  await Email.destroy({ where: { prestadorId: id } });
+  await Telefono.destroy({ where: { prestadorId: id } });
+  await prestador.setEspecialidads([]);
+
+  const lugaresActuales = await LugarAtencion.findAll({
+    where: { prestadorId: id },
+    include: [{ model: HorarioAtencion }],
+  });
+
+  for (const lugar of lugaresActuales) {
+    for (const horario of lugar.HorarioAtencions) {
+      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
+    }
+    await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
+    await lugar.destroy();
+    //destruyo las direcciones? porque otros lugares de atención podrían usarla también
+    await Direccion.destroy({ where: { id: lugar.direccionId } });
+  }
 
   await prestador.destroy();
 
