@@ -71,19 +71,9 @@ const agendaTurnosSchemaCreate = Joi.object({
 
 const agendaTurnosSchemaUpdate = Joi.object({
 
-    prestadorId: Joi.number().integer().messages({
-        'number.base': 'El ID del prestador debe ser un número',
-        'number.integer': 'El ID del prestador debe ser un número entero'
-    }),
-
     especialidadId: Joi.number().integer().messages({
         'number.base': 'El ID de la especialidad debe ser un número',
         'number.integer': 'El ID de la especialidad debe ser un número entero'
-    }),
-
-    lugaratencionId: Joi.number().integer().messages({
-        'number.base': 'El ID del lugar de atención debe ser un número',
-        'number.integer': 'El ID del lugar de atención debe ser un número entero'
     }),
 
     horarios: Joi.array().items(

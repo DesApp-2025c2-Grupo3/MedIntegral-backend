@@ -121,6 +121,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     res.status(200).json(agenda);
 };
 
+//prestador no deberia cambiar ni el lugar
 const actualizarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { horarios } = req.body;

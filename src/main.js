@@ -2,8 +2,7 @@ const EXPRESS = require('express');
 const APP = EXPRESS();
 const CORS = require('cors');
 const DB = require('./db/models');
-const { prestadorRutas, provinciaRutas, diaRutas, agendaTurnosRutas, especialidadesRutas } = require('./routes');
-const { genericMiddleware } = require("./middlewares");
+const { configureApp } = require('./app');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3002;
@@ -15,14 +14,8 @@ APP.use(CORS({
 }));
 
 APP.use(EXPRESS.json());
-
-APP.use(genericMiddleware.logRequest);
-APP.use(genericMiddleware.manejoDeErroresGlobales);
-APP.use('/prestadores', prestadorRutas);
-APP.use('/api/agenda-turnos', agendaTurnosRutas);
-APP.use('/provincias', provinciaRutas);
-APP.use('/dias', diaRutas);
-APP.use('/especialidades', especialidadesRutas);
+// Configuro rutas y middlewares desde app.js
+configureApp(APP);
 
 APP.listen(PORT, async () => {
   console.log(`App corriendo en el puerto ${PORT}`);
@@ -30,3 +23,5 @@ APP.listen(PORT, async () => {
     //{force: true}
   );
 });
+
+module.exports = { APP };

@@ -1,15 +1,13 @@
-const telefonoRutas = require('./telefonoRoutes')
 const provinciaRutas = require('./provinciaRoutes')
-const diaRutas = require('./diaRutas')
-const prestadorRutas = require('./prestadorRutas')
+const diaRutas = require('./diaRoutes')
+const prestadorRutas = require('./prestadorRoutes')
 const agendaTurnosRutas = require('./agendaTurnosRoutes')
-const especialidadesRutas = require('./especialidadesRutas')
+const especialidadRutas = require('./especialidadRoutes')
 
 module.exports = {
-  telefonoRutas,
   provinciaRutas,
   diaRutas,
   agendaTurnosRutas,
   prestadorRutas,
-  especialidadesRutas
+  especialidadRutas
 }
