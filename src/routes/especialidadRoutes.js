@@ -1,11 +1,12 @@
-const { Router } = require('express')
-const router = Router()
-const { especialidadController } = require('../controllers')
-const { genericMiddleware } = require('../middlewares')
+const { Router } = require('express');
+const router = Router();
+const { especialidadController } = require('../controllers');
+const { genericMiddleware } = require('../middlewares');
 const { Especialidad } = require("../db/models");
 
 router.get('/', 
     genericMiddleware.existsAnyByModel(Especialidad),
-    especialidadController.obtenerEspecialidades)
+    especialidadController.obtenerEspecialidades
+);
 
 module.exports = router;

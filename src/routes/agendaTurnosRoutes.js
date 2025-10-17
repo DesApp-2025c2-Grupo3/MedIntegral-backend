@@ -1,7 +1,7 @@
-const { Router } = require('express')
-const router = Router()
-const { agendaTurnosController } = require('../controllers')
-const { genericMiddleware, agendaTurnosMiddleware } = require('../middlewares')
+const { Router } = require('express');
+const router = Router();
+const { agendaTurnosController } = require('../controllers');
+const { genericMiddleware, agendaTurnosMiddleware } = require('../middlewares');
 const { AgendaTurnos, Especialidad, Prestador, LugarAtencion } = require("../db/models");
 const { agendaTurnosSchema } = require("../middlewares/schemas");
 

@@ -8,6 +8,7 @@ const {
   HorarioAtencion,
   Especialidad,
   Dia,
+  AgendaTurnos
 } = require("../db/models");
 
 //Crear prestador
@@ -320,6 +321,19 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
   return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
+const obtenerPrestadoresSinAgenda = async (req, res) => {
+  const prestadoresConAgenda = await AgendaTurnos.findAll({
+    attributes: ['prestadorId'],
+    group: ['prestadorId']
+  });
+  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(pa => pa.prestadorId);
+  const prestadores = await Prestador.findAll({
+    attributes: ["id", "nombre"]
+  });
+  const prestadoresSinAgenda = prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id));
+  return res.status(200).json(prestadoresSinAgenda);
+};
+
 module.exports = {
   crearPrestador,
   obtenerPrestadores,
@@ -328,4 +342,5 @@ module.exports = {
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
+  obtenerPrestadoresSinAgenda
 };
