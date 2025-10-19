@@ -8,6 +8,7 @@ const {
   HorarioAtencion,
   Especialidad,
   Dia,
+  AgendaTurnos
 } = require("../db/models");
 
 //Crear prestador
@@ -315,10 +316,64 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
   const prestador = await Prestador.findByPk(id);
   await prestador.update({
     esCentroMedico,
-    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico), // Si es centro médico, no puede integrar otro centro
+    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico),
     centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null),
   });
   return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
+};
+
+//falta eliminar entidades relacionadas
+const eliminarPrestador = async (req, res) => {
+  const { id } = req.params;
+
+  const prestador = await Prestador.findByPk(id, {
+    include: [
+      { model: Email },
+      { model: Telefono },
+      { model: Especialidad },
+      { model: LugarAtencion, include: [
+          { model: Direccion, include: { model: Provincia } },
+          { model: HorarioAtencion, include: { model: Dia } }
+        ],
+      }
+    ]
+  });
+
+  await Email.destroy({ where: { prestadorId: id } });
+  await Telefono.destroy({ where: { prestadorId: id } });
+  await prestador.setEspecialidads([]);
+
+  const lugaresActuales = await LugarAtencion.findAll({
+    where: { prestadorId: id },
+    include: [{ model: HorarioAtencion }],
+  });
+
+  for (const lugar of lugaresActuales) {
+    for (const horario of lugar.HorarioAtencions) {
+      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
+    }
+    await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
+    await lugar.destroy();
+    //destruyo las direcciones? porque otros lugares de atención podrían usarla también
+    await Direccion.destroy({ where: { id: lugar.direccionId } });
+  }
+
+  await prestador.destroy();
+
+  return res.status(200).json({ message: "Prestador eliminado correctamente." });
+}
+
+const obtenerPrestadoresSinAgenda = async (req, res) => {
+  const prestadoresConAgenda = await AgendaTurnos.findAll({
+    attributes: ['prestadorId'],
+    group: ['prestadorId']
+  });
+  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(pa => pa.prestadorId);
+  const prestadores = await Prestador.findAll({
+    attributes: ["id", "nombre"]
+  });
+  const prestadoresSinAgenda = prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id));
+  return res.status(200).json(prestadoresSinAgenda);
 };
 
 module.exports = {
@@ -329,4 +384,6 @@ module.exports = {
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
+  obtenerPrestadoresSinAgenda,
+  eliminarPrestador
 };

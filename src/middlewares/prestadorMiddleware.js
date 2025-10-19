@@ -16,6 +16,19 @@ const validarExistenciaCentroMedico = async (req, res, next) => {
     next();
 };
 
+const validarQueNoSeaCentroMedicoONoTengaIntegrantes = async (req, res, next) => {
+    const { id } = req.params;
+    const prestador = await Prestador.findByPk(id);
+    if (prestador.esCentroMedico) {
+        const prestadores = await Prestador.findAll({ where: { centroMedicoId: id } });
+        if (prestadores.length > 0) {
+            return errorPersonalizado(`El centro médico con id ${id} tiene prestadores que lo integran y no puede ser eliminado`, 400, next);
+        }
+    }
+    next();
+};
+
 module.exports = {
-    validarExistenciaCentroMedico
+    validarExistenciaCentroMedico,
+    validarQueNoSeaCentroMedicoONoTengaIntegrantes
 };

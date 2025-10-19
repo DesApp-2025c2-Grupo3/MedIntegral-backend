@@ -2,7 +2,7 @@ const { Router } = require("express");
 const router = Router();
 const { prestadorController } = require("../controllers");
 const { genericMiddleware, prestadorMiddleware } = require("../middlewares");
-const { Prestador } = require("../db/models");
+const { Prestador, AgendaTurnos } = require("../db/models");
 const { prestadorSchema } = require("../middlewares/schemas");
 
 router.post('/',
@@ -16,9 +16,16 @@ router.get('/',
   prestadorController.obtenerPrestadores
 );
 
+router.get("/sin-agenda",
+  genericMiddleware.existsAnyByModel(Prestador),
+  genericMiddleware.existsAnyByModel(AgendaTurnos),
+  prestadorController.obtenerPrestadoresSinAgenda
+);
+
 router.get("/:id",
   genericMiddleware.existsModelById(Prestador),
-  prestadorController.obtenerPrestador);
+  prestadorController.obtenerPrestador
+);
 
 router.put("/:id/datos-personales",
   genericMiddleware.existsModelById(Prestador),
@@ -42,6 +49,12 @@ router.put("/:id/centro-medico",
   genericMiddleware.existsModelById(Prestador),
   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaUpdateCentroMedico),
   prestadorController.actualizarCentroMedicoPrestador
+);
+
+router.delete("/:id",
+    genericMiddleware.existsModelById(Prestador),
+    prestadorMiddleware.validarQueNoSeaCentroMedicoONoTengaIntegrantes,
+    prestadorController.eliminarPrestador
 );
 
 module.exports = router;
