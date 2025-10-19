@@ -40,7 +40,8 @@ const crearPrestador = async (req, res) => {
   //Asignamos todos los mails
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
-    prestadorId: nuevoPrestadorId,
+    propietarioId: nuevoPrestadorId,
+    propietarioTipo: 'Prestador',
   }));
   await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 

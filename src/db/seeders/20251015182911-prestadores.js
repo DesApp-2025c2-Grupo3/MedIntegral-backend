@@ -100,7 +100,8 @@ module.exports = {
 
       const datosEmails = prestador.emails.map((e) => ({
         direccion: e.direccion,
-        prestadorId: nuevoPrestador.id,
+        propietarioId: nuevoPrestador.id,
+        propietarioTipo: 'Prestador',
       }));
       await Email.bulkCreate(datosEmails);
 
