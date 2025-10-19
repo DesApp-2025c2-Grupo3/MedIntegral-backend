@@ -213,7 +213,8 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
 
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
-    prestadorId: id,
+    propietarioId: id,
+    propietarioTipo: 'Prestador',
   }));
   await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
