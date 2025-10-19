@@ -1,7 +1,7 @@
-const { Router } = require('express')
-const router = Router()
-const { agendaTurnosController } = require('../controllers')
-const { genericMiddleware, agendaTurnosMiddleware } = require('../middlewares')
+const { Router } = require('express');
+const router = Router();
+const { agendaTurnosController } = require('../controllers');
+const { genericMiddleware, agendaTurnosMiddleware } = require('../middlewares');
 const { AgendaTurnos, Especialidad, Prestador, LugarAtencion } = require("../db/models");
 const { agendaTurnosSchema } = require("../middlewares/schemas");
 
@@ -31,7 +31,7 @@ router.get("/:id",
 router.put("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdate),
-    agendaTurnosMiddleware.validarExistenciaDeModelos,
+    genericMiddleware.existModelRequest(Especialidad),
     agendaTurnosController.actualizarAgendaTurnos
 );
 
