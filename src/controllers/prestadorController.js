@@ -41,14 +41,16 @@ const crearPrestador = async (req, res) => {
   //Asignamos todos los mails
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
-    prestadorId: nuevoPrestadorId,
+    propietarioId: nuevoPrestadorId,
+    propietarioTipo: 'Prestador',
   }));
   await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
   //Asignamos todos los teléfonos
   const datosTelefonos = telefonos.map((t) => ({
     numero: t.numero,
-    prestadorId: nuevoPrestadorId,
+    propietarioId: nuevoPrestadorId,
+    propietarioTipo: 'Prestador',
   }));
   await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
@@ -212,7 +214,8 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
 
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
-    prestadorId: id,
+    propietarioId: id,
+    propietarioTipo: 'Prestador',
   }));
   await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
@@ -221,7 +224,8 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
 
   const datosTelefonos = telefonos.map((tel) => ({
     numero: tel.numero,
-    prestadorId: id,
+    propietarioId: id,
+    propietarioTipo: 'Prestador',
   }));
   await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
 
@@ -338,8 +342,18 @@ const eliminarPrestador = async (req, res) => {
     ]
   });
 
-  await Email.destroy({ where: { prestadorId: id } });
-  await Telefono.destroy({ where: { prestadorId: id } });
+  await Email.destroy({
+    where: {
+      propietarioId: id,
+      propietarioTipo: 'Prestador'
+    }
+  });
+  await Telefono.destroy({
+    where: {
+      propietarioId: id,
+      propietarioTipo: 'Prestador'
+    }
+  });
   await prestador.setEspecialidads([]);
 
   const lugaresActuales = await LugarAtencion.findAll({

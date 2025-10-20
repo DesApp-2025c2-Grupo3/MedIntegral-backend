@@ -12,6 +12,14 @@ module.exports = {
       numero: {
         type: Sequelize.STRING
       },
+      propietarioId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      propietarioTipo: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

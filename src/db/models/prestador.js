@@ -9,10 +9,18 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'prestadorId'
       });
       Prestador.hasMany(models.Email, {
-        foreignKey: 'prestadorId'
+        foreignKey: 'propietarioId', //acá guardamos la FK
+        constraints: false, // Hay que desactivar las constraints porque te obliga a que exista el Id en UNA tabla, y nosotros podemos apuntar a dos diferentes
+        scope: {
+          propietarioTipo: 'Prestador' // Sequelize autocompletará este campo
+        }
       });
       Prestador.hasMany(models.Telefono, {
-        foreignKey: 'prestadorId'
+        foreignKey: 'propietarioId',
+        constraints: false,
+        scope: {
+          propietarioTipo: 'Prestador'
+        }
       });
       Prestador.belongsToMany(models.Especialidad, {
         through: "PrestadorEspecialidad", // tabla intermedia
@@ -29,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
     cuilCuit: DataTypes.STRING,
     esCentroMedico: DataTypes.BOOLEAN,
     integraCentroMedico: DataTypes.BOOLEAN,
-    centroMedicoId:{
+    centroMedicoId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {

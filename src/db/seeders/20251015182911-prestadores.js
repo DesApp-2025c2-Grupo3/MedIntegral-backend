@@ -100,13 +100,15 @@ module.exports = {
 
       const datosEmails = prestador.emails.map((e) => ({
         direccion: e.direccion,
-        prestadorId: nuevoPrestador.id,
+        propietarioId: nuevoPrestador.id,
+        propietarioTipo: 'Prestador',
       }));
       await Email.bulkCreate(datosEmails);
 
       const datosTelefonos = prestador.telefonos.map((t) => ({
         numero: t.numero,
-        prestadorId: nuevoPrestador.id,
+        propietarioId: nuevoPrestador.id,
+        propietarioTipo: 'Prestador',
       }));
       await Telefono.bulkCreate(datosTelefonos);
 
