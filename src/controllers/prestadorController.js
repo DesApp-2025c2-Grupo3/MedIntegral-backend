@@ -342,8 +342,18 @@ const eliminarPrestador = async (req, res) => {
     ]
   });
 
-  await Email.destroy({ where: { prestadorId: id } });
-  await Telefono.destroy({ where: { prestadorId: id } });
+  await Email.destroy({
+    where: {
+      propietarioId: id,
+      propietarioTipo: 'Prestador'
+    }
+  });
+  await Telefono.destroy({
+    where: {
+      propietarioId: id,
+      propietarioTipo: 'Prestador'
+    }
+  });
   await prestador.setEspecialidads([]);
 
   const lugaresActuales = await LugarAtencion.findAll({
