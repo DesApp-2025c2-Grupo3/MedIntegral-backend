@@ -49,7 +49,8 @@ const crearPrestador = async (req, res) => {
   //Asignamos todos los teléfonos
   const datosTelefonos = telefonos.map((t) => ({
     numero: t.numero,
-    prestadorId: nuevoPrestadorId,
+    propietarioId: nuevoPrestadorId,
+    propietarioTipo: 'Prestador',
   }));
   await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
@@ -223,7 +224,8 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
 
   const datosTelefonos = telefonos.map((tel) => ({
     numero: tel.numero,
-    prestadorId: id,
+    propietarioId: id,
+    propietarioTipo: 'Prestador',
   }));
   await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
 

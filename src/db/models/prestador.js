@@ -16,7 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         }
       });
       Prestador.hasMany(models.Telefono, {
-        foreignKey: 'prestadorId'
+        foreignKey: 'propietarioId',
+        constraints: false,
+        scope: {
+          propietarioTipo: 'Prestador'
+        }
       });
       Prestador.belongsToMany(models.Especialidad, {
         through: "PrestadorEspecialidad", // tabla intermedia

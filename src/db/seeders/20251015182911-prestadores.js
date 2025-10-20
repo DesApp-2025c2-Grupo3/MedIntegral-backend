@@ -107,7 +107,8 @@ module.exports = {
 
       const datosTelefonos = prestador.telefonos.map((t) => ({
         numero: t.numero,
-        prestadorId: nuevoPrestador.id,
+        propietarioId: nuevoPrestador.id,
+        propietarioTipo: 'Prestador',
       }));
       await Telefono.bulkCreate(datosTelefonos);
 
