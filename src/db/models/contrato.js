@@ -19,9 +19,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       nAfiliado: {
-        type: DataTypes.STRING(7),
+        type: DataTypes.INTEGER,
         allowNull: false,
         unique: true,
+        autoIncrement: true
       },
     },
     {
