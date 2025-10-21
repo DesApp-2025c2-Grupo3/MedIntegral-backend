@@ -14,9 +14,10 @@ module.exports = {
         allowNull: false,
       },
       nAfiliado: {
-        type: Sequelize.STRING(7),
+        type: Sequelize.INTEGER,
         allowNull: false,
         unique: true,
+        autoIncrement: true
       },
       createdAt: {
         allowNull: false,
