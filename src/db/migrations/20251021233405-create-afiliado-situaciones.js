@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       afiliadoId: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: "Afiliados",
@@ -18,7 +18,7 @@ module.exports = {
         },
       },
       situacionTerapeuticaId: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: "SituacionTerapeuticas",

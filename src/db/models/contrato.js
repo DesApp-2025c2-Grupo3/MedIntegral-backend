@@ -16,13 +16,12 @@ module.exports = (sequelize, DataTypes) => {
     {
       planId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: false
       },
       nAfiliado: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        unique: true,
-        autoIncrement: true
+        unique: true
       },
     },
     {

@@ -11,13 +11,12 @@ module.exports = {
       },
       planId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: false
       },
       nAfiliado: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
-        autoIncrement: true
+        unique: true
       },
       createdAt: {
         allowNull: false,

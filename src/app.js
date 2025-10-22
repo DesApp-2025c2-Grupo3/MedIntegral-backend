@@ -1,4 +1,4 @@
-const { provinciaRutas, especialidadRutas, diaRutas, prestadorRutas, agendaTurnosRutas } = require('./routes');
+const { provinciaRutas, especialidadRutas, diaRutas, prestadorRutas, agendaTurnosRutas, afiliadoRutas, tipoDocumentoRutas } = require('./routes');
 const { genericMiddleware } = require("./middlewares");
 
 const configureApp = (APP) => {
@@ -9,6 +9,8 @@ const configureApp = (APP) => {
 	APP.use('/api/dias', diaRutas);
 	APP.use('/api/prestadores', prestadorRutas);
 	APP.use('/api/agenda-turnos', agendaTurnosRutas);
+	APP.use('/api/afiliados', afiliadoRutas);
+	APP.use('/api/tipoDocumentos', tipoDocumentoRutas);
 	return APP;
 };
 
