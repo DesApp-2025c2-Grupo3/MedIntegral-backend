@@ -179,7 +179,7 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { especialidadId } = req.body;
 
-    await AgendaTurnos.update({ especialidadId }, { where: { id } });
+    const agendaTurnos = await AgendaTurnos.update({ especialidadId }, { where: { id } });
 
     res.status(200).json(agendaTurnos);
 };
