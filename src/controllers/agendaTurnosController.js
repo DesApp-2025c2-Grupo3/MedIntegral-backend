@@ -17,15 +17,18 @@ const crearAgendaTurnos = async (req, res) => {
         horarios,
     } = req.body;
 
-    const nuevaAgendaTurnos = await AgendaTurnos.create();
+    const nuevaAgendaTurnos = await AgendaTurnos.create({
+        prestadorId,
+        especialidadId,
+        lugarAtencionId: lugaratencionId
+    });
 
     const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
-
-    relacionarAgendaConDemasEntidades(nuevaAgendaTurnosId, prestadorId, especialidadId, lugaratencionId);
 
     for (const horario of horarios) {
         const nuevoHorario = await HorarioAtencion.create({
             agendaTurnosId: nuevaAgendaTurnosId,
+            lugarAtencionId: null,
             horaInicio: horario.horaInicio,
             horaFin: horario.horaFin,
             duracionTurno: horario.duracion
@@ -43,16 +46,6 @@ const crearAgendaTurnos = async (req, res) => {
 
 }
 
-const relacionarAgendaConDemasEntidades = async (agendaId, prestadorId, especialidadId, lugarAtencionId) => {
-    await AgendaTurnos.update({
-        prestadorId,
-        especialidadId,
-        lugarAtencionId
-    }, {
-        where: { id: agendaId }
-    });
-}
-
 const obtenerAgendasTurnos = async (req, res) => {
     const agendas = await AgendaTurnos.findAll({
         include: [
@@ -67,8 +60,9 @@ const obtenerAgendasTurnos = async (req, res) => {
 
 const obtenerAgendasTurnosFormateados = async (req, res) => {
     const agendas = await AgendaTurnos.findAll({
+        distinct: true,
         include: [
-            { model: Prestador, include: { model: Especialidad } },
+            { model: Prestador, include: [{ model: Especialidad }, {model: LugarAtencion, include: [{ model: HorarioAtencion, include: { model: Dia } }]}] },
             { model: Especialidad },
             { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
             { model: HorarioAtencion, include: { model: Dia } }
@@ -85,7 +79,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const agenda = await AgendaTurnos.findByPk(id, {
         include: [
-            { model: Prestador, include: { model: Especialidad } },
+            { model: Prestador, include: [{ model: Especialidad }, {model: LugarAtencion, include: [{ model: HorarioAtencion, include: { model: Dia } }] }] },
             { model: Especialidad },
             { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
             { model: HorarioAtencion, include: { model: Dia } }
@@ -95,6 +89,10 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
 };
 
 const formatearAgenda = (agenda) => {
+    console.log(" ---- Horarios del prestador ---- ");
+    console.log(agenda.Prestador.LugarAtencions);
+    console.log(" -------------------------------- ");
+    console.log(agenda.Prestador.LugarAtencions.find(lugar => lugar.id === agenda.lugarAtencionId));
     const prestador = {
         id: agenda.Prestador.id,
         nombre: agenda.Prestador.nombre,
@@ -102,12 +100,13 @@ const formatearAgenda = (agenda) => {
             id: especialidad.id,
             nombre: especialidad.nombre
         })),
-        horarios: agenda.HorarioAtencions.flatMap(horario =>
+        horarios: agenda.Prestador.LugarAtencions.find(lugar => lugar.id === agenda.lugarAtencionId).HorarioAtencions.flatMap(horario =>
             horario.Dia.map(dia => ({
                 id: dia.id,
                 dia: dia.nombre,
                 horaInicio: horario.horaInicio,
-                horaFin: horario.horaFin
+                horaFin: horario.horaFin,
+                duracion: (horario.duracionTurno ? horario.duracionTurno : null)
             }))
         )
     }
@@ -147,22 +146,33 @@ const formatearAgenda = (agenda) => {
 };
 
 const actualizarHorariosDeAgendaTurnos = async (req, res) => {
+
     const { id } = req.params;
     const { horarios } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [ { model: HorarioAtencion, include: { model: Dia } }] });
+    const agendaTurnos = await AgendaTurnos.findByPk(id, {
+        include: [{ model: HorarioAtencion, include: { model: Dia } }]
+    });
 
+    // Desasociar días de los horarios existentes de la agenda
     for (const horario of agendaTurnos.HorarioAtencions) {
         await horario.setDia([]);
     }
-    await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
 
+    // Eliminar solo los horarios asociados a esta agenda
+    await HorarioAtencion.destroy({
+        where: { agendaTurnosId: id },
+    });
+
+    // Crear nuevos horarios (independientes de los del prestador)
     for (const horario of horarios) {
         const nuevoHorario = await HorarioAtencion.create({
             agendaTurnosId: id,
+            lugarAtencionId: null,
             horaInicio: horario.horaInicio,
             horaFin: horario.horaFin,
-            duracionTurno: horario.duracion
+            duracionTurno: horario.duracionTurno,
+            // importante: sin lugarAtencionId, para no asociarlo al prestador
         });
 
         for (const diaId of horario.dias) {
@@ -172,8 +182,16 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
             }
         }
     }
-    res.status(200).json(agendaTurnos);
+
+    // Recargar agenda con los horarios nuevos
+    const agendaActualizada = await AgendaTurnos.findByPk(id, {
+        include: [{ model: HorarioAtencion, include: { model: Dia } }]
+    });
+
+    return res.status(200).json(agendaActualizada);
+
 };
+
 
 const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;

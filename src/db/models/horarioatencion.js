@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       HorarioAtencion.belongsToMany(models.Dia, {
         through: "HorarioAtencionDia",
-        foreignKey: 'horarioAtencionId', // <- este debería ser
+        foreignKey: 'horarioAtencionId', // <- este es el correcto
         otherKey: 'diaId'
       });
 
