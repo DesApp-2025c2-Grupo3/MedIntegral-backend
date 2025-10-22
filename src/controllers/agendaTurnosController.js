@@ -85,7 +85,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const agenda = await AgendaTurnos.findByPk(id, {
         include: [
-            { model: Prestador , include: { model: Especialidad } },
+            { model: Prestador, include: { model: Especialidad } },
             { model: Especialidad },
             { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
             { model: HorarioAtencion, include: { model: Dia } }
@@ -96,61 +96,61 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
 
 const formatearAgenda = (agenda) => {
     const prestador = {
-            id: agenda.Prestador.id,
-            nombre: agenda.Prestador.nombre,
-            especialidades: agenda.Prestador.Especialidads.map(especialidad => ({
-                id: especialidad.id,
-                nombre: especialidad.nombre
-            })),
-            horarios: agenda.HorarioAtencions.flatMap(horario =>
-                horario.Dia.map(dia => ({
-                    id: dia.id,
-                    dia: dia.nombre,
-                    horaInicio: horario.horaInicio,
-                    horaFin: horario.horaFin
-                }))
-            )
-        }
-
-        const horarios = agenda.HorarioAtencions.flatMap(horario =>
+        id: agenda.Prestador.id,
+        nombre: agenda.Prestador.nombre,
+        especialidades: agenda.Prestador.Especialidads.map(especialidad => ({
+            id: especialidad.id,
+            nombre: especialidad.nombre
+        })),
+        horarios: agenda.HorarioAtencions.flatMap(horario =>
             horario.Dia.map(dia => ({
                 id: dia.id,
                 dia: dia.nombre,
                 horaInicio: horario.horaInicio,
-                horaFin: horario.horaFin,
-                duracion: horario.duracionTurno
+                horaFin: horario.horaFin
             }))
-        );
+        )
+    }
 
-        const direccionData = agenda.LugarAtencion.Direccion;
+    const horarios = agenda.HorarioAtencions.flatMap(horario =>
+        horario.Dia.map(dia => ({
+            id: dia.id,
+            dia: dia.nombre,
+            horaInicio: horario.horaInicio,
+            horaFin: horario.horaFin,
+            duracion: horario.duracionTurno
+        }))
+    );
 
-        const provincia = direccionData.Provincium;
+    const direccionData = agenda.LugarAtencion.Direccion;
 
-        const direccion = {
-            calle: direccionData.calle,
-            altura: direccionData.altura,
-            pisoDepto: direccionData.pisoDepto,
-            localidad: direccionData.localidad,
-            provincia: provincia.nombre
-        }
+    const provincia = direccionData.Provincium;
 
-        const agendaNueva = {
-            id: agenda.id,
-            prestador: prestador,
-            especialidad: agenda.Especialidad.nombre,
-            horariosAtencion: horarios,
-            direccion: direccion,
-            createdAt: agenda.createdAt,
-            updatedAt: agenda.updatedAt
-        }
-        return { ...agendaNueva };
+    const direccion = {
+        calle: direccionData.calle,
+        altura: direccionData.altura,
+        pisoDepto: direccionData.pisoDepto,
+        localidad: direccionData.localidad,
+        provincia: provincia.nombre
+    }
+
+    const agendaNueva = {
+        id: agenda.id,
+        prestador: prestador,
+        especialidad: agenda.Especialidad.nombre,
+        horariosAtencion: horarios,
+        direccion: direccion,
+        createdAt: agenda.createdAt,
+        updatedAt: agenda.updatedAt
+    }
+    return { ...agendaNueva };
 };
 
 const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { horarios } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
+    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [ { model: HorarioAtencion, include: { model: Dia } }] });
 
     for (const horario of agendaTurnos.HorarioAtencions) {
         await horario.setDia([]);
@@ -179,7 +179,13 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { especialidadId } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.update({ especialidadId }, { where: { id } });
+    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [Especialidad] });
+
+    agendaTurnos.especialidadId = especialidadId;
+
+    await agendaTurnos.save();
+
+    console.log(agendaTurnos);
 
     res.status(200).json(agendaTurnos);
 };
