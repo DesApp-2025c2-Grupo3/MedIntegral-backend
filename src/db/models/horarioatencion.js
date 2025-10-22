@@ -11,10 +11,12 @@ module.exports = (sequelize, DataTypes) => {
       HorarioAtencion.belongsTo(models.LugarAtencion, {
         foreignKey: 'lugarAtencionId'
       });
-      HorarioAtencion.belongsToMany(models.Dia, { 
-        through: "HorarioAtencionDia", // tabla intermedia
-        foreignKey: 'diaId'
+      HorarioAtencion.belongsToMany(models.Dia, {
+        through: "HorarioAtencionDia",
+        foreignKey: 'horarioAtencionId', // <- este debería ser
+        otherKey: 'diaId'
       });
+
     }
   }
   HorarioAtencion.init({

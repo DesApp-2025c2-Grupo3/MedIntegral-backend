@@ -6,9 +6,11 @@ module.exports = (sequelize, DataTypes) => {
   class Dia extends Model {
     static associate(models) {
       Dia.belongsToMany(models.HorarioAtencion, {
-        through: "HorarioAtencionDia", // tabla intermedia
-        foreignKey: 'horarioAtencionId'
+        through: "HorarioAtencionDia",
+        foreignKey: 'diaId',
+        otherKey: 'horarioAtencionId'
       });
+
     }
   }
   Dia.init({
