@@ -69,12 +69,7 @@ const agendaTurnosSchemaCreate = Joi.object({
 
 })
 
-const agendaTurnosSchemaUpdate = Joi.object({
-
-    especialidadId: Joi.number().integer().messages({
-        'number.base': 'El ID de la especialidad debe ser un número',
-        'number.integer': 'El ID de la especialidad debe ser un número entero'
-    }),
+const agendaTurnosSchemaUpdateHorarios = Joi.object({
 
     horarios: Joi.array().items(
 
@@ -125,7 +120,17 @@ const agendaTurnosSchemaUpdate = Joi.object({
 
 })
 
+const agendaTurnosSchemaUpdateEspecialidad = Joi.object({
+
+    especialidadId: Joi.number().integer().messages({
+        'number.base': 'El ID de la especialidad debe ser un número',
+        'number.integer': 'El ID de la especialidad debe ser un número entero'
+    })
+
+})
+
 module.exports = {
     agendaTurnosSchemaCreate,
-    agendaTurnosSchemaUpdate
+    agendaTurnosSchemaUpdateHorarios,
+    agendaTurnosSchemaUpdateEspecialidad
 }

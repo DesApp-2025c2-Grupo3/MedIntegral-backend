@@ -121,15 +121,11 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     res.status(200).json(agenda);
 };
 
-const actualizarAgendaTurnos = async (req, res) => {
+const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;
-    const { horarios, especialidadId } = req.body;
+    const { horarios } = req.body;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
-   
-    if (especialidadId) { 
-        await AgendaTurnos.update({ especialidadId }, { where: { id } });
-    }
 
     for (const horario of agendaTurnos.HorarioAtencions) {
         await horario.setDia([]);
@@ -154,6 +150,15 @@ const actualizarAgendaTurnos = async (req, res) => {
     res.status(200).json(agendaTurnos);
 };
 
+const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
+    const { id } = req.params;
+    const { especialidadId } = req.body;
+   
+    await AgendaTurnos.update({ especialidadId }, { where: { id } });
+    
+    res.status(200).json(agendaTurnos);
+};
+
 const eliminarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
 
@@ -175,6 +180,7 @@ module.exports = {
     obtenerAgendasTurnos,
     obtenerAgendasTurnosFormateados,
     obtenerUnaAgendaTurnos,
-    actualizarAgendaTurnos,
-    eliminarAgendaTurnos
+    eliminarAgendaTurnos,
+    actualizarHorariosDeAgendaTurnos,
+    actualizarEspecialidadDeAgendaTurnos
 };

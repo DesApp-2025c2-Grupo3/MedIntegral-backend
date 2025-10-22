@@ -28,9 +28,15 @@ router.get("/:id",
     agendaTurnosController.obtenerUnaAgendaTurnos
 );
 
-router.put("/:id",
+router.put("/:id/horarios",
     genericMiddleware.existsModelById(AgendaTurnos),
-    genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdate),
+    genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateHorarios),
+    agendaTurnosController.actualizarAgendaTurnos
+);
+
+router.put("/:id/especialidades",
+    genericMiddleware.existsModelById(AgendaTurnos),
+    genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateEspecialidad),
     genericMiddleware.existModelRequest(Especialidad),
     agendaTurnosController.actualizarAgendaTurnos
 );
