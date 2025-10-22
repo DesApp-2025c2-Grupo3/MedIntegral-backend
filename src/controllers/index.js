@@ -1,13 +1,17 @@
-const provinciaController = require('./provinciaController');
-const especialidadController = require('./especialidadController');
-const diaController = require('./diaController');
-const prestadorController = require('./prestadorController');
-const agendaTurnosController = require('./agendaTurnosController');
+const provinciaController = require("./provinciaController");
+const especialidadController = require("./especialidadController");
+const diaController = require("./diaController");
+const prestadorController = require("./prestadorController");
+const agendaTurnosController = require("./agendaTurnosController");
+const afiliadoController = require("./afiliadoController");
+const tipoDocumentoController = require("./tipoDocumentoController");
 
 module.exports = {
   provinciaController,
   especialidadController,
   diaController,
   prestadorController,
-  agendaTurnosController
-}
+  agendaTurnosController,
+  afiliadoController,
+  tipoDocumentoController,
+};
