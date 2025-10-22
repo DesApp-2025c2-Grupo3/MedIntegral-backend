@@ -4,6 +4,7 @@ const diaController = require("./diaController");
 const prestadorController = require("./prestadorController");
 const agendaTurnosController = require("./agendaTurnosController");
 const afiliadoController = require("./afiliadoController");
+const tipoDocumentoController = require("./tipoDocumentoController");
 
 module.exports = {
   provinciaController,
@@ -12,4 +13,5 @@ module.exports = {
   prestadorController,
   agendaTurnosController,
   afiliadoController,
+  tipoDocumentoController,
 };
