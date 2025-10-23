@@ -67,7 +67,7 @@ const crearAfiliado = async (req, res) => {
 
     for (const miembro of grupoFamiliar) {
       const nuevoMiembro = await Afiliado.create({
-        tipoDocumentoId: miembro.tipoDocumento.id,
+        tipoDocumentoId: miembro.tipoDocumentoId,
         numeroDocumento: miembro.numeroDocumento,
         fechaNacimiento: miembro.fechaNacimiento,
         nombre: miembro.nombre,
@@ -77,7 +77,7 @@ const crearAfiliado = async (req, res) => {
         nIntegrante: nIntegrante,
         contratoId: nuevoContratoId,
         titularId: titular.id,
-        parentescoId: miembro.parentesco.id,
+        parentescoId: miembro.parentescoId,
       });
 
       nIntegrante++;
