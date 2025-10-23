@@ -1,6 +1,5 @@
 const { generarProximoNAfiliado } = require("../services/contratoService");
-const { TipoDocumento } = require("../db/models");
-const { PlanMedico } = require("../db/models");
+const { TipoDocumento, PlanMedico, Provincia } = require("../db/models");
 
 const {
   Contrato,
@@ -143,7 +142,11 @@ const obtenerTitulares = async (_, res) => {
         attributes: { exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"] },
         include: {
           model: Direccion, // Y dentro de Domicilio, incluyo Direccion
-          attributes: { exclude: ["createdAt", "updatedAt"] },
+          attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
+          include: {
+            model: Provincia,
+            attributes: ["nombre"]
+        }
         }
       },
     ],
