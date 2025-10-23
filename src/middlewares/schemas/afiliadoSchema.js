@@ -225,3 +225,45 @@ const miembroGrupoFamiliarSchema = datosPersonalesSchema
   .concat(contactosSchema)
   .concat(direccionSchema)
   .concat(situacionesTerapeuticasSchema);
+
+// Schema principal para Afiliado CREATE
+const afiliadoSchemaCreate = Joi.object({
+  planId: Joi.number().integer().required().messages({
+    "number.base": "El ID del plan médico debe ser un número",
+    "number.integer": "El ID del plan médico debe ser un número entero",
+    "any.required": "El ID del plan médico es obligatorio",
+  }),
+
+  tieneGrupoFamiliar: Joi.boolean().required().messages({
+    "boolean.base": "tieneGrupoFamiliar debe ser un valor booleano",
+    "any.required": "tieneGrupoFamiliar es obligatorio",
+  }),
+
+  grupoFamiliar: Joi.when("tieneGrupoFamiliar", {
+    is: true,
+    then: Joi.array()
+      .items(miembroGrupoFamiliarSchema)
+      .min(1)
+      .required()
+      .messages({
+        "array.base": "El grupo familiar debe estar dentro de un array",
+        "array.min":
+          "Debe haber al menos {#limit} miembro(s) en el grupo familiar",
+        "any.required":
+          "El grupo familiar es obligatorio cuando tieneGrupoFamiliar es true",
+      }),
+    otherwise: Joi.array().length(0).messages({
+      "array.base": "El grupo familiar debe estar dentro de un array",
+      "array.length":
+        "No debe haber grupo familiar cuando tieneGrupoFamiliar es false",
+    }),
+  }),
+})
+  .concat(datosPersonalesSchema)
+  .concat(contactosSchema)
+  .concat(direccionSchema)
+  .concat(situacionesTerapeuticasSchema);
+
+module.exports = {
+  afiliadoSchemaCreate,
+};
