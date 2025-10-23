@@ -1,4 +1,7 @@
 const { generarProximoNAfiliado } = require("../services/contratoService");
+const { TipoDocumento } = require("../db/models");
+const { PlanMedico } = require("../db/models");
+
 const {
   Contrato,
   Afiliado,
@@ -17,7 +20,7 @@ const crearAfiliado = async (req, res) => {
     fechaNacimiento,
     nombre,
     apellido,
-    coberturaId,
+    planId,
     vigenciaInicio,
     vigenciaFin,
     tieneGrupoFamiliar,
@@ -32,7 +35,7 @@ const crearAfiliado = async (req, res) => {
   const nAfiliado = await generarProximoNAfiliado();
 
   const nuevoContrato = await Contrato.create({
-    planId: coberturaId,
+    planId: planId,
     nAfiliado: nAfiliado
   });
 
@@ -51,8 +54,6 @@ const crearAfiliado = async (req, res) => {
     titularId: null,
     parentescoId: 1,
   });
-
-  const titularId = titular.id;
 
   await crearEmails(emails, titular.id);
   await crearTelefonos(telefonos, titular.id);
@@ -76,7 +77,7 @@ const crearAfiliado = async (req, res) => {
         vigenciaFin: miembro.vigenciaFin,
         nIntegrante: nIntegrante,
         contratoId: nuevoContratoId,
-        titularId: titularId,
+        titularId: titular.id,
         parentescoId: miembro.parentesco.id,
       });
 
@@ -96,6 +97,61 @@ const crearAfiliado = async (req, res) => {
   }
 
   res.status(201).json(titular.id);
+};
+
+
+const obtenerTitulares = async (_, res) => {
+  const titulares = await Afiliado.findAll({
+    where: { // Solo titulares
+      titularId: null,
+    },
+    attributes: [
+      "id",
+      "nombre",
+      "apellido",
+      "vigenciaInicio",
+      "numeroDocumento",
+    ],
+    include: [
+      {
+        model: Contrato,
+        attributes: ["nAfiliado"],
+        include: {
+          model: PlanMedico,
+          as: "plan", // Asumo que esta sí tiene alias en el modelo Contrato
+          attributes: ["plan"],
+        },
+      },
+      {
+        model: TipoDocumento,
+        as: "tipoDocumento",
+        attributes: ["tipo"],
+      },
+      {
+        model: Email,
+        as: "emails",
+        attributes: ["direccion"],
+      },
+      {
+        model: Telefono,
+        as: "telefonos",
+        attributes: ["numero"],
+      },
+      {
+        model: Domicilio, //Entramos por domicilio
+        as: "domicilios",
+        attributes: { exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"] },
+        include: {
+          model: Direccion, // Y dentro de Domicilio, incluyo Direccion
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        }
+      },
+    ],
+    order: [["id", "ASC"]],
+  });
+
+
+  res.status(200).json(titulares);
 };
 
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
@@ -156,4 +212,5 @@ const crearSituacionesTerapeuticas = async (
 
 module.exports = {
   crearAfiliado,
+  obtenerTitulares,
 };
