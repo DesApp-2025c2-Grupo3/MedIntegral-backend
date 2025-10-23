@@ -139,7 +139,7 @@ const direccionSchema = Joi.object({
             "La localidad debe tener como máximo {#limit} caracteres",
           "any.required": "La localidad es obligatoria",
         }),
-        provincia: Joi.number().integer().required().messages({
+        provinciaId: Joi.number().integer().required().messages({
           "number.base": "El ID de la provincia debe ser un número",
           "number.integer": "El ID de la provincia debe ser un número entero",
           "any.required": "El ID de la provincia es obligatorio",
