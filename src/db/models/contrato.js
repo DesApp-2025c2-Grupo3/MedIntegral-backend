@@ -5,10 +5,12 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Contrato.belongsTo(models.PlanMedico, {
         foreignKey: "planId",
+        as: "plan",
       });
 
       Contrato.hasMany(models.Afiliado, {
         foreignKey: "contratoId",
+        as: "afiliados",
       });
     }
   }

@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
 
       Afiliado.belongsTo(models.TipoDocumento, {
         foreignKey: "tipoDocumentoId",
+        as: "tipoDocumento",
       });
 
       Afiliado.belongsTo(models.Parentesco, {
@@ -26,24 +27,27 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       Afiliado.hasMany(models.Telefono, {
-        foreignKey: "afiliadoId",
+        foreignKey: "propietarioId",
         constraints: false,
         scope: {
           propietarioTipo: "Afiliado",
         },
+        as: "telefonos",
       });
 
       Afiliado.hasMany(models.Email, {
-        foreignKey: "afiliadoId",
+        foreignKey: "propietarioId",
         constraints: false,
         scope: {
           propietarioTipo: "Afiliado",
         },
+        as: "emails",
       });
 
       Afiliado.hasMany(models.Domicilio, {
         //nueva entidad que se relaciona con la dirección
         foreignKey: "afiliadoId",
+        as: "domicilios",
       });
 
       Afiliado.belongsToMany(models.SituacionTerapeutica, {
