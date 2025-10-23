@@ -154,3 +154,74 @@ const direccionSchema = Joi.object({
       "any.required": "Las direcciones son obligatorias",
     }),
 });
+
+// Schema para situaciones terapéuticas
+const situacionesTerapeuticasSchema = Joi.object({
+  tieneSituacionTerapeutica: Joi.boolean().required().messages({
+    "boolean.base": "tieneSituacionTerapeutica debe ser un valor booleano",
+    "any.required": "tieneSituacionTerapeutica es obligatorio",
+  }),
+
+  situacionesTerapeuticas: Joi.when("tieneSituacionTerapeutica", {
+    is: true,
+    then: Joi.array()
+      .items(
+        Joi.object({
+          situacionId: Joi.number().integer().required().messages({
+            "number.base":
+              "El ID de la situación terapéutica debe ser un número",
+            "number.integer":
+              "El ID de la situación terapéutica debe ser un número entero",
+            "any.required": "El ID de la situación terapéutica es obligatorio",
+          }),
+          fechaInicio: Joi.string()
+            .pattern(/^\d{4}-\d{2}-\d{2}$/)
+            .required()
+            .messages({
+              "string.base": "La fecha de inicio debe ser una cadena de texto",
+              "string.pattern":
+                "La fecha de inicio debe tener el formato YYYY-MM-DD",
+              "any.required": "La fecha de inicio es obligatoria",
+            }),
+          fechaFin: Joi.string()
+            .pattern(/^\d{4}-\d{2}-\d{2}$/)
+            .optional()
+            .allow(null, "")
+            .messages({
+              "string.base": "La fecha de fin debe ser una cadena de texto",
+              "string.pattern":
+                "La fecha de fin debe tener el formato YYYY-MM-DD",
+            }),
+        })
+      )
+      .min(1)
+      .required()
+      .messages({
+        "array.base":
+          "Las situaciones terapéuticas deben estar dentro de un array",
+        "array.min":
+          "Debe haber al menos {#limit} situación(es) terapéutica(s)",
+        "any.required":
+          "Las situaciones terapéuticas son obligatorias cuando tieneSituacionTerapeutica es true",
+      }),
+    otherwise: Joi.array().length(0).messages({
+      "array.base":
+        "Las situaciones terapéuticas deben estar dentro de un array",
+      "array.length":
+        "No debe haber situaciones terapéuticas cuando tieneSituacionTerapeutica es false",
+    }),
+  }),
+});
+
+// Schema para miembro del grupo familiar
+const miembroGrupoFamiliarSchema = datosPersonalesSchema
+  .append({
+    parentescoId: Joi.number().integer().required().messages({
+      "number.base": "El ID del parentesco debe ser un número",
+      "number.integer": "El ID del parentesco debe ser un número entero",
+      "any.required": "El ID del parentesco es obligatorio",
+    }),
+  })
+  .concat(contactosSchema)
+  .concat(direccionSchema)
+  .concat(situacionesTerapeuticasSchema);
