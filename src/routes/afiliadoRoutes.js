@@ -11,10 +11,22 @@ router.post(
   afiliadoController.crearAfiliado
 );
 
+router.post(
+  "/:id/dependientes",
+  // genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreateDependiente), //TODO: crear schema para dependiente
+  afiliadoController.agregarDependiente
+);
+
 router.get(
   "/",
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.obtenerTitulares
+);
+
+router.get(
+  "/:id",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.obtenerAfiliado
 );
 
 module.exports = router;
