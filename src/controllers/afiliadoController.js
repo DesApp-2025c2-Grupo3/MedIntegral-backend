@@ -17,6 +17,57 @@ const {
   SituacionTerapeutica,
 } = require("../db/models");
 
+const includeAfiliadoCompleto = () => [
+  {
+    model: Contrato,
+    attributes: ["nAfiliado"],
+    include: {
+      model: PlanMedico,
+      as: "plan",
+      attributes: ["plan"],
+    },
+  },
+  {
+    model: TipoDocumento,
+    as: "tipoDocumento",
+    attributes: ["tipo"],
+  },
+  {
+    model: Parentesco,
+    as: "parentesco",
+    attributes: ["relacion"],
+  },
+  {
+    model: Email,
+    as: "emails",
+    attributes: ["direccion"],
+  },
+  {
+    model: Telefono,
+    as: "telefonos",
+    attributes: ["numero"],
+  },
+  {
+    model: Domicilio,
+    as: "domicilios",
+    attributes: { exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"] },
+    include: {
+      model: Direccion,
+      attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
+      include: {
+        model: Provincia,
+        attributes: ["nombre"],
+      },
+    },
+  },
+  {
+    model: SituacionTerapeutica,
+    as: "situacionesTerapeuticas",
+    attributes: ["nombre"],
+    through: { attributes: ["fechaInicio", "fechaFin"] },
+  },
+];
+
 const crearAfiliado = async (req, res) => {
   const {
     tipoDocumentoId,
@@ -71,7 +122,7 @@ const crearAfiliado = async (req, res) => {
     let nIntegrante = 2;
 
     for (const miembro of grupoFamiliar) {
-      const nuevoMiembro = await Afiliado.create({
+      const nuevoIntegrante = await Afiliado.create({
         tipoDocumentoId: miembro.tipoDocumentoId,
         numeroDocumento: miembro.numeroDocumento,
         fechaNacimiento: miembro.fechaNacimiento,
@@ -87,14 +138,14 @@ const crearAfiliado = async (req, res) => {
 
       nIntegrante++;
 
-      await crearEmails(miembro.emails, nuevoMiembro.id);
-      await crearTelefonos(miembro.telefonos, nuevoMiembro.id);
-      await crearDirecciones(miembro.direcciones, nuevoMiembro.id);
+      await crearEmails(miembro.emails, nuevoIntegrante.id);
+      await crearTelefonos(miembro.telefonos, nuevoIntegrante.id);
+      await crearDirecciones(miembro.direcciones, nuevoIntegrante.id);
 
       if (miembro.tieneSituacionTerapeutica) {
         await crearSituacionesTerapeuticas(
           miembro.situacionesTerapeuticas,
-          nuevoMiembro.id
+          nuevoIntegrante.id
         );
       }
     }
@@ -215,6 +266,63 @@ const obtenerAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 };
 
+const agregarDependiente = async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    tipoDocumentoId,
+    numeroDocumento,
+    fechaNacimiento,
+    nombre,
+    apellido,
+    parentescoId,
+    vigenciaInicio,
+    vigenciaFin,
+    emails = [],
+    telefonos = [],
+    direcciones = [],
+    tieneSituacionTerapeutica,
+    situacionesTerapeuticas = [],
+  } = req.body;
+
+
+  const titular = await Afiliado.findByPk(id);
+
+  if (titular.titularId !== null) { //Delegar la verificación a un middleware de autorización ? TODO
+    return res.status(400).json({ error: "El ID proporcionado no pertenece a un titular." });
+  }
+
+  //Calcular el próximo número de integrante
+  const totalDependientes = await Afiliado.count({
+    where: { titularId: titular.id },
+  });
+  const nIntegrante = totalDependientes + 2; //Titular es 1 y no se cuenta, por eso se suma 2
+
+  //Creación del nuevo integrante del grupo familiar
+  const nuevoIntegrante = await Afiliado.create({
+    tipoDocumentoId,
+    numeroDocumento,
+    fechaNacimiento,
+    nombre,
+    apellido,
+    vigenciaInicio,
+    vigenciaFin,
+    nIntegrante: nIntegrante,
+    contratoId: titular.contratoId, //Hereda el contrato del titular
+    titularId: titular.id,
+    parentescoId,
+  });
+
+  await crearEmails(emails, nuevoIntegrante.id);
+  await crearTelefonos(telefonos, nuevoIntegrante.id);
+  await crearDirecciones(direcciones, nuevoIntegrante.id);
+
+  if (tieneSituacionTerapeutica) {
+    await crearSituacionesTerapeuticas(situacionesTerapeuticas, nuevoIntegrante.id);
+  }
+
+  res.status(201).json(nuevoIntegrante);
+};
 
 
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
@@ -273,59 +381,9 @@ const crearSituacionesTerapeuticas = async (
   }
 };
 
-const includeAfiliadoCompleto = () => [
-  {
-    model: Contrato,
-    attributes: ["nAfiliado"],
-    include: {
-      model: PlanMedico,
-      as: "plan",
-      attributes: ["plan"],
-    },
-  },
-  {
-    model: TipoDocumento,
-    as: "tipoDocumento",
-    attributes: ["tipo"],
-  },
-  {
-    model: Parentesco,
-    as: "parentesco",
-    attributes: ["relacion"],
-  },
-  {
-    model: Email,
-    as: "emails",
-    attributes: ["direccion"],
-  },
-  {
-    model: Telefono,
-    as: "telefonos",
-    attributes: ["numero"],
-  },
-  {
-    model: Domicilio,
-    as: "domicilios",
-    attributes: { exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"] },
-    include: {
-      model: Direccion,
-      attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
-      include: {
-        model: Provincia,
-        attributes: ["nombre"],
-      },
-    },
-  },
-  {
-    model: SituacionTerapeutica,
-    as: "situacionesTerapeuticas",
-    attributes: ["nombre"],
-    through: { attributes: ["fechaInicio", "fechaFin"] },
-  },
-];
-
 module.exports = {
   crearAfiliado,
   obtenerTitulares,
   obtenerAfiliado,
+  agregarDependiente,
 };
