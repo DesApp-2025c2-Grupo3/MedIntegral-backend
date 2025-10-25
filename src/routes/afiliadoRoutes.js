@@ -17,4 +17,10 @@ router.get(
   afiliadoController.obtenerTitulares
 );
 
+router.get(
+  "/:id",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.obtenerAfiliado
+);
+
 module.exports = router;

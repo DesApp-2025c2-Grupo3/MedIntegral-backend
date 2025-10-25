@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
 
       Afiliado.belongsTo(models.Parentesco, {
         foreignKey: "parentescoId",
+        as: "parentesco",
       });
 
       Afiliado.hasMany(models.Telefono, {
@@ -53,6 +54,7 @@ module.exports = (sequelize, DataTypes) => {
       Afiliado.belongsToMany(models.SituacionTerapeutica, {
         through: "AfiliadoSituaciones",
         foreignKey: "afiliadoId",
+        as: "situacionesTerapeuticas",
       });
     }
   }
