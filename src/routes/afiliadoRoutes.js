@@ -29,4 +29,10 @@ router.get(
   afiliadoController.obtenerAfiliado
 );
 
+router.delete(
+  "/:id",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.bajaAfiliado
+);
+
 module.exports = router;

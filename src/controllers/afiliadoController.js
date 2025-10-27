@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { generarProximoNAfiliado } = require("../services/contratoService");
 const {
   TipoDocumento,
@@ -154,17 +155,31 @@ const crearAfiliado = async (req, res) => {
   res.status(201).json(titular.id);
 };
 
-const obtenerTitulares = async (_, res) => {
+const obtenerTitulares = async (req, res) => {
+  const { estado } = req.query; //el query param 'estado' (ej: /api/afiliados?estado=todos trae todos los titulares, sin importar su vigencia)
+  const hoy = new Date();
+  let condicion = [];
+
+  if (!estado) {
+    condicion = [
+      { titularId: null, vigenciaFin: { [Op.is]: null } },
+      { titularId: null, vigenciaFin: { [Op.gte]: hoy } }
+    ];
+  } else{
+    condicion = [
+      { titularId: null },
+    ]
+  }
+
   const titulares = await Afiliado.findAll({
-    where: {
-      // Solo titulares
-      titularId: null,
-    },
+    where: { [Op.or]: condicion },
+
     attributes: [
       "id",
       "nombre",
       "apellido",
       "vigenciaInicio",
+      "vigenciaFin",
       "numeroDocumento",
     ],
     include: [
@@ -324,6 +339,26 @@ const agregarDependiente = async (req, res) => {
   res.status(201).json(nuevoIntegrante);
 };
 
+const bajaAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { fechaBaja } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+
+  afiliado.vigenciaFin = fechaBaja ? fechaBaja : new Date();
+
+  const dependientes = await Afiliado.findAll({
+    where: { titularId: afiliado.id },
+  });
+  for (const dep of dependientes) {
+    dep.vigenciaFin = fechaBaja ? fechaBaja : new Date();
+    await dep.save();
+  }
+
+  await afiliado.save();
+
+  res.status(200).json(afiliado);
+};
 
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
 const crearEmails = async (emails, afiliadoId) => {
@@ -386,4 +421,5 @@ module.exports = {
   obtenerTitulares,
   obtenerAfiliado,
   agregarDependiente,
+  bajaAfiliado,
 };
