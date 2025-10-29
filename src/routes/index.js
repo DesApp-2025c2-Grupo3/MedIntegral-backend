@@ -15,5 +15,7 @@ module.exports = {
   especialidadRutas,
   afiliadoRutas,
   tipoDocumentoRutas,
+  situacionTerapeuticaRutas,
+  planMedicoRutas,
   parentescoRutas,
-}
+};
