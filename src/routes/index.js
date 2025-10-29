@@ -5,6 +5,7 @@ const agendaTurnosRutas = require('./agendaTurnosRoutes');
 const especialidadRutas = require('./especialidadRoutes');
 const afiliadoRutas = require('./afiliadoRoutes');
 const tipoDocumentoRutas = require('./tipoDocumentoRoutes')
+const parentescoRutas = require('./parentescoRoutes');
 
 module.exports = {
   provinciaRutas,
@@ -13,5 +14,6 @@ module.exports = {
   prestadorRutas,
   especialidadRutas,
   afiliadoRutas,
-  tipoDocumentoRutas
+  tipoDocumentoRutas,
+  parentescoRutas,
 }
