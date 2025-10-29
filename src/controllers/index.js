@@ -5,6 +5,8 @@ const prestadorController = require("./prestadorController");
 const agendaTurnosController = require("./agendaTurnosController");
 const afiliadoController = require("./afiliadoController");
 const tipoDocumentoController = require("./tipoDocumentoController");
+const situacionTerapeuticaController = require("./situacionTerapeuticaController");
+const planMedicoController = require("./planMedicoController");
 
 module.exports = {
   provinciaController,
@@ -14,4 +16,6 @@ module.exports = {
   agendaTurnosController,
   afiliadoController,
   tipoDocumentoController,
+  situacionTerapeuticaController,
+  planMedicoController,
 };
