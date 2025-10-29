@@ -65,7 +65,10 @@ const includeAfiliadoCompleto = () => [
     model: SituacionTerapeutica,
     as: "situacionesTerapeuticas",
     attributes: ["nombre"],
-    through: { attributes: ["fechaInicio", "fechaFin"] },
+    through: {
+      model: AfiliadoSituaciones,
+      attributes: ["fechaInicio", "fechaFin"],
+    },
   },
 ];
 
@@ -253,6 +256,7 @@ const obtenerAfiliado = async (req, res) => {
       {
         model: Afiliado,
         as: "dependientes",
+        separate: true, // Sin esto no trae las fechas de inicio y fin de las situaciones terapeuticas, pero para que funcione hay que eliminar el Order que está abajo.
         attributes: [
           "id",
           "nombre",
@@ -268,10 +272,7 @@ const obtenerAfiliado = async (req, res) => {
         include: includeAfiliadoCompleto(),
       },
     ],
-    order: [
-      [{ model: Afiliado, as: "dependientes" }, "nIntegrante", "ASC"]
-       
-    ]
+    // order: [[{ model: Afiliado, as: "dependientes" }, "nIntegrante", "ASC"]]
   });
 
   if (!afiliado) { // TODO: manejar error en el middleware

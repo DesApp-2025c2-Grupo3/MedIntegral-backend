@@ -8,6 +8,7 @@ const {
   tipoDocumentoRutas,
   situacionTerapeuticaRutas,
   planMedicoRutas,
+  parentescoRutas
 } = require("./routes");
 const { genericMiddleware } = require("./middlewares");
 
@@ -23,6 +24,8 @@ const configureApp = (APP) => {
   APP.use("/api/tipoDocumentos", tipoDocumentoRutas);
   APP.use("/api/situacionesTerapeuticas", situacionTerapeuticaRutas);
   APP.use("/api/planesMedicos", planMedicoRutas);
+  APP.use('/api/parentescos', parentescoRutas);
+
   return APP;
 };
 

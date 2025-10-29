@@ -1,12 +1,11 @@
-const provinciaRutas = require("./provinciaRoutes");
-const diaRutas = require("./diaRoutes");
-const prestadorRutas = require("./prestadorRoutes");
-const agendaTurnosRutas = require("./agendaTurnosRoutes");
-const especialidadRutas = require("./especialidadRoutes");
-const afiliadoRutas = require("./afiliadoRoutes");
-const tipoDocumentoRutas = require("./tipoDocumentoRoutes");
-const situacionTerapeuticaRutas = require("./situacionTerapeuticaRoutes");
-const planMedicoRutas = require("./planMedicoRoutes");
+const provinciaRutas = require('./provinciaRoutes');
+const diaRutas = require('./diaRoutes');
+const prestadorRutas = require('./prestadorRoutes');
+const agendaTurnosRutas = require('./agendaTurnosRoutes');
+const especialidadRutas = require('./especialidadRoutes');
+const afiliadoRutas = require('./afiliadoRoutes');
+const tipoDocumentoRutas = require('./tipoDocumentoRoutes')
+const parentescoRutas = require('./parentescoRoutes');
 
 module.exports = {
   provinciaRutas,
@@ -18,4 +17,5 @@ module.exports = {
   tipoDocumentoRutas,
   situacionTerapeuticaRutas,
   planMedicoRutas,
+  parentescoRutas,
 };
