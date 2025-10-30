@@ -165,7 +165,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
   }
 
   const { count, rows: agendas} = await AgendaTurnos.findAndCountAll(queryOptions);
-  
+
   const agendasFormateadas = agendas.map((agenda) => {
     const horarios = agenda.HorarioAtencions.map((horario) => ({
       dias: horario.Dia.map((dia) => dia.nombre),
@@ -196,7 +196,12 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
     return { ...agendaNueva };
   });
 
-  res.status(200).json(agendasFormateadas);
+  res.status(200).json({
+    total: count,
+    page: page,
+    limit: limit,
+    items: agendasFormateadas,
+  });
 };
 
 const obtenerUnaAgendaTurnos = async (req, res) => {
