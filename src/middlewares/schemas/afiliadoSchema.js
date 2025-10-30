@@ -129,10 +129,15 @@ const direccionSchema = Joi.object({
         pisoDepto: Joi.string().optional().allow("").messages({
           "string.base": "El piso/departamento debe ser una cadena de texto",
         }),
-        codigoPostal: Joi.string().optional().allow("").messages({
+        codigoPostal: Joi.string().min(4).max(8).required().messages({
           "string.base": "El código postal debe ser una cadena de texto",
+          "string.min":
+            "El código postal debe tener al menos {#limit} caracteres",
+          "string.max":
+            "El código postal debe tener como máximo {#limit} caracteres",
+          "any.required": "El código postal es obligatorio",
         }),
-        localidad: Joi.string().min(3).max(100).required().messages({
+        localidad: Joi.string().min(4).max(100).required().messages({
           "string.base": "La localidad debe ser una cadena de texto",
           "string.min": "La localidad debe tener al menos {#limit} caracteres",
           "string.max":

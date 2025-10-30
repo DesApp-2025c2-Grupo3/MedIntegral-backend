@@ -72,6 +72,7 @@ module.exports = (sequelize, DataTypes) => {
       numeroDocumento: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
       },
       fechaNacimiento: {
         type: DataTypes.DATE,

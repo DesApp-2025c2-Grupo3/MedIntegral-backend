@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Afiliados', {
+    await queryInterface.createTable("Afiliados", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       nIntegrante: {
         type: Sequelize.INTEGER,
@@ -20,6 +20,7 @@ module.exports = {
       numeroDocumento: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
       fechaNacimiento: {
         type: Sequelize.DATE,
@@ -55,15 +56,15 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Afiliados');
-  }
+    await queryInterface.dropTable("Afiliados");
+  },
 };
