@@ -108,8 +108,64 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
 
+  const queryOptions = {
+    page: page,
+    limit: limit,
+    offset: offset,
+    distinct: true,
+    subQuery: false,
+    include: [
+      { model: Prestador, as: "Prestador", attributes: ["nombre"] },
+      { model: Especialidad, as: "Especialidad", attributes: ["nombre"] },
+      {
+        model: LugarAtencion,
+        required: true,
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        include: [
+          {
+            model: Direccion,
+            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            ...(localidad && { where: { localidad: localidad } }),
+            include: [
+              {
+                model: Provincia,
+                attributes: ["nombre"],
+                ...(provincia && { where: { nombre: provincia } }),
+              },
+            ],
+          },
+        ],
+      },
+      {
+        model: HorarioAtencion,
+        attributes: ["horaInicio", "horaFin", "duracionTurno"],
+        where: {
+          ...(horaInicio && { horaInicio: { [Op.gte]: horaInicio } }),
+          ...(horaFin && { horaFin: { [Op.lte]: horaFin } }),
+          ...(duracion && { duracionTurno: duracion }),
+        },
+        include: [
+          {
+            model: Dia,
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+            ...(dia && { where: { nombre: dia } }),
+          },
+        ],
+      },
+    ],
+  };
 
+  if (textInputSearch && textInputSearch.trim() !== "") {
+    queryOptions.where = {
+      [Op.or]: [
+        { "$Prestador.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+        { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+      ],
+    };
+  }
 
+  const { count, rows: agendas} = await AgendaTurnos.findAndCountAll(queryOptions);
+  
   const agendasFormateadas = agendas.map((agenda) => {
     const horarios = agenda.HorarioAtencions.map((horario) => ({
       dias: horario.Dia.map((dia) => dia.nombre),
