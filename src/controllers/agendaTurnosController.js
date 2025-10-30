@@ -1,180 +1,228 @@
+const { required } = require("joi");
 const {
-    HorarioAtencion,
-    AgendaTurnos,
-    Dia,
-    Prestador,
-    Especialidad,
-    LugarAtencion,
-    Direccion,
-    Provincia
+  HorarioAtencion,
+  AgendaTurnos,
+  Dia,
+  Prestador,
+  Especialidad,
+  LugarAtencion,
+  Direccion,
+  Provincia,
 } = require("../db/models");
 
+const { Op } = require("sequelize");
+
 const crearAgendaTurnos = async (req, res) => {
-    const {
-        prestadorId,
-        especialidadId,
-        lugaratencionId,
-        horarios,
-    } = req.body;
+  const { prestadorId, especialidadId, lugaratencionId, horarios } = req.body;
 
-    const nuevaAgendaTurnos = await AgendaTurnos.create();
+  const nuevaAgendaTurnos = await AgendaTurnos.create();
 
-    const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
+  const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
 
-    relacionarAgendaConDemasEntidades(nuevaAgendaTurnosId, prestadorId, especialidadId, lugaratencionId);
+  relacionarAgendaConDemasEntidades(
+    nuevaAgendaTurnosId,
+    prestadorId,
+    especialidadId,
+    lugaratencionId
+  );
 
-    for (const horario of horarios) {
-        const nuevoHorario = await HorarioAtencion.create({
-            agendaTurnosId: nuevaAgendaTurnosId,
-            horaInicio: horario.horaInicio,
-            horaFin: horario.horaFin,
-            duracionTurno: horario.duracion
-        });
-
-        for (const diaId of horario.dias) {
-            const diaExistente = await Dia.findByPk(diaId);
-            if (diaExistente) {
-                await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-            }
-        }
-    }
-
-    res.status(201).json(nuevaAgendaTurnos);
-
-}
-
-const relacionarAgendaConDemasEntidades = async (agendaId, prestadorId, especialidadId, lugarAtencionId) => {
-    await AgendaTurnos.update({
-        prestadorId,
-        especialidadId,
-        lugarAtencionId
-    }, {
-        where: { id: agendaId }
+  for (const horario of horarios) {
+    const nuevoHorario = await HorarioAtencion.create({
+      agendaTurnosId: nuevaAgendaTurnosId,
+      horaInicio: horario.horaInicio,
+      horaFin: horario.horaFin,
+      duracionTurno: horario.duracion,
     });
-}
+
+    for (const diaId of horario.dias) {
+      const diaExistente = await Dia.findByPk(diaId);
+      if (diaExistente) {
+        await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
+      }
+    }
+  }
+
+  res.status(201).json(nuevaAgendaTurnos);
+};
+
+const relacionarAgendaConDemasEntidades = async (
+  agendaId,
+  prestadorId,
+  especialidadId,
+  lugarAtencionId
+) => {
+  await AgendaTurnos.update(
+    {
+      prestadorId,
+      especialidadId,
+      lugarAtencionId,
+    },
+    {
+      where: { id: agendaId },
+    }
+  );
+};
 
 const obtenerAgendasTurnos = async (req, res) => {
-    const agendas = await AgendaTurnos.findAll({
+  const agendas = await AgendaTurnos.findAll({
+    include: [
+      { model: Prestador, attributes: ["nombre"] },
+      { model: Especialidad, attributes: ["nombre"] },
+      {
+        model: LugarAtencion,
+        attributes: { exclude: ["createdAt", "updatedAt"] },
         include: [
-            { model: Prestador, attributes: ["nombre"] },
-            { model: Especialidad, attributes: ["nombre"] },
-            { model: LugarAtencion, attributes: { exclude: ["createdAt", "updatedAt"] }, include: [{ model: Direccion, attributes: ["calle", "altura", "pisoDepto", "localidad"], include: { model: Provincia, attributes: ["nombre"] } }] },
-            { model: HorarioAtencion, attributes: ["horaInicio", "horaFin", "duracionTurno"], include: { model: Dia, attributes: { exclude: ["createdAt", "updatedAt"] } } }
-        ], attributes: { exclude: ["createdAt", "updatedAt"] }
-    });
-    res.status(200).json(agendas);
+          {
+            model: Direccion,
+            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            include: { model: Provincia, attributes: ["nombre"] },
+          },
+        ],
+      },
+      {
+        model: HorarioAtencion,
+        attributes: ["horaInicio", "horaFin", "duracionTurno"],
+        include: {
+          model: Dia,
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+      },
+    ],
+    attributes: { exclude: ["createdAt", "updatedAt"] },
+  });
+  res.status(200).json(agendas);
 };
 
 const obtenerAgendasTurnosFormateados = async (req, res) => {
-    const agendas = await AgendaTurnos.findAll({
-        include: [
-            { model: Prestador },
-            { model: Especialidad },
-            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
-            { model: HorarioAtencion, include: { model: Dia } }
-        ]
-    });
+  const {
+    textInputSearch,
+    provincia,
+    localidad,
+    dia,
+    duracion,
+    horaInicio,
+    horaFin,
+  } = req.query;
 
-    const agendasFormateadas = agendas.map(agenda => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
 
-        const horarios = agenda.HorarioAtencions.map(horario => ({
-            dias: horario.Dia.map(dia => dia.nombre),
-            horaInicio: horario.horaInicio,
-            horaFin: horario.horaFin,
-            duracion: horario.duracionTurno
-        }));
 
-        const direccionData = agenda.LugarAtencion.Direccion;
 
-        const provincia = direccionData.Provincium;
+  const agendasFormateadas = agendas.map((agenda) => {
+    const horarios = agenda.HorarioAtencions.map((horario) => ({
+      dias: horario.Dia.map((dia) => dia.nombre),
+      horaInicio: horario.horaInicio,
+      horaFin: horario.horaFin,
+      duracion: horario.duracionTurno,
+    }));
 
-        const direccion = {
-            calle: direccionData.calle,
-            altura: direccionData.altura,
-            pisoDepto: direccionData.pisoDepto,
-            localidad: direccionData.localidad,
-            provincia: provincia.nombre
-        }
+    const direccionData = agenda.LugarAtencion.Direccion;
 
-        const agendaNueva = {
-            id: agenda.id,
-            prestador: agenda.Prestador.nombre,
-            especialidad: agenda.Especialidad.nombre,
-            horariosAtencion: horarios,
-            direccion: direccion
-        }
-        return { ...agendaNueva };
-    });
-    res.status(200).json(agendasFormateadas);
-}
+    const provincia = direccionData.Provincium;
+
+    const direccion = {
+      calle: direccionData.calle,
+      altura: direccionData.altura,
+      pisoDepto: direccionData.pisoDepto,
+      localidad: direccionData.localidad,
+      provincia: provincia.nombre,
+    };
+
+    const agendaNueva = {
+      id: agenda.id,
+      prestador: agenda.Prestador.nombre,
+      especialidad: agenda.Especialidad.nombre,
+      horariosAtencion: horarios,
+      direccion: direccion,
+    };
+    return { ...agendaNueva };
+  });
+
+  res.status(200).json(agendasFormateadas);
+};
 
 const obtenerUnaAgendaTurnos = async (req, res) => {
-    const { id } = req.params;
-    const agenda = await AgendaTurnos.findByPk(id, {
-        include: [
-            { model: Prestador },
-            { model: Especialidad },
-            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }] },
-            { model: HorarioAtencion, include: { model: Dia } }
-        ]
-    });
-    res.status(200).json(agenda);
+  const { id } = req.params;
+  const agenda = await AgendaTurnos.findByPk(id, {
+    include: [
+      { model: Prestador },
+      { model: Especialidad },
+      {
+        model: LugarAtencion,
+        include: [{ model: Direccion, include: [Provincia] }],
+      },
+      { model: HorarioAtencion, include: { model: Dia } },
+    ],
+  });
+  res.status(200).json(agenda);
 };
 
 const actualizarAgendaTurnos = async (req, res) => {
-    const { id } = req.params;
-    const { horarios, especialidadId } = req.body;
+  const { id } = req.params;
+  const { horarios, especialidadId } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
-   
-    if (especialidadId) { 
-        await AgendaTurnos.update({ especialidadId }, { where: { id } });
+  const agendaTurnos = await AgendaTurnos.findByPk(id, {
+    include: [HorarioAtencion],
+  });
+
+  if (especialidadId) {
+    await AgendaTurnos.update({ especialidadId }, { where: { id } });
+  }
+
+  for (const horario of agendaTurnos.HorarioAtencions) {
+    await horario.setDia([]);
+  }
+  await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
+
+  for (const horario of horarios) {
+    const nuevoHorario = await HorarioAtencion.create({
+      agendaTurnosId: id,
+      horaInicio: horario.horaInicio,
+      horaFin: horario.horaFin,
+      duracionTurno: horario.duracion,
+    });
+
+    for (const diaId of horario.dias) {
+      const diaExistente = await Dia.findByPk(diaId);
+      if (diaExistente) {
+        await nuevoHorario.addDia(diaExistente);
+      }
     }
-
-    for (const horario of agendaTurnos.HorarioAtencions) {
-        await horario.setDia([]);
-    }
-    await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
-
-    for (const horario of horarios) {
-        const nuevoHorario = await HorarioAtencion.create({
-            agendaTurnosId: id,
-            horaInicio: horario.horaInicio,
-            horaFin: horario.horaFin,
-            duracionTurno: horario.duracion
-        });
-
-        for (const diaId of horario.dias) {
-            const diaExistente = await Dia.findByPk(diaId);
-            if (diaExistente) {
-                await nuevoHorario.addDia(diaExistente);
-            }
-        }
-    }
-    res.status(200).json(agendaTurnos);
+  }
+  res.status(200).json(agendaTurnos);
 };
 
 const eliminarAgendaTurnos = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
+  const agendaTurnos = await AgendaTurnos.findByPk(id, {
+    include: [HorarioAtencion],
+  });
 
-    for (const horario of agendaTurnos.HorarioAtencions) {
-        await horario.setDia([]);
-    }
+  for (const horario of agendaTurnos.HorarioAtencions) {
+    await horario.setDia([]);
+  }
 
-    await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
+  await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
 
-    await AgendaTurnos.destroy({ where: { id } });
+  await AgendaTurnos.destroy({ where: { id } });
 
-    res.status(200).json({ message: "Agenda de turnos eliminada correctamente" });
-}
+  res.status(200).json({ message: "Agenda de turnos eliminada correctamente" });
+};
+
+const obtenerDias = async (_, res) => {
+  const dias = await Dia.findAll({ attributes: ["nombre"] });
+  res.status(200).json(dias);
+};
 
 module.exports = {
-    crearAgendaTurnos,
-    obtenerAgendasTurnos,
-    obtenerAgendasTurnosFormateados,
-    obtenerUnaAgendaTurnos,
-    actualizarAgendaTurnos,
-    eliminarAgendaTurnos
+  crearAgendaTurnos,
+  obtenerAgendasTurnos,
+  obtenerAgendasTurnosFormateados,
+  obtenerUnaAgendaTurnos,
+  actualizarAgendaTurnos,
+  eliminarAgendaTurnos,
+  obtenerDias,
 };
