@@ -1,4 +1,3 @@
-const { required } = require("joi");
 const {
   HorarioAtencion,
   AgendaTurnos,
@@ -10,7 +9,7 @@ const {
   Provincia,
 } = require("../db/models");
 
-const { Op, where } = require("sequelize");
+const { Op } = require("sequelize");
 
 const crearAgendaTurnos = async (req, res) => {
   const { prestadorId, especialidadId, lugaratencionId, horarios } = req.body;
@@ -111,32 +110,44 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
   const offset = (page - 1) * limit;
 
   const where = {};
-  const rangoDeFecha = {}
-  const fechaDesde = new Date(creacionDesde)
-  const fechaHasta = new Date(creacionHasta)
+  const rangoDeFecha = {};
 
   if (creacionDesde) {
-    rangoDeFecha[Op.gte] = fechaDesde
-  } 
-  if (creacionHasta) {
-    rangoDeFecha[Op.lte] = fechaHasta
-  }
-  if (creacionDesde || creacionHasta){
-    where.createdAt = rangoDeFecha
+    const fechaDesde = new Date(creacionDesde);
+    fechaDesde.setHours(0, 0, 0, 0);
+    rangoDeFecha[Op.gte] = fechaDesde;
   }
 
-  if(textInputSearch && textInputSearch.trim() !== "") {
+  if (creacionHasta) {
+    const fechaHasta = new Date(creacionHasta);
+    fechaHasta.setHours(23, 59, 59, 999);
+    rangoDeFecha[Op.lte] = fechaHasta;
+  }
+
+  if (creacionDesde || creacionHasta) {
+    where.createdAt = rangoDeFecha;
+  }
+
+  if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
-        { "$Prestador.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
-        { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+      { "$Prestador.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+      { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
     ];
-  };
+  }
+
+  if (localidad) {
+    where["$LugarAtencion.Direccion.localidad$"] = localidad;
+  }
+  if (provincia) {
+    where["$LugarAtencion.Direccion.Provincium.nombre$"] = provincia;
+  }
 
   const queryOptions = {
     page: page,
     limit: limit,
     offset: offset,
     distinct: true,
+    where: where,
     include: [
       {
         model: Prestador,
@@ -157,13 +168,13 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
         include: [
           {
             model: Direccion,
+            required: true,
             attributes: ["calle", "altura", "pisoDepto", "localidad"],
-            ...(localidad && { where: { localidad: localidad } }),
             include: [
               {
                 model: Provincia,
+                required: true,
                 attributes: ["nombre"],
-                ...(provincia && { where: { nombre: provincia } }),
               },
             ],
           },
@@ -171,22 +182,24 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
       },
       {
         model: HorarioAtencion,
+        required: true,
         attributes: ["horaInicio", "horaFin", "duracionTurno"],
         where: {
           ...(horaInicio && { horaInicio: { [Op.gte]: horaInicio } }),
           ...(horaFin && { horaFin: { [Op.lte]: horaFin } }),
           ...(duracion && { duracionTurno: duracion }),
         },
+
         include: [
           {
             model: Dia,
+            required: true,
             attributes: { exclude: ["createdAt", "updatedAt"] },
             ...(dia && { where: { nombre: dia } }),
           },
         ],
       },
     ],
-    where
   };
 
   const { count, rows: agendas } = await AgendaTurnos.findAndCountAll(
