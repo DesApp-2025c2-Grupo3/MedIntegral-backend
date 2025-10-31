@@ -10,7 +10,7 @@ const {
   Provincia,
 } = require("../db/models");
 
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 const crearAgendaTurnos = async (req, res) => {
   const { prestadorId, especialidadId, lugaratencionId, horarios } = req.body;
@@ -102,21 +102,54 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
     duracion,
     horaInicio,
     horaFin,
+    creacionDesde,
+    creacionHasta,
   } = req.query;
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
 
+  const where = {};
+  const rangoDeFecha = {}
+  const fechaDesde = new Date(creacionDesde)
+  const fechaHasta = new Date(creacionHasta)
+
+  if (creacionDesde) {
+    rangoDeFecha[Op.gte] = fechaDesde
+  } 
+  if (creacionHasta) {
+    rangoDeFecha[Op.lte] = fechaHasta
+  }
+  if (creacionDesde || creacionHasta){
+    where.createdAt = rangoDeFecha
+  }
+
+  if(textInputSearch && textInputSearch.trim() !== "") {
+    where[Op.or] = [
+        { "$Prestador.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+        { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+    ];
+  };
+
   const queryOptions = {
     page: page,
     limit: limit,
     offset: offset,
     distinct: true,
-    subQuery: false,
     include: [
-      { model: Prestador, as: "Prestador", attributes: ["nombre"] },
-      { model: Especialidad, as: "Especialidad", attributes: ["nombre"] },
+      {
+        model: Prestador,
+        as: "Prestador",
+        attributes: ["nombre"],
+        required: true,
+      },
+      {
+        model: Especialidad,
+        as: "Especialidad",
+        attributes: ["nombre"],
+        required: true,
+      },
       {
         model: LugarAtencion,
         required: true,
@@ -153,18 +186,12 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
         ],
       },
     ],
+    where
   };
 
-  if (textInputSearch && textInputSearch.trim() !== "") {
-    queryOptions.where = {
-      [Op.or]: [
-        { "$Prestador.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
-        { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
-      ],
-    };
-  }
-
-  const { count, rows: agendas} = await AgendaTurnos.findAndCountAll(queryOptions);
+  const { count, rows: agendas } = await AgendaTurnos.findAndCountAll(
+    queryOptions
+  );
 
   const agendasFormateadas = agendas.map((agenda) => {
     const horarios = agenda.HorarioAtencions.map((horario) => ({
@@ -192,6 +219,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
       especialidad: agenda.Especialidad.nombre,
       horariosAtencion: horarios,
       direccion: direccion,
+      fechaAlta: agenda.createdAt,
     };
     return { ...agendaNueva };
   });
@@ -273,9 +301,60 @@ const eliminarAgendaTurnos = async (req, res) => {
   res.status(200).json({ message: "Agenda de turnos eliminada correctamente" });
 };
 
-const obtenerDias = async (_, res) => {
-  const dias = await Dia.findAll({ attributes: ["nombre"] });
-  res.status(200).json(dias);
+const obtenerLocalidadesAgendas = async (_, res) => {
+  const agendas = await AgendaTurnos.findAll({
+    include: [
+      {
+        model: LugarAtencion,
+        include: [{ model: Direccion }],
+      },
+    ],
+  });
+
+  const setLocalidades = new Set();
+
+  agendas.forEach((agenda) => {
+    const localidad = agenda.LugarAtencion?.Direccion?.localidad;
+    if (localidad) {
+      setLocalidades.add(localidad);
+    }
+  });
+
+  const localidadesFormateadas = Array.from(setLocalidades).map(
+    (localidad) => ({
+      value: localidad,
+      label: localidad,
+    })
+  );
+
+  res.status(200).json(localidadesFormateadas);
+};
+
+const obtenerProvinciasAgendas = async (_, res) => {
+  const agendas = await AgendaTurnos.findAll({
+    include: [
+      {
+        model: LugarAtencion,
+        include: [{ model: Direccion, include: [{ model: Provincia }] }],
+      },
+    ],
+  });
+
+  const setProvincias = new Set();
+
+  agendas.forEach((agenda) => {
+    const provincia = agenda.LugarAtencion?.Direccion?.Provincium.nombre;
+    if (provincia) {
+      setProvincias.add(provincia);
+    }
+  });
+
+  const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({
+    value: provincia,
+    label: provincia,
+  }));
+
+  res.status(200).json(provinciasFormateadas);
 };
 
 module.exports = {
@@ -285,5 +364,6 @@ module.exports = {
   obtenerUnaAgendaTurnos,
   actualizarAgendaTurnos,
   eliminarAgendaTurnos,
-  obtenerDias,
+  obtenerLocalidadesAgendas,
+  obtenerProvinciasAgendas,
 };
