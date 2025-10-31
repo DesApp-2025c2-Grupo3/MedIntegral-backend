@@ -3,13 +3,14 @@ const { AgendaTurnos, Prestador, LugarAtencion, HorarioAtencion, Especialidad } 
 
 const validarLosHorariosEntreAgendasYPrestadores = async (req, res, next) => {
 
-    const { prestadorId, lugaratencionId, horarios } = req.body;
+    const { horarios } = req.body;
 
-    const prestador = await Prestador.findByPk(prestadorId, {
+
+    const prestador = await Prestador.findByPk(req.body.prestadorId , {
         include: [{ model: LugarAtencion, include: [{ model: HorarioAtencion }] }]
     });
 
-    const horariosPrestador = prestador.LugarAtencions.find(lugar => lugar.id === lugaratencionId).HorarioAtencions;
+    const horariosPrestador = prestador.LugarAtencions.find(lugar => lugar.id === req.body.lugaratencionId).HorarioAtencions;
 
     const diasDeHorariosPrestador = horariosPrestador.map(h => h.dia);
 

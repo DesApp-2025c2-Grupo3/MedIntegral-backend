@@ -150,11 +150,13 @@ const obtenerPrestador = async (req, res) => {
       { model: Telefono, attributes: ["numero"] },
       {
         model: Especialidad,
+        as: "Especialidades",
         attributes: ["nombre"],
         through: { attributes: [] },
       },
       {
         model: LugarAtencion,
+        as: "CentrosDeAtencion",
         attributes: {
           exclude: ["createdAt", "updatedAt"],
         },
@@ -166,12 +168,15 @@ const obtenerPrestador = async (req, res) => {
             include: [
               {
                 model: Provincia,
+                as: "Provincia",
                 attributes: ["nombre"],
               },
             ],
           },
           {
-            model: HorarioAtencion
+            model: HorarioAtencion,
+            as: "Horarios"
+
           },
         ],
       },
