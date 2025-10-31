@@ -88,12 +88,6 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
 };
 
 const formatearAgenda = (agenda) => {
-    // console.log(" ---- Horarios del prestador ---- ");
-    // console.log(agenda.Prestador.LugarAtencions);
-    // console.log(" -------------------------------- ");
-    // console.log(agenda.Prestador.LugarAtencions.find(lugar => lugar.id === agenda.lugarAtencionId));
-    // console.log(" -------------------------------- ");
-    // console.log(agenda.Prestador.LugarAtencions.find(lugar => lugar.id === agenda.lugarAtencionId).HorarioAtencions);
     const prestador = {
         id: agenda.Prestador.id,
         nombre: agenda.Prestador.nombre,
