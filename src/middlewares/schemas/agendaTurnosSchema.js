@@ -1,4 +1,4 @@
-const Joi = require('joi')
+const Joi = require('joi');
 
 const agendaTurnosSchemaCreate = Joi.object({
 
@@ -46,10 +46,10 @@ const agendaTurnosSchemaCreate = Joi.object({
 
             dias: Joi.array().items(
                 
-                Joi.number().integer().required().messages({
-                    'number.base': 'El ID del día debe ser un número',
-                    'number.integer': 'El ID del día debe ser un número entero',
-                    'any.required': 'El ID del día es obligatorio'
+                Joi.string().valid('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo').required().messages({
+                    'string.base': 'El día debe ser una cadena de texto',
+                    'any.required': 'El día es obligatorio',
+                    'any.only': 'El día debe ser uno de los siguientes: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo'
                 })
 
             ).min(1).unique().required().messages({
@@ -97,10 +97,10 @@ const agendaTurnosSchemaUpdateHorarios = Joi.object({
 
             dias: Joi.array().items(
 
-                Joi.number().integer().required().messages({
-                    'number.base': 'El ID del día debe ser un número',
-                    'number.integer': 'El ID del día debe ser un número entero',
-                    'any.required': 'El ID del día es obligatorio'
+                Joi.string().valid('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo').required().messages({
+                    'string.base': 'El día debe ser una cadena de texto',
+                    'any.required': 'El día es obligatorio',
+                    'any.only': 'El día debe ser uno de los siguientes: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo'
                 })
 
             ).min(1).unique().required().messages({

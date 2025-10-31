@@ -131,10 +131,10 @@ const prestadorSchemaCreate = Joi.object({
             'any.required': 'La hora de fin es obligatoria'
           }),
           dias: Joi.array().items(
-            Joi.number().integer().required().messages({
-              'number.base': 'El ID del día debe ser un número',
-              'number.integer': 'El ID del día debe ser un número entero',
-              'any.required': 'El ID del día es obligatorio'
+            Joi.string().valid('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo').required().messages({
+              'string.base': 'El día debe ser una cadena de texto',
+              'any.required': 'El día es obligatorio',
+              'any.only': 'El día debe ser uno de los siguientes: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo'
             })
           ).min(1).unique().required().messages({
             'array.base': 'Los días deben estar dentro de un array',
@@ -252,10 +252,10 @@ const prestadorSchemaUpdateLugaresAtencion = Joi.object({
             'any.required': 'La hora de fin es obligatoria'
           }),
           dias: Joi.array().items(
-            Joi.number().integer().required().messages({
-              'number.base': 'El ID del día debe ser un número',
-              'number.integer': 'El ID del día debe ser un número entero',
-              'any.required': 'El ID del día es obligatorio'
+            Joi.string().valid('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo').required().messages({
+              'string.base': 'El día debe ser una cadena de texto',
+              'any.required': 'El día es obligatorio',
+              'any.only': 'El día debe ser uno de los siguientes: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo'
             })
           ).min(1).unique().required().messages({
             'array.base': 'Los días deben estar dentro de un array',

@@ -7,7 +7,6 @@ const {
   LugarAtencion,
   HorarioAtencion,
   Especialidad,
-  Dia,
   AgendaTurnos
 } = require("../db/models");
 
@@ -79,19 +78,16 @@ const crearPrestador = async (req, res) => {
 
     //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
     for (const horarioData of lugar.horarios) {
-      const nuevoHorario = await HorarioAtencion.create({
-        horaInicio: horarioData.horaInicio,
-        horaFin: horarioData.horaFin,
-        lugarAtencionId: nuevoLugarAtencion.id,
-      });
 
-      //Por cada horario extraemos el array de días
-      for (const diaData of horarioData.dias) {
-        const diaExistente = await Dia.findByPk(diaData);
-        if (diaExistente) {
-          await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-        }
+      for (const dia of horarioData.dias) {
+        const nuevoHorario = await HorarioAtencion.create({
+          horaInicio: horarioData.horaInicio,
+          horaFin: horarioData.horaFin,
+          lugarAtencionId: nuevoLugarAtencion.id,
+          dia: dia
+        });
       }
+
     }
   }
   res.status(201).json(nuevoPrestador);
@@ -129,15 +125,7 @@ const obtenerPrestadores = async (_, res) => {
             ],
           },
           {
-            model: HorarioAtencion,
-            attributes: ["horaInicio", "horaFin"],
-            include: [
-              {
-                model: Dia,
-                attributes: ["nombre"],
-                through: { attributes: [] },
-              },
-            ],
+            model: HorarioAtencion
           },
         ],
       },
@@ -183,15 +171,7 @@ const obtenerPrestador = async (req, res) => {
             ],
           },
           {
-            model: HorarioAtencion,
-            attributes: ["horaInicio", "horaFin"],
-            include: [
-              {
-                model: Dia,
-                attributes: ["nombre"],
-                through: { attributes: [] },
-              },
-            ],
+            model: HorarioAtencion
           },
         ],
       },
@@ -246,9 +226,6 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   });
 
   for (const lugar of lugaresActuales) {
-    for (const horario of lugar.HorarioAtencions) {
-      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
-    }
     await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
     await lugar.destroy();
     //destruyo las direcciones? porque otros lugares de atención podrían usarla también
@@ -273,19 +250,16 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
     });
 
     for (const horarioData of lugar.horarios) {
-      const nuevoHorario = await HorarioAtencion.create({
-        horaInicio: horarioData.horaInicio,
-        horaFin: horarioData.horaFin,
-        lugarAtencionId: nuevoLugarAtencion.id,
-      });
 
-      //Por cada horario extraemos el array de días
-      for (const diaData of horarioData.dias) {
-        const diaExistente = await Dia.findByPk(diaData);
-        if (diaExistente) {
-          await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-        }
+      for (const dia of horarioData.dias) {
+        const nuevoHorario = await HorarioAtencion.create({
+          horaInicio: horarioData.horaInicio,
+          horaFin: horarioData.horaFin,
+          lugarAtencionId: nuevoLugarAtencion.id,
+          dia: dia
+        });
       }
+
     }
   }
 
@@ -334,9 +308,10 @@ const eliminarPrestador = async (req, res) => {
       { model: Email },
       { model: Telefono },
       { model: Especialidad },
-      { model: LugarAtencion, include: [
+      {
+        model: LugarAtencion, include: [
           { model: Direccion, include: { model: Provincia } },
-          { model: HorarioAtencion, include: { model: Dia } }
+          { model: HorarioAtencion }
         ],
       }
     ]
@@ -362,9 +337,6 @@ const eliminarPrestador = async (req, res) => {
   });
 
   for (const lugar of lugaresActuales) {
-    for (const horario of lugar.HorarioAtencions) {
-      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
-    }
     await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
     await lugar.destroy();
     //destruyo las direcciones? porque otros lugares de atención podrían usarla también

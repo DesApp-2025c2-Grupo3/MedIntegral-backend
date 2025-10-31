@@ -7,17 +7,17 @@ module.exports = {
       "TipoDocumentos",
       [
         {
-          relacion: "DNI",
+          tipo: "DNI",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         {
-          relacion: "Pasaporte",
+          tipo: "Pasaporte",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         {
-          relacion: "Libreta cívica",
+          tipo: "Libreta cívica",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
