@@ -69,6 +69,8 @@ const validarEspecialidad = async (req, res, next) => {
         include: [{ model: Especialidad, as: 'Especialidad' }]
     });
 
+    console.log(prestador.Especialidad.filter(especialidad => especialidad.id === especialidadId))
+
     if (prestador.Especialidad.filter(especialidad => especialidad.id === especialidadId).length === 0) {
         return errorPersonalizado(`La especialidad con id ${especialidadId} no pertenece al prestador con id ${prestadorId}`, 400, next);
     }

@@ -11,8 +11,8 @@ router.post('/',
     genericMiddleware.existModelRequest(Especialidad),
     genericMiddleware.existModelRequest(LugarAtencion),
     agendaTurnosMiddleware.validarLugarDeAtencion,
-    agendaTurnosMiddleware.validarEspecialidad,
-    agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
+    //agendaTurnosMiddleware.validarEspecialidad,
+    //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
     agendaTurnosController.crearAgendaTurnos
 );
 
@@ -42,7 +42,7 @@ router.put("/:id/especialidades",
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateEspecialidad),
     genericMiddleware.existModelRequest(Especialidad),
-    agendaTurnosMiddleware.validarEspecialidad,
+    //agendaTurnosMiddleware.validarEspecialidad,
     agendaTurnosController.actualizarEspecialidadDeAgendaTurnos
 );
 

@@ -199,7 +199,7 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   await prestador.update({ nombre, cuilCuit });
 
   //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
-  await Email.destroy({ where: { prestadorId: id } });
+  await Email.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
 
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
@@ -209,7 +209,7 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
   //Teléfonos (borramos los viejos e insertamos los nuevos)
-  await Telefono.destroy({ where: { prestadorId: id } });
+  await Telefono.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
 
   const datosTelefonos = telefonos.map((tel) => ({
     numero: tel.numero,
@@ -283,7 +283,7 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
   const prestador = await Prestador.findByPk(id);
 
   //Vacío el array de especialidades actuales
-  await prestador.setEspecialidads([]); // funciona con Especialidads porque así lo generó Sequelize
+  await prestador.setEspecialidad([]);
 
   for (const espId of especialidades) {
     const esp = await Especialidad.findByPk(espId);
@@ -312,19 +312,7 @@ const actualizarCentroMedicoPrestador = async (req, res) => {
 const eliminarPrestador = async (req, res) => {
   const { id } = req.params;
 
-  const prestador = await Prestador.findByPk(id, {
-    include: [
-      { model: Email },
-      { model: Telefono },
-      { model: Especialidad },
-      {
-        model: LugarAtencion, include: [
-          { model: Direccion, include: { model: Provincia } },
-          { model: HorarioAtencion }
-        ],
-      }
-    ]
-  });
+  const prestador = await Prestador.findByPk(id);
 
   await Email.destroy({
     where: {
@@ -338,7 +326,7 @@ const eliminarPrestador = async (req, res) => {
       propietarioTipo: 'Prestador'
     }
   });
-  await prestador.setEspecialidads([]); // probablemnte no funcione por los alias
+  await prestador.setEspecialidad([]); 
 
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
