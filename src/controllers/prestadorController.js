@@ -140,6 +140,21 @@ const obtenerPrestadores = async (_, res) => {
 };
 
 const obtenerPrestadoresFormateados = async (req, res) => {
+
+  const { 
+    textInputSearch,
+    tipoPrestador,
+    especialidad,
+    localidad,
+    Provincia,
+    creacionDesde,
+    creacionHasta
+  } = req.query;
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offSet = ( page-1 ) * limit;
+
   const prestadores = await Prestador.findAll({
     exclude: ["updateAt"],
     include: [
