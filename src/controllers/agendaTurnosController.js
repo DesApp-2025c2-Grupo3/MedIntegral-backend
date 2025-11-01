@@ -173,8 +173,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
                         model: HorarioAtencion,
                         as: "Horarios",
                         required: true,
-                        attributes: ["horaInicio", "horaFin", "dia"],
-
+                        attributes: ["horaInicio", "horaFin", "dia"]
                     },
                 ],
             },
@@ -187,7 +186,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
                     ...(horaInicio && { horaInicio: { [Op.gte]: horaInicio } }),
                     ...(horaFin && { horaFin: { [Op.lte]: horaFin } }),
                     ...(duracion && { duracionTurno: duracion }),
-                    ...(dia && { where: { dia } }),
+                    ...(dia && { dia: dia }),
                 },
             },
         ],
@@ -347,7 +346,7 @@ const obtenerLocalidadesAgendas = async (_, res) => {
         include: [
             {
                 model: LugarAtencion, as: "CentroDeAtencion",
-                include: [{ model: Direccion }],
+                include: [{ model: Direccion, as: "Direccion" }],
             },
         ],
     });
@@ -377,7 +376,7 @@ const obtenerProvinciasAgendas = async (_, res) => {
         include: [
             {
                 model: LugarAtencion, as: "CentroDeAtencion",
-                include: [{ model: Direccion, include: [{ model: Provincia, as: "Provincia" }] }],
+                include: [{ model: Direccion, as: "Direccion", include: [{ model: Provincia, as: "Provincia" }] }],
             },
         ],
     });
