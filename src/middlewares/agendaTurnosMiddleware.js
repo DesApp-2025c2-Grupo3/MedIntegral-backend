@@ -7,10 +7,10 @@ const validarLosHorariosEntreAgendasYPrestadores = async (req, res, next) => {
 
 
     const prestador = await Prestador.findByPk(req.body.prestadorId , {
-        include: [{ model: LugarAtencion, include: [{ model: HorarioAtencion }] }]
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
     });
 
-    const horariosPrestador = prestador.LugarAtencions.find(lugar => lugar.id === req.body.lugaratencionId).HorarioAtencions;
+    const horariosPrestador = prestador.CentroDeAtencion.find(lugar => lugar.id === req.body.lugaratencionId).Horarios;
 
     const diasDeHorariosPrestador = horariosPrestador.map(h => h.dia);
 
@@ -52,10 +52,10 @@ const validarLugarDeAtencion = async (req, res, next) => {
 
     const { prestadorId, lugaratencionId } = req.body;
     const prestador = await Prestador.findByPk(prestadorId, {
-        include: [{ model: LugarAtencion }]
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion' }]
     });
 
-    if (prestador.LugarAtencions.filter(lugar => lugar.id === req.body.lugaratencionId).length === 0) {
+    if (prestador.CentroDeAtencion.filter(lugar => lugar.id === req.body.lugaratencionId).length === 0) {
         return errorPersonalizado(`El lugar de atención con id ${lugaratencionId} no pertenece al prestador con id ${prestadorId}`, 400, next);
     }
 
@@ -66,10 +66,10 @@ const validarEspecialidad = async (req, res, next) => {
 
     const { prestadorId, especialidadId } = req.body;
     const prestador = await Prestador.findByPk(prestadorId, {
-        include: [{ model: Especialidad }]
+        include: [{ model: Especialidad, as: 'Especialidad' }]
     });
 
-    if (prestador.Especialidads.filter(especialidad => especialidad.id === especialidadId).length === 0) {
+    if (prestador.Especialidad.filter(especialidad => especialidad.id === especialidadId).length === 0) {
         return errorPersonalizado(`La especialidad con id ${especialidadId} no pertenece al prestador con id ${prestadorId}`, 400, next);
     }
 

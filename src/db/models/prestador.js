@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   class Prestador extends Model {
     static associate(models) {
       Prestador.hasMany(models.AgendaTurnos, {
+        as: "AgendasTurnos",
         foreignKey: 'prestadorId'
       });
       Prestador.hasMany(models.Email, {
@@ -24,9 +25,11 @@ module.exports = (sequelize, DataTypes) => {
       });
       Prestador.belongsToMany(models.Especialidad, {
         through: "PrestadorEspecialidad", // tabla intermedia
+        as: 'Especialidad',
         foreignKey: 'EspecialidadId'
       });
       Prestador.hasMany(models.LugarAtencion, {
+        as: 'CentroDeAtencion', 
         foreignKey: 'prestadorId'
       });
 

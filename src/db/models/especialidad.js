@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       Especialidad.belongsToMany(models.Prestador, {
         through: "PrestadorEspecialidad", // tabla intermedia
+        as: 'Prestadores',
         foreignKey: 'prestadorId'
       });
     }

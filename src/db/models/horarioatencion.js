@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'agendaTurnosId'
       });
       HorarioAtencion.belongsTo(models.LugarAtencion, {
+        as: 'CentrosDeAtencion',
         foreignKey: 'lugarAtencionId'
       });
     }

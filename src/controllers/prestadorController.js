@@ -104,11 +104,13 @@ const obtenerPrestadores = async (_, res) => {
       { model: Telefono, attributes: ["numero"] },
       {
         model: Especialidad,
+        as: "Especialidad",
         attributes: ["nombre"],
         through: { attributes: [] },
       },
       {
         model: LugarAtencion,
+        as: "CentroDeAtencion",
         attributes: {
           exclude: ["createdAt", "updatedAt"],
         },
@@ -120,12 +122,14 @@ const obtenerPrestadores = async (_, res) => {
             include: [
               {
                 model: Provincia,
+                as: "Provincia",
                 attributes: ["nombre"],
               },
             ],
           },
           {
-            model: HorarioAtencion
+            model: HorarioAtencion,
+            as: "Horarios"
           },
         ],
       },
@@ -150,13 +154,13 @@ const obtenerPrestador = async (req, res) => {
       { model: Telefono, attributes: ["numero"] },
       {
         model: Especialidad,
-        as: "Especialidades",
+        as: "Especialidad",
         attributes: ["nombre"],
         through: { attributes: [] },
       },
       {
         model: LugarAtencion,
-        as: "CentrosDeAtencion",
+        as: "CentroDeAtencion",
         attributes: {
           exclude: ["createdAt", "updatedAt"],
         },
@@ -227,7 +231,7 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   //Eliminacion:
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
-    include: [{ model: HorarioAtencion, as: "HorarioAtencions" }],
+    include: [{ model: HorarioAtencion, as: "Horarios" }],
   });
 
   for (const lugar of lugaresActuales) {
@@ -334,11 +338,11 @@ const eliminarPrestador = async (req, res) => {
       propietarioTipo: 'Prestador'
     }
   });
-  await prestador.setEspecialidads([]);
+  await prestador.setEspecialidads([]); // probablemnte no funcione por los alias
 
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
-    include: [{ model: HorarioAtencion }],
+    include: [{ model: HorarioAtencion, as: "Horarios" }],
   });
 
   for (const lugar of lugaresActuales) {

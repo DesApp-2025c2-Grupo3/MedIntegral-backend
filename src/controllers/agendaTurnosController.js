@@ -1,7 +1,6 @@
 const {
     HorarioAtencion,
     AgendaTurnos,
-    Dia,
     Prestador,
     Especialidad,
     LugarAtencion,
@@ -49,10 +48,10 @@ const crearAgendaTurnos = async (req, res) => {
 const obtenerAgendasTurnos = async (req, res) => {
     const agendas = await AgendaTurnos.findAll({
         include: [
-            { model: Prestador, attributes: ["nombre"] },
-            { model: Especialidad, attributes: ["nombre"] },
-            { model: LugarAtencion, attributes: { exclude: ["createdAt", "updatedAt"] }, include: [{ model: Direccion, attributes: ["calle", "altura", "pisoDepto", "localidad"], include: { model: Provincia, attributes: ["nombre"] } }] },
-            { model: HorarioAtencion }
+            { model: Prestador, as: "Prestador", attributes: ["nombre"] },
+            { model: Especialidad, as: "Especialidad", attributes: ["nombre"] },
+            { model: LugarAtencion, as: "CentroDeAtencion", attributes: { exclude: ["createdAt", "updatedAt"] }, include: [{ model: Direccion, as: "Direccion", attributes: ["calle", "altura", "pisoDepto", "localidad"], include: { model: Provincia, as: "Provincia", attributes: ["nombre"] } }] },
+            { model: HorarioAtencion, as: "Horarios" }
         ], attributes: { exclude: ["createdAt", "updatedAt"] }
     });
     res.status(200).json(agendas);
@@ -61,10 +60,10 @@ const obtenerAgendasTurnos = async (req, res) => {
 const obtenerAgendasTurnosFormateados = async (req, res) => {
     const agendas = await AgendaTurnos.findAll({
         include: [
-            { model: Prestador, include: [{ model: Especialidad }, { model: LugarAtencion, include: [{ model: HorarioAtencion }] }] },
-            { model: Especialidad },
-            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }, { model: HorarioAtencion }] },
-            { model: HorarioAtencion }
+            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: Especialidad, as: "Especialidad" },
+            { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: Direccion, as: "Direccion", include: { model: Provincia, as: "Provincia" } }, { model: HorarioAtencion, as: "Horarios" }] },
+            { model: HorarioAtencion, as: "Horarios" }
         ]
     });
 
@@ -78,10 +77,10 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const agenda = await AgendaTurnos.findByPk(id, {
         include: [
-            { model: Prestador, include: [{ model: Especialidad }, { model: LugarAtencion, include: [{ model: HorarioAtencion }] }] },
-            { model: Especialidad },
-            { model: LugarAtencion, include: [{ model: Direccion, include: [Provincia] }, { model: HorarioAtencion }] },
-            { model: HorarioAtencion }
+            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: Especialidad, as: "Especialidad" },
+            { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: Direccion, as: "Direccion", include: { model: Provincia, as: "Provincia" } }, { model: HorarioAtencion, as: "Horarios" }] },
+            { model: HorarioAtencion, as: "Horarios" }
         ]
     });
     res.status(200).json(formatearAgenda(agenda));
@@ -91,18 +90,18 @@ const formatearAgenda = (agenda) => {
     const prestador = {
         id: agenda.Prestador.id,
         nombre: agenda.Prestador.nombre,
-        especialidades: agenda.Prestador.Especialidads.map(especialidad => ({
+        especialidades: agenda.Prestador.Especialidad.map(especialidad => ({
             id: especialidad.id,
             nombre: especialidad.nombre
         })),
-        horarios: agenda.Prestador.LugarAtencions.find(lugar => lugar.id === agenda.lugarAtencionId).HorarioAtencions
+        horarios: agenda.Prestador.CentroDeAtencion.find(lugar => lugar.id === agenda.lugarAtencionId).Horarios
     }
 
-    const horarios = agenda.HorarioAtencions;
+    const horarios = agenda.Horarios;
 
-    const direccionData = agenda.LugarAtencion.Direccion;
+    const direccionData = agenda.CentroDeAtencion.Direccion;
 
-    const provincia = direccionData.Provincium;
+    const provincia = direccionData.Provincia;
 
     const direccion = {
         calle: direccionData.calle,
@@ -130,7 +129,7 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     const { horarios } = req.body;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, {
-        include: [{ model: HorarioAtencion }]
+        include: [{ model: HorarioAtencion, as: 'Horarios' }]
     });
 
     // Eliminar solo los horarios asociados a esta agenda
@@ -158,7 +157,7 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
 
     // Recargar agenda con los horarios nuevos
     const agendaActualizada = await AgendaTurnos.findByPk(id, {
-        include: [{ model: HorarioAtencion }]
+        include: [{ model: HorarioAtencion, as: 'Horarios' }]
     });
 
     return res.status(200).json(agendaActualizada);
@@ -170,7 +169,7 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { especialidadId } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [Especialidad] });
+    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: { model: Especialidad, as: "Especialidad" } });
 
     agendaTurnos.especialidadId = especialidadId;
 
@@ -184,7 +183,7 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
 const eliminarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: [HorarioAtencion] });
+    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: { model: HorarioAtencion, as: 'Horarios' } });
 
     await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
 
