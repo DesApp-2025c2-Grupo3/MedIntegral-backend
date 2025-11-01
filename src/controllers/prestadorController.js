@@ -41,7 +41,7 @@ const crearPrestador = async (req, res) => {
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
     propietarioId: nuevoPrestadorId,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
@@ -49,7 +49,7 @@ const crearPrestador = async (req, res) => {
   const datosTelefonos = telefonos.map((t) => ({
     numero: t.numero,
     propietarioId: nuevoPrestadorId,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
@@ -150,8 +150,8 @@ const obtenerPrestador = async (req, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["id","direccion"] },
-      { model: Telefono, attributes: ["id","numero"] },
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
       {
         model: Especialidad,
         as: "Especialidad",
@@ -180,13 +180,30 @@ const obtenerPrestador = async (req, res) => {
           {
             model: HorarioAtencion,
             as: "Horarios"
-
           },
         ],
       },
     ],
   });
-  return res.status(200).json(prestador);
+
+  const lugares = prestador.CentroDeAtencion.map((lugar) => ({
+    id: lugar.id,
+    calle: lugar.Direccion.calle,
+    altura: lugar.Direccion.altura,
+    pisoDepto: lugar.Direccion.pisoDepto,
+    localidad: lugar.Direccion.localidad,
+    provincia: lugar.Direccion.Provincia.nombre,
+    horarios: lugar.Horarios,
+  }));
+
+  const prestadorFormateado = {
+    id: prestador.id,
+    nombre: prestador.nombre,
+    especialidades: prestador.Especialidad,
+    centrosDeAtencion: lugares,
+  };
+
+  return res.status(200).json(prestadorFormateado);
 };
 
 //Actualizar datos personales de un prestador
@@ -204,7 +221,7 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
     propietarioId: id,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
@@ -214,11 +231,13 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   const datosTelefonos = telefonos.map((tel) => ({
     numero: tel.numero,
     propietarioId: id,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
 
-  return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
+  return res
+    .status(200)
+    .json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
 //Actualizar lugares de atencion y horarios
@@ -272,7 +291,10 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
     }
   }
 
-  return res.status(200).json({ message: "Lugares de atencion del Prestador actualizados correctamente.", prestador });
+  return res.status(200).json({
+    message: "Lugares de atencion del Prestador actualizados correctamente.",
+    prestador,
+  });
 };
 
 //actualizar especialidades
@@ -291,21 +313,26 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
       await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
     }
   }
-  return res.status(200).json({ message: "Especialidades actualizadas correctamente." });
+  return res
+    .status(200)
+    .json({ message: "Especialidades actualizadas correctamente." });
 };
 
 //actualizar si es centro médico
 const actualizarCentroMedicoPrestador = async (req, res) => {
   const { id } = req.params;
-  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } = req.body;
+  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } =
+    req.body;
 
   const prestador = await Prestador.findByPk(id);
   await prestador.update({
     esCentroMedico,
-    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico),
-    centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null),
+    integraCentroMedico: esCentroMedico ? false : integraCentroMedico,
+    centroMedicoId: integraCentroMedico ? centroMedicoQueIntegra : null,
   });
-  return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
+  return res
+    .status(200)
+    .json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
 //falta eliminar entidades relacionadas
@@ -317,14 +344,14 @@ const eliminarPrestador = async (req, res) => {
   await Email.destroy({
     where: {
       propietarioId: id,
-      propietarioTipo: 'Prestador'
-    }
+      propietarioTipo: "Prestador",
+    },
   });
   await Telefono.destroy({
     where: {
       propietarioId: id,
-      propietarioTipo: 'Prestador'
-    }
+      propietarioTipo: "Prestador",
+    },
   });
   await prestador.setEspecialidad([]); 
 
@@ -342,19 +369,25 @@ const eliminarPrestador = async (req, res) => {
 
   await prestador.destroy();
 
-  return res.status(200).json({ message: "Prestador eliminado correctamente." });
-}
+  return res
+    .status(200)
+    .json({ message: "Prestador eliminado correctamente." });
+};
 
 const obtenerPrestadoresSinAgenda = async (req, res) => {
   const prestadoresConAgenda = await AgendaTurnos.findAll({
-    attributes: ['prestadorId'],
-    group: ['prestadorId']
+    attributes: ["prestadorId"],
+    group: ["prestadorId"],
   });
-  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(pa => pa.prestadorId);
+  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(
+    (pa) => pa.prestadorId
+  );
   const prestadores = await Prestador.findAll({
-    attributes: ["id", "nombre"]
+    attributes: ["id", "nombre"],
   });
-  const prestadoresSinAgenda = prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id));
+  const prestadoresSinAgenda = prestadores.filter(
+    (p) => !idsDePrestadoresConAgenda.includes(p.id)
+  );
   return res.status(200).json(prestadoresSinAgenda);
 };
 
@@ -367,5 +400,5 @@ module.exports = {
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
   obtenerPrestadoresSinAgenda,
-  eliminarPrestador
+  eliminarPrestador,
 };
