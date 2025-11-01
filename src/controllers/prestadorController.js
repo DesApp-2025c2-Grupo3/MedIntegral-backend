@@ -100,12 +100,12 @@ const obtenerPrestadores = async (_, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["direccion"] },
-      { model: Telefono, attributes: ["numero"] },
+      { model: Email, attributes: ["id","direccion"] },
+      { model: Telefono, attributes: ["id","numero"] },
       {
         model: Especialidad,
         as: "Especialidad",
-        attributes: ["nombre"],
+        attributes: ["id","nombre"],
         through: { attributes: [] },
       },
       {
