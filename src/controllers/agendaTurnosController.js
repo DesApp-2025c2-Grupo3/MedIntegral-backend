@@ -237,10 +237,15 @@ const formatearAgenda = (agenda) => {
         provincia: provincia.nombre,
     };
 
+    const especialidad ={
+        id: agenda.Especialidad.id,
+        nombre: agenda.Especialidad.nombre
+    }
+
     const agendaNueva = {
         id: agenda.id,
         prestador: prestador,
-        especialidad: agenda.Especialidad.nombre,
+        especialidad: especialidad,
         horariosAtencion: horarios,
         direccion: direccion,
         createdAt: agenda.createdAt,
