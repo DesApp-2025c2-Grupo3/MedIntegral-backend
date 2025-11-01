@@ -7,7 +7,7 @@ const {
   LugarAtencion,
   HorarioAtencion,
   Especialidad,
-  AgendaTurnos
+  AgendaTurnos,
 } = require("../db/models");
 
 //Crear prestador
@@ -78,16 +78,14 @@ const crearPrestador = async (req, res) => {
 
     //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
     for (const horarioData of lugar.horarios) {
-
       for (const dia of horarioData.dias) {
         const nuevoHorario = await HorarioAtencion.create({
           horaInicio: horarioData.horaInicio,
           horaFin: horarioData.horaFin,
           lugarAtencionId: nuevoLugarAtencion.id,
-          dia: dia
+          dia: dia,
         });
       }
-
     }
   }
   res.status(201).json(nuevoPrestador);
@@ -100,12 +98,12 @@ const obtenerPrestadores = async (_, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["id","direccion"] },
-      { model: Telefono, attributes: ["id","numero"] },
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
       {
         model: Especialidad,
         as: "Especialidad",
-        attributes: ["id","nombre"],
+        attributes: ["id", "nombre"],
         through: { attributes: [] },
       },
       {
@@ -129,7 +127,7 @@ const obtenerPrestadores = async (_, res) => {
           },
           {
             model: HorarioAtencion,
-            as: "Horarios"
+            as: "Horarios",
           },
         ],
       },
@@ -139,6 +137,74 @@ const obtenerPrestadores = async (_, res) => {
     ],
   });
   return res.status(200).json(prestadores);
+};
+
+const obtenerPrestadoresFormateados = async (req, res) => {
+  const prestadores = await Prestador.findAll({
+    exclude: ["updateAt"],
+    include: [
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
+      {
+        model: Especialidad,
+        as: "Especialidad",
+        attributes: ["id", "nombre"],
+        through: {attributes: []},
+      },
+      {
+        model: LugarAtencion,
+        as: "CentroDeAtencion",
+        attributes: { exclude: ["updateAt", "createdAt"] },
+        include: [
+          {
+            model: Direccion,
+            as: "Direccion",
+            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            include: [
+              { model: Provincia, as: "Provincia", attributes: ["nombre"] },
+            ],
+          },
+        ],
+      }
+      //{model: AgendaTurnos} tener en cuenta para la posibilidad de agregar un nuevo filtro
+    ],
+  });
+
+  const prestadoresFormateados = prestadores.map((prestador) => {
+    return formatearPrestador(prestador)
+  })
+
+  res.status(200).json(prestadoresFormateados);
+};
+
+const formatearPrestador = (prestador) => {
+
+  const lugares = prestador.CentroDeAtencion.map(
+    (c) => (
+      {
+        id: c.id,
+        calle: c.Direccion.calle,
+        altura: c.Direccion.altura,
+        pisoDepto: c.Direccion.pisoDepto,
+        localidad: c.Direccion.localidad,
+        provincia: c.Direccion.Provincia.nombre
+      }
+    )
+  )
+
+  const prestadorFormateado = {
+    id: prestador.id,
+    nombre: prestador.nombre,
+    cuilCuit: prestador.cuilCuit,
+    esCentroMedico: prestador.esCentroMedico,
+    especialidades: prestador.Especialidad,
+    emails: prestador.Emails,
+    telefonos: prestador.Telefonos,
+    centrosDeAtencion: lugares,
+    createdAt: prestador.createdAt
+  }
+
+  return (prestadorFormateado)
 };
 
 // Obtener prestador por id
@@ -179,7 +245,7 @@ const obtenerPrestador = async (req, res) => {
           },
           {
             model: HorarioAtencion,
-            as: "Horarios"
+            as: "Horarios",
           },
         ],
       },
@@ -216,7 +282,9 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   await prestador.update({ nombre, cuilCuit });
 
   //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
-  await Email.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
+  await Email.destroy({
+    where: { propietarioId: id, propietarioTipo: "Prestador" },
+  });
 
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
@@ -226,7 +294,9 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
   //Teléfonos (borramos los viejos e insertamos los nuevos)
-  await Telefono.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
+  await Telefono.destroy({
+    where: { propietarioId: id, propietarioTipo: "Prestador" },
+  });
 
   const datosTelefonos = telefonos.map((tel) => ({
     numero: tel.numero,
@@ -278,16 +348,14 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
     });
 
     for (const horarioData of lugar.horarios) {
-
       for (const dia of horarioData.dias) {
         const nuevoHorario = await HorarioAtencion.create({
           horaInicio: horarioData.horaInicio,
           horaFin: horarioData.horaFin,
           lugarAtencionId: nuevoLugarAtencion.id,
-          dia: dia
+          dia: dia,
         });
       }
-
     }
   }
 
@@ -353,7 +421,7 @@ const eliminarPrestador = async (req, res) => {
       propietarioTipo: "Prestador",
     },
   });
-  await prestador.setEspecialidad([]); 
+  await prestador.setEspecialidad([]);
 
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
@@ -394,6 +462,7 @@ const obtenerPrestadoresSinAgenda = async (req, res) => {
 module.exports = {
   crearPrestador,
   obtenerPrestadores,
+  obtenerPrestadoresFormateados,
   obtenerPrestador,
   actualizarDatosPersonalesPrestador,
   actualizarLugaresAtencionPrestador,

@@ -16,6 +16,11 @@ router.get('/',
   prestadorController.obtenerPrestadores
 );
 
+router.get('/listado', 
+  genericMiddleware.existsAnyByModel(Prestador),
+  prestadorController.obtenerPrestadoresFormateados
+);
+
 router.get("/sin-agenda",
   genericMiddleware.existsAnyByModel(Prestador),
   genericMiddleware.existsAnyByModel(AgendaTurnos),
