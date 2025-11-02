@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const {
   Prestador,
   Direccion,
@@ -9,6 +10,8 @@ const {
   Especialidad,
   AgendaTurnos,
 } = require("../db/models");
+
+const { Op } = require("sequelize")
 
 //Crear prestador
 const crearPrestador = async (req, res) => {
@@ -146,17 +149,42 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     tipoPrestador,
     especialidad,
     localidad,
-    Provincia,
+    provincia,
     creacionDesde,
     creacionHasta
   } = req.query;
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-  const offSet = ( page-1 ) * limit;
+  const offset = ( page-1 ) * limit;
 
-  const prestadores = await Prestador.findAll({
-    exclude: ["updateAt"],
+  const where = {};
+  const rangoDeFecha = {};
+
+  if(tipoPrestador){
+    where.esCentroMedico = tipoPrestador;
+  }
+
+  if(creacionDesde){
+    const fechaDesde = new Date(creacionDesde);
+    fechaDesde.setHours(0, 0, 0, 0);
+    rangoDeFecha[Op.gte] = fechaDesde; 
+  }
+
+  if(creacionHasta){
+    const fechaHasta = new Date(creacionHasta);
+    fechaHasta.setHours(0, 0, 0, 0);
+    rangoDeFecha[Op.lte] = fechaHasta; 
+  }
+
+  if(creacionDesde||creacionHasta){
+    where.createdAt = rangoDeFecha
+  }
+
+  const queryOptions = {
+    limit,
+    offset,
+    distinct: true,
     include: [
       { model: Email, attributes: ["id", "direccion"] },
       { model: Telefono, attributes: ["id", "numero"] },
@@ -164,32 +192,49 @@ const obtenerPrestadoresFormateados = async (req, res) => {
         model: Especialidad,
         as: "Especialidad",
         attributes: ["id", "nombre"],
-        through: {attributes: []},
+        through: { attributes: [] },
       },
       {
         model: LugarAtencion,
         as: "CentroDeAtencion",
-        attributes: { exclude: ["updateAt", "createdAt"] },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
         include: [
           {
             model: Direccion,
             as: "Direccion",
             attributes: ["calle", "altura", "pisoDepto", "localidad"],
             include: [
-              { model: Provincia, as: "Provincia", attributes: ["nombre"] },
+              {
+                model: Provincia,
+                as: "Provincia",
+                attributes: ["nombre"],
+              },
             ],
           },
+          {
+            model: HorarioAtencion,
+            as: "Horarios",
+          },
         ],
-      }
-      //{model: AgendaTurnos} tener en cuenta para la posibilidad de agregar un nuevo filtro
-    ],
-  });
+      },
+      //{model: AgendaTurnos} tenerlo en cuenta para la implementacion de otro filtro
+    ], 
+    where: where
+  }
+
+  const { count, rows: prestadores} = await Prestador.findAndCountAll(queryOptions);
 
   const prestadoresFormateados = prestadores.map((prestador) => {
     return formatearPrestador(prestador)
   })
 
-  res.status(200).json(prestadoresFormateados);
+  res.status(200).json({
+    total: count,
+    page: page,
+    limit: limit,
+    items: prestadoresFormateados});
 };
 
 const formatearPrestador = (prestador) => {
