@@ -164,7 +164,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     where[Op.or] = [
       { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
       { cuilCuit: { [Op.iLike]: `%${textInputSearch}%` } },
-      { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+      { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } }
     ]
   }
 
@@ -173,7 +173,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
   }
 
   if(especialidad){
-    where["$Especialidad.nombre$"] = especialidad
+    where["$Especialidad.id$"] = especialidad
   }
 
   if(localidad){
@@ -181,7 +181,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
   }
 
   if(provincia){
-    where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia
+    where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia
   }
 
   if(creacionDesde){
@@ -212,10 +212,14 @@ const obtenerPrestadoresFormateados = async (req, res) => {
         as: "Especialidad",
         attributes: ["id", "nombre"],
         through: { attributes: [] },
+        required: !!(especialidad || textInputSearch),
+        duplicating: false,
       },
       {
         model: LugarAtencion,
         as: "CentroDeAtencion",
+        required: !!(localidad || provincia),
+        duplicating: false,
         attributes: {
           exclude: ["createdAt", "updatedAt"],
         },
@@ -223,11 +227,15 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           {
             model: Direccion,
             as: "Direccion",
-            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            required: !!(localidad || provincia),
+            duplicating: false,
+            attributes: ["calle", "altura", "pisoDepto", "localidad", "provinciaId"],
             include: [
               {
                 model: Provincia,
                 as: "Provincia",
+                required: !!provincia,
+                duplicating: false,
                 attributes: ["nombre"],
               },
             ],
