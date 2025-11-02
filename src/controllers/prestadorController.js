@@ -1,4 +1,3 @@
-const { required } = require("joi");
 const {
   Prestador,
   Direccion,
@@ -11,7 +10,7 @@ const {
   AgendaTurnos,
 } = require("../db/models");
 
-const { Op } = require("sequelize")
+const { Op } = require("sequelize");
 
 //Crear prestador
 const crearPrestador = async (req, res) => {
@@ -161,8 +160,28 @@ const obtenerPrestadoresFormateados = async (req, res) => {
   const where = {};
   const rangoDeFecha = {};
 
+  if(textInputSearch && textInputSearch.trim() !== ""){
+    where[Op.or] = [
+      { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
+      { cuilCuit: { [Op.iLike]: `%${textInputSearch}%` } },
+      { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } },
+    ]
+  }
+
   if(tipoPrestador){
     where.esCentroMedico = tipoPrestador;
+  }
+
+  if(especialidad){
+    where["$Especialidad.nombre$"] = especialidad
+  }
+
+  if(localidad){
+    where["$CentroDeAtencion.Direccion.localidad$"] = localidad
+  }
+
+  if(provincia){
+    where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia
   }
 
   if(creacionDesde){
@@ -173,7 +192,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
 
   if(creacionHasta){
     const fechaHasta = new Date(creacionHasta);
-    fechaHasta.setHours(0, 0, 0, 0);
+    fechaHasta.setHours(23, 59, 59, 999);
     rangoDeFecha[Op.lte] = fechaHasta; 
   }
 
