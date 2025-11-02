@@ -538,6 +538,33 @@ const obtenerPrestadoresSinAgenda = async (req, res) => {
   return res.status(200).json(prestadoresSinAgenda);
 };
 
+const obtenerLocalidadesPrestadores = async (_, res) => {
+
+  const prestadores = await Prestador.findAll({
+    include: [
+      { model: LugarAtencion, 
+        as: "CentroDeAtencion",
+        include: [{model: Direccion, as: "Direccion"}]
+      }
+    ]
+  })
+
+  const setLocalidades = new Set()
+
+  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion) )
+  
+  direcciones.forEach((d) => {
+    const localidad = d.localidad
+    if(localidad){
+      setLocalidades.add(localidad)
+    }
+  })
+
+  const localidadesFormateadas = Array.from(setLocalidades).map((l) => ({value: l, label: l}))
+
+  res.status(200).json(localidadesFormateadas);
+}
+
 module.exports = {
   crearPrestador,
   obtenerPrestadores,
@@ -549,4 +576,5 @@ module.exports = {
   actualizarCentroMedicoPrestador,
   obtenerPrestadoresSinAgenda,
   eliminarPrestador,
+  obtenerLocalidadesPrestadores
 };
