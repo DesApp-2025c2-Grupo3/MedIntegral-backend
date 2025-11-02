@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const {
   Prestador,
   Direccion,
@@ -164,7 +165,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     where[Op.or] = [
       { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
       { cuilCuit: { [Op.iLike]: `%${textInputSearch}%` } },
-      { "$Especialidad.nombre$": { [Op.iLike]: `%${textInputSearch}%` } }
+      { "$CentroDeAtencion.Direccion.codigoPostal$": { [Op.iLike]: `%${textInputSearch}%` } }
     ]
   }
 
@@ -212,13 +213,12 @@ const obtenerPrestadoresFormateados = async (req, res) => {
         as: "Especialidad",
         attributes: ["id", "nombre"],
         through: { attributes: [] },
-        required: !!(especialidad || textInputSearch),
+        required: !!especialidad,
         duplicating: false,
       },
       {
         model: LugarAtencion,
         as: "CentroDeAtencion",
-        required: !!(localidad || provincia),
         duplicating: false,
         attributes: {
           exclude: ["createdAt", "updatedAt"],
@@ -227,9 +227,9 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           {
             model: Direccion,
             as: "Direccion",
-            required: !!(localidad || provincia),
+            required: !!(localidad || provincia || textInputSearch),
             duplicating: false,
-            attributes: ["calle", "altura", "pisoDepto", "localidad", "provinciaId"],
+            attributes: ["calle", "altura", "pisoDepto", "codigoPostal", "localidad", "provinciaId"],
             include: [
               {
                 model: Provincia,
@@ -246,7 +246,6 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           },
         ],
       },
-      //{model: AgendaTurnos} tenerlo en cuenta para la implementacion de otro filtro
     ], 
     where: where
   }
@@ -273,6 +272,7 @@ const formatearPrestador = (prestador) => {
         calle: c.Direccion.calle,
         altura: c.Direccion.altura,
         pisoDepto: c.Direccion.pisoDepto,
+        codigoPostal: c.Direccion.codigoPostal,
         localidad: c.Direccion.localidad,
         provincia: c.Direccion.Provincia.nombre
       }
@@ -288,7 +288,8 @@ const formatearPrestador = (prestador) => {
     emails: prestador.Emails,
     telefonos: prestador.Telefonos,
     centrosDeAtencion: lugares,
-    createdAt: prestador.createdAt
+    createdAt: prestador.createdAt,
+    agenda: prestador.AgendasTurnos
   }
 
   return (prestadorFormateado)
