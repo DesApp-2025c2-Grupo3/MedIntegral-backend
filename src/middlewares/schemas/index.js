@@ -1,7 +1,9 @@
-const prestadorSchema = require('./prestadorSchema')
-const agendaTurnosSchema  = require('./agendaTurnosSchema')
+const prestadorSchema = require("./prestadorSchema");
+const agendaTurnosSchema = require("./agendaTurnosSchema");
+const afiliadoSchema = require("./afiliadoSchema");
 
 module.exports = {
   prestadorSchema,
-  agendaTurnosSchema
-}
+  agendaTurnosSchema,
+  afiliadoSchema,
+};
