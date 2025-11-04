@@ -2,7 +2,7 @@ const { Router } = require("express");
 const router = Router();
 const { prestadorController } = require("../controllers");
 const { genericMiddleware, prestadorMiddleware } = require("../middlewares");
-const { Prestador, AgendaTurnos } = require("../db/models");
+const { Prestador } = require("../db/models");
 const { prestadorSchema } = require("../middlewares/schemas");
 
 router.post('/',
@@ -22,12 +22,6 @@ router.get('/listado',
 );
 
 router.get('/localidades', prestadorController.obtenerLocalidadesPrestadores);
-
-router.get("/sin-agenda",
-  genericMiddleware.existsAnyByModel(Prestador),
-  genericMiddleware.existsAnyByModel(AgendaTurnos),
-  prestadorController.obtenerPrestadoresSinAgenda
-);
 
 router.get("/:id",
   genericMiddleware.existsModelById(Prestador),

@@ -5,7 +5,9 @@ const {
     Especialidad,
     LugarAtencion,
     Direccion,
-    Provincia
+    Provincia,
+    Email,
+    Telefono
 } = require("../db/models");
 
 const { Op } = require("sequelize");
@@ -236,7 +238,7 @@ const formatearAgenda = (agenda) => {
         provincia: provincia.nombre,
     };
 
-    const especialidad ={
+    const especialidad = {
         id: agenda.Especialidad.id,
         nombre: agenda.Especialidad.nombre
     }
@@ -371,32 +373,120 @@ const obtenerLocalidadesAgendas = async (_, res) => {
     res.status(200).json(localidadesFormateadas);
 };
 
-const obtenerProvinciasAgendas = async (_, res) => {
+const formatearPrestador = (prestador) => {
+
+    const lugares = prestador.CentroDeAtencion.map((lugar) => ({
+        id: lugar.id,
+        calle: lugar.Direccion.calle,
+        altura: lugar.Direccion.altura,
+        pisoDepto: lugar.Direccion.pisoDepto,
+        localidad: lugar.Direccion.localidad,
+        provincia: lugar.Direccion.Provincia.nombre,
+        horarios: lugar.Horarios,
+    }));
+
+    const prestadorFormateado = {
+        id: prestador.id,
+        nombre: prestador.nombre,
+        especialidades: prestador.Especialidad,
+        centrosDeAtencion: lugares,
+    };
+
+    return {...prestadorFormateado};
+}
+
+const obtenerIdPrestadoresConAgenda = async () => {
+    const prestadoresConAgenda = await AgendaTurnos.findAll({
+        attributes: ["prestadorId"],
+        group: ["prestadorId"]
+    });
+    return prestadoresConAgenda.map(pa => pa.prestadorId);
+};
+
+const obtenerIdPrestadoresSinAgenda = async () => {
+    const idsDePrestadoresConAgenda = obtenerIdPrestadoresConAgenda();
+
+    const prestadores = await Prestador.findAll({
+        attributes: ["id", "nombre"],
+    });
+    return prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id)).map(p => p.id);
+};
+
+const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
+
+    let idsDePrestadoresConAgenda;
+    obtenerIdPrestadoresConAgenda().then(ids => idsDePrestadoresConAgenda = ids);
+
     const agendas = await AgendaTurnos.findAll({
         include: [
-            {
-                model: LugarAtencion, as: "CentroDeAtencion",
-                include: [{ model: Direccion, as: "Direccion", include: [{ model: Provincia, as: "Provincia" }] }],
-            },
+            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: Especialidad, as: "Especialidad" },
+            { model: LugarAtencion, as: "CentroDeAtencion", include: { model: Direccion, as: "Direccion", include: { model: Provincia, as: "Provincia" } }, },
+            { model: HorarioAtencion, as: "Horarios" },
         ],
     });
 
-    const setProvincias = new Set();
-
-    agendas.forEach((agenda) => {
-        const provincia = agenda.CentroDeAtencion?.Direccion?.Provincia.nombre;
-        if (provincia) {
-            setProvincias.add(provincia);
-        }
+    const prestadores = await Prestador.findAll({
+        include: [
+            { model: Especialidad, as: "Especialidad" },
+            {
+                model: LugarAtencion, as: "CentroDeAtencion", include: [
+                    { model: Direccion, as: "Direccion", include: { model: Provincia, as: "Provincia" } },
+                    { model: HorarioAtencion, as: "Horarios" }]
+            }
+        ]
     });
 
-    const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({
-        value: provincia,
-        label: provincia,
-    }));
+    const idPrestadoresConAgendaCompleta = prestadores
+        .filter(p => idsDePrestadoresConAgenda.includes(p.id))
+        .filter(p => compararAgendaConPrestador(agendas, p))
+        .map(p => p.id);
 
-    res.status(200).json(provinciasFormateadas);
+    const idPrestadoresConAgendaIncompleta = prestadores.filter(p => !idPrestadoresConAgendaCompleta.includes(p.id)).map(p => p.id);
+
+    const prestadoresConAgendaIncompleta = prestadores.filter(p => idPrestadoresConAgendaIncompleta.includes(p.id)).map(p => {
+        return formatearPrestador(p)
+    });
+    return res.status(200).json(prestadoresConAgendaIncompleta);
 };
+
+const convertirAMinutos = (horario) => {
+    const [hora, minutos] = horario.split(":").map(Number);
+    return hora * 60 + minutos;
+}
+
+const compararAgendaConPrestador = (agendas, prestador) => {
+    let horarios = prestador.CentroDeAtencion.flatMap(lugar => lugar.Horarios.map(h => { return { dia: h.dia, horaInicio: h.horaInicio, horaFin: h.horaFin } }));
+console.log("centros de atencion del prestador")
+console.log(prestador.CentroDeAtencion)
+
+    agendas.forEach(a => {
+        if (a.Prestador.id === prestador.id) {
+            console.log("centros de atencion de la agenda")
+            console.log(a.CentroDeAtencion)
+            prestador.CentroDeAtencion.find(lugar => lugar.id === a.CentroDeAtencion.id).Horarios.forEach(hp => {
+                a.Horarios.forEach(ha => {
+                    if (mismoDia(hp, ha) && minutosDeDiferenciaInicio(hp, ha) === 0 && minutosDeDiferenciaFin(hp, ha) === 0) {
+                        horarios.filter(h => !(h.dia === ha.dia && h.horaInicio === ha.inicio && h.horaFin === ha.fin));
+                    }
+                });
+            });
+        }
+    });
+    return horarios.length === 0;
+};
+
+const mismoDia = (hp, ha) => {
+    return hp.dia === ha.dia
+}
+
+const minutosDeDiferenciaInicio = (hp, ha) => {
+    return convertirAMinutos(ha.horaInicio) - convertirAMinutos(hp.horaInicio);
+}
+
+const minutosDeDiferenciaFin = (hp, ha) => {
+    return convertirAMinutos(hp.horaFin) - convertirAMinutos(ha.horaFin);
+}
 
 module.exports = {
     crearAgendaTurnos,
@@ -407,6 +497,6 @@ module.exports = {
     actualizarEspecialidadDeAgendaTurnos,
     eliminarAgendaTurnos,
     obtenerLocalidadesAgendas,
-    obtenerProvinciasAgendas,
+    obtenerPrestadoresConAgendaIncompleta
 };
 

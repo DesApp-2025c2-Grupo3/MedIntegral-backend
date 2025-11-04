@@ -1,7 +1,6 @@
 const {
   provinciaRutas,
   especialidadRutas,
-  diaRutas,
   prestadorRutas,
   agendaTurnosRutas,
   afiliadoRutas,
@@ -17,7 +16,6 @@ const configureApp = (APP) => {
   APP.use(genericMiddleware.manejoDeErroresGlobales); // Manejo de errores globales
   APP.use("/api/provincias", provinciaRutas);
   APP.use("/api/especialidades", especialidadRutas);
-  APP.use("/api/dias", diaRutas);
   APP.use("/api/prestadores", prestadorRutas);
   APP.use("/api/agenda-turnos", agendaTurnosRutas);
   APP.use("/api/afiliados", afiliadoRutas);

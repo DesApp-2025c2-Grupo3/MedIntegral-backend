@@ -22,11 +22,16 @@ router.get('/',
 );
 
 router.get('/localidades', agendaTurnosController.obtenerLocalidadesAgendas);
-router.get('/provincias', agendaTurnosController.obtenerProvinciasAgendas);
 
 router.get('/listado',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnosFormateados
+);
+
+router.get("/prestadores-con-agenda-incompleta",
+    genericMiddleware.existsAnyByModel(Prestador),
+    genericMiddleware.existsAnyByModel(AgendaTurnos),
+    agendaTurnosController.obtenerPrestadoresConAgendaIncompleta
 );
 
 router.get("/:id",
