@@ -16,6 +16,13 @@ router.get('/',
   prestadorController.obtenerPrestadores
 );
 
+router.get('/listado', 
+  genericMiddleware.existsAnyByModel(Prestador),
+  prestadorController.obtenerPrestadoresFormateados
+);
+
+router.get('/localidades', prestadorController.obtenerLocalidadesPrestadores);
+
 router.get("/:id",
   genericMiddleware.existsModelById(Prestador),
   prestadorController.obtenerPrestador

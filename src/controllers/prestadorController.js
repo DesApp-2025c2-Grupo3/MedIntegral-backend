@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const {
   Prestador,
   Direccion,
@@ -9,6 +10,8 @@ const {
   Especialidad,
   AgendaTurnos
 } = require("../db/models");
+
+const { Op } = require("sequelize");
 
 //Crear prestador
 const crearPrestador = async (req, res) => {
@@ -141,6 +144,159 @@ const obtenerPrestadores = async (_, res) => {
   return res.status(200).json(prestadores);
 };
 
+const obtenerPrestadoresFormateados = async (req, res) => {
+
+  const { 
+    textInputSearch,
+    tipoPrestador,
+    especialidad,
+    localidad,
+    provincia,
+    creacionDesde,
+    creacionHasta
+  } = req.query;
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = ( page-1 ) * limit;
+
+  const where = {};
+  const rangoDeFecha = {};
+
+  if(textInputSearch && textInputSearch.trim() !== ""){
+    where[Op.or] = [
+      { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
+      { cuilCuit: { [Op.iLike]: `%${textInputSearch}%` } },
+      { "$CentroDeAtencion.Direccion.codigoPostal$": { [Op.iLike]: `%${textInputSearch}%` } }
+    ]
+  }
+
+  if(tipoPrestador){
+    where.esCentroMedico = tipoPrestador;
+  }
+
+  if(especialidad){
+    where["$Especialidad.id$"] = especialidad
+  }
+
+  if(localidad){
+    where["$CentroDeAtencion.Direccion.localidad$"] = localidad
+  }
+
+  if(provincia){
+    where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia
+  }
+
+  if(creacionDesde){
+    const fechaDesde = new Date(creacionDesde);
+    fechaDesde.setHours(0, 0, 0, 0);
+    rangoDeFecha[Op.gte] = fechaDesde; 
+  }
+
+  if(creacionHasta){
+    const fechaHasta = new Date(creacionHasta);
+    fechaHasta.setHours(23, 59, 59, 999);
+    rangoDeFecha[Op.lte] = fechaHasta; 
+  }
+
+  if(creacionDesde||creacionHasta){
+    where.createdAt = rangoDeFecha
+  }
+
+  const queryOptions = {
+    limit,
+    offset,
+    distinct: true,
+    include: [
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
+      {
+        model: Especialidad,
+        as: "Especialidad",
+        attributes: ["id", "nombre"],
+        through: { attributes: [] },
+        required: !!especialidad,
+        duplicating: false,
+      },
+      {
+        model: LugarAtencion,
+        as: "CentroDeAtencion",
+        duplicating: false,
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
+        include: [
+          {
+            model: Direccion,
+            as: "Direccion",
+            required: !!(localidad || provincia || textInputSearch),
+            duplicating: false,
+            attributes: ["calle", "altura", "pisoDepto", "codigoPostal", "localidad", "provinciaId"],
+            include: [
+              {
+                model: Provincia,
+                as: "Provincia",
+                required: !!provincia,
+                duplicating: false,
+                attributes: ["nombre"],
+              },
+            ],
+          },
+          {
+            model: HorarioAtencion,
+            as: "Horarios",
+          },
+        ],
+      },
+    ], 
+    where: where
+  }
+
+  const { count, rows: prestadores} = await Prestador.findAndCountAll(queryOptions);
+
+  const prestadoresFormateados = prestadores.map((prestador) => {
+    return formatearPrestador(prestador)
+  })
+
+  res.status(200).json({
+    total: count,
+    page: page,
+    limit: limit,
+    items: prestadoresFormateados});
+};
+
+const formatearPrestador = (prestador) => {
+
+  const lugares = prestador.CentroDeAtencion.map(
+    (c) => (
+      {
+        id: c.id,
+        calle: c.Direccion.calle,
+        altura: c.Direccion.altura,
+        pisoDepto: c.Direccion.pisoDepto,
+        codigoPostal: c.Direccion.codigoPostal,
+        localidad: c.Direccion.localidad,
+        provincia: c.Direccion.Provincia.nombre
+      }
+    )
+  )
+
+  const prestadorFormateado = {
+    id: prestador.id,
+    nombre: prestador.nombre,
+    cuilCuit: prestador.cuilCuit,
+    esCentroMedico: prestador.esCentroMedico,
+    especialidades: prestador.Especialidad,
+    emails: prestador.Emails,
+    telefonos: prestador.Telefonos,
+    centrosDeAtencion: lugares,
+    createdAt: prestador.createdAt,
+    agenda: prestador.AgendasTurnos
+  }
+
+  return (prestadorFormateado)
+};
+
 // Obtener prestador por id
 const obtenerPrestador = async (req, res) => {
   const { id } = req.params;
@@ -179,14 +335,31 @@ const obtenerPrestador = async (req, res) => {
           },
           {
             model: HorarioAtencion,
-            as: "Horarios"
+            as: "Horarios",
           },
         ],
       },
     ],
   });
 
-  return res.status(200).json(prestador);
+  const lugares = prestador.CentroDeAtencion.map((lugar) => ({
+    id: lugar.id,
+    calle: lugar.Direccion.calle,
+    altura: lugar.Direccion.altura,
+    pisoDepto: lugar.Direccion.pisoDepto,
+    localidad: lugar.Direccion.localidad,
+    provincia: lugar.Direccion.Provincia.nombre,
+    horarios: lugar.Horarios,
+  }));
+
+  const prestadorFormateado = {
+    id: prestador.id,
+    nombre: prestador.nombre,
+    especialidades: prestador.Especialidad,
+    centrosDeAtencion: lugares,
+  };
+
+  return res.status(200).json(prestadorFormateado);
 };
 
 //Actualizar datos personales de un prestador
@@ -362,10 +535,12 @@ const eliminarPrestador = async (req, res) => {
 module.exports = {
   crearPrestador,
   obtenerPrestadores,
+  obtenerPrestadoresFormateados,
   obtenerPrestador,
   actualizarDatosPersonalesPrestador,
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
   eliminarPrestador,
+  obtenerLocalidadesPrestadores
 };
