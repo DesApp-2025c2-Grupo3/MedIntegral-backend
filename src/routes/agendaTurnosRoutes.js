@@ -28,6 +28,12 @@ router.get('/listado',
     agendaTurnosController.obtenerAgendasTurnosFormateados
 );
 
+router.get("/prestadores-con-agenda-incompleta",
+    genericMiddleware.existsAnyByModel(Prestador),
+    genericMiddleware.existsAnyByModel(AgendaTurnos),
+    agendaTurnosController.obtenerPrestadoresConAgendaIncompleta
+);
+
 router.get("/:id",
     genericMiddleware.existsModelById(AgendaTurnos),
     agendaTurnosController.obtenerUnaAgendaTurnos

@@ -186,24 +186,7 @@ const obtenerPrestador = async (req, res) => {
     ],
   });
 
-  const lugares = prestador.CentroDeAtencion.map((lugar) => ({
-    id: lugar.id,
-    calle: lugar.Direccion.calle,
-    altura: lugar.Direccion.altura,
-    pisoDepto: lugar.Direccion.pisoDepto,
-    localidad: lugar.Direccion.localidad,
-    provincia: lugar.Direccion.Provincia.nombre,
-    horarios: lugar.Horarios,
-  }));
-
-  const prestadorFormateado = {
-    id: prestador.id,
-    nombre: prestador.nombre,
-    especialidades: prestador.Especialidad,
-    centrosDeAtencion: lugares,
-  };
-
-  return res.status(200).json(prestadorFormateado);
+  return res.status(200).json(prestador);
 };
 
 //Actualizar datos personales de un prestador
@@ -374,22 +357,7 @@ const eliminarPrestador = async (req, res) => {
     .json({ message: "Prestador eliminado correctamente." });
 };
 
-const obtenerPrestadoresSinAgenda = async (req, res) => {
-  const prestadoresConAgenda = await AgendaTurnos.findAll({
-    attributes: ["prestadorId"],
-    group: ["prestadorId"],
-  });
-  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(
-    (pa) => pa.prestadorId
-  );
-  const prestadores = await Prestador.findAll({
-    attributes: ["id", "nombre"],
-  });
-  const prestadoresSinAgenda = prestadores.filter(
-    (p) => !idsDePrestadoresConAgenda.includes(p.id)
-  );
-  return res.status(200).json(prestadoresSinAgenda);
-};
+
 
 module.exports = {
   crearPrestador,
@@ -399,6 +367,5 @@ module.exports = {
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
-  obtenerPrestadoresSinAgenda,
   eliminarPrestador,
 };
