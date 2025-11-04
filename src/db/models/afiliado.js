@@ -13,11 +13,9 @@ module.exports = (sequelize, DataTypes) => {
         as: "dependientes",
       });
 
-      /*
-      Afiliado.belongsTo(models.GrupoFamiliar, {
-        foreignKey: "grupoFamiliarId",
+      Afiliado.belongsTo(models.Contrato, {
+        foreignKey: "contratoId",
       });
-      */
 
       Afiliado.belongsTo(models.TipoDocumento, {
         foreignKey: "tipoDocumentoId",
@@ -27,10 +25,6 @@ module.exports = (sequelize, DataTypes) => {
       Afiliado.belongsTo(models.Parentesco, {
         foreignKey: "parentescoId",
         as: "parentesco",
-      });
-
-      Afiliado.belongsTo(models.PlanMedico, {
-        foreignKey: "planMedicoId",
       });
 
       Afiliado.hasMany(models.Telefono, {
@@ -67,15 +61,11 @@ module.exports = (sequelize, DataTypes) => {
 
   Afiliado.init(
     {
-      nAfiliado: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       nIntegrante: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      tipoDocumento: {
+      tipoDocumentoId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
@@ -107,7 +97,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      grupoFamiliarId: {
+      contratoId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },

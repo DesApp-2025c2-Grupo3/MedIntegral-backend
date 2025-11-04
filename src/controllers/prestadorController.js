@@ -98,17 +98,8 @@ const crearPrestador = async (req, res) => {
 };
 
 //obtener prestadores
-const obtenerPrestadores = async (req, res) => {
-  //Filtro por centros médicos
-  const { esCentroMedico } = req.query; 
-  const condicion = {};
-  if (esCentroMedico === 'true') {
-    condicion.esCentroMedico = true;
-  }
-
+const obtenerPrestadores = async (_, res) => {
   const prestadores = await Prestador.findAll({
-    where: condicion,
-
     attributes: {
       exclude: ["createdAt", "updatedAt"],
     },
