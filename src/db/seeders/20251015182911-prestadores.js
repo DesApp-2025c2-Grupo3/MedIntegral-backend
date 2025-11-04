@@ -28,8 +28,8 @@ module.exports = {
           "localidad": "Tigre",
           "provincia": 1,
           "horarios": [
-            { "horaInicio": "08:00", "horaFin": "12:00", "dias": [1, 3, 5] },
-            { "horaInicio": "08:00", "horaFin": "18:00", "dias": [2, 4] }
+            { "horaInicio": "08:00", "horaFin": "12:00", "dias": ["Lunes", "Miércoles", "Viernes"] },
+            { "horaInicio": "08:00", "horaFin": "18:00", "dias": ["Martes", "Jueves"] }
           ]
         }]
       },
@@ -53,8 +53,8 @@ module.exports = {
           "localidad": "Leon",
           "provincia": 2,
           "horarios": [
-            { "horaInicio": "08:00", "horaFin": "20:00", "dias": [1, 2, 3, 4, 5] },
-            { "horaInicio": "10:00", "horaFin": "12:00", "dias": [6, 7] }
+            { "horaInicio": "08:00", "horaFin": "20:00", "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] },
+            { "horaInicio": "10:00", "horaFin": "12:00", "dias": ["Sábado", "Domingo"] }
           ]
         }]
       },
@@ -80,8 +80,8 @@ module.exports = {
           "localidad": "Pantera",
           "provincia": 2,
           "horarios": [
-            { "horaInicio": "10:00", "horaFin": "15:00", "dias": [2, 4] },
-            { "horaInicio": "12:00", "horaFin": "20:00", "dias": [1, 3, 5] }
+            { "horaInicio": "10:00", "horaFin": "15:00", "dias": ["Martes", "Jueves"] },
+            { "horaInicio": "12:00", "horaFin": "20:00", "dias": ["Lunes", "Miércoles", "Viernes"] }
           ]
         }]
       }
@@ -135,18 +135,17 @@ module.exports = {
         });
 
         for (const horarioData of lugar.horarios) {
-          const nuevoHorario = await HorarioAtencion.create({
-            horaInicio: horarioData.horaInicio,
-            horaFin: horarioData.horaFin,
-            lugarAtencionId: nuevoLugarAtencion.id,
-          });
 
-          for (const diaData of horarioData.dias) {
-            const diaExistente = await Dia.findByPk(diaData);
-            if (diaExistente) {
-              await nuevoHorario.addDia(diaExistente);
-            }
+          for (const dia of horarioData.dias) {
+            const nuevoHorario = await HorarioAtencion.create({
+              horaInicio: horarioData.horaInicio,
+              horaFin: horarioData.horaFin,
+              lugarAtencionId: nuevoLugarAtencion.id,
+              dia: dia
+            });
+
           }
+
         }
       }
 

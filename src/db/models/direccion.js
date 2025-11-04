@@ -4,9 +4,11 @@ module.exports = (sequelize, DataTypes) => {
   class Direccion extends Model {
     static associate(models) {
       Direccion.belongsTo(models.Provincia, {
+        as: "Provincia",
         foreignKey: "provinciaId",
       });
       Direccion.hasOne(models.LugarAtencion, {
+        as: "CentroDeAtencion",
         foreignKey: "direccionId",
       });
       Direccion.hasOne(models.Domicilio, {

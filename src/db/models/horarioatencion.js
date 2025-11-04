@@ -9,11 +9,8 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'agendaTurnosId'
       });
       HorarioAtencion.belongsTo(models.LugarAtencion, {
+        as: 'CentrosDeAtencion',
         foreignKey: 'lugarAtencionId'
-      });
-      HorarioAtencion.belongsToMany(models.Dia, { 
-        through: "HorarioAtencionDia", // tabla intermedia
-        foreignKey: 'diaId'
       });
     }
   }
@@ -21,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     horaInicio: DataTypes.STRING,
     horaFin: DataTypes.STRING,
     duracionTurno: DataTypes.INTEGER,
+    dia: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'HorarioAtencion',

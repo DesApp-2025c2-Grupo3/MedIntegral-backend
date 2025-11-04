@@ -10,6 +10,9 @@ router.post('/',
     genericMiddleware.existModelRequest(Prestador),
     genericMiddleware.existModelRequest(Especialidad),
     genericMiddleware.existModelRequest(LugarAtencion),
+    agendaTurnosMiddleware.validarLugarDeAtencion,
+    //agendaTurnosMiddleware.validarEspecialidad,
+    //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
     agendaTurnosController.crearAgendaTurnos
 );
 
@@ -18,9 +21,17 @@ router.get('/',
     agendaTurnosController.obtenerAgendasTurnos
 );
 
+router.get('/localidades', agendaTurnosController.obtenerLocalidadesAgendas);
+
 router.get('/listado',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnosFormateados
+);
+
+router.get("/prestadores-con-agenda-incompleta",
+    genericMiddleware.existsAnyByModel(Prestador),
+    genericMiddleware.existsAnyByModel(AgendaTurnos),
+    agendaTurnosController.obtenerPrestadoresConAgendaIncompleta
 );
 
 router.get("/:id",
@@ -28,11 +39,19 @@ router.get("/:id",
     agendaTurnosController.obtenerUnaAgendaTurnos
 );
 
-router.put("/:id",
+router.put("/:id/horarios",
     genericMiddleware.existsModelById(AgendaTurnos),
-    genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdate),
+    genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateHorarios),
+    //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
+    agendaTurnosController.actualizarHorariosDeAgendaTurnos
+);
+
+router.put("/:id/especialidades",
+    genericMiddleware.existsModelById(AgendaTurnos),
+    genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateEspecialidad),
     genericMiddleware.existModelRequest(Especialidad),
-    agendaTurnosController.actualizarAgendaTurnos
+    //agendaTurnosMiddleware.validarEspecialidad,
+    agendaTurnosController.actualizarEspecialidadDeAgendaTurnos
 );
 
 router.delete("/:id",

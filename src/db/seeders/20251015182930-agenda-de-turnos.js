@@ -12,7 +12,7 @@ module.exports = {
         "especialidadId": 2,
         "lugaratencionId": 1,
         "horarios": [
-          { "horaInicio": "08:00", "horaFin": "12:00", "duracion": 20, "dias": [1, 5] }
+          { "horaInicio": "08:00", "horaFin": "12:00", "duracion": 20, "dias": ["Lunes", "Viernes"] }
         ]
       },
       {
@@ -20,8 +20,8 @@ module.exports = {
         "especialidadId": 4,
         "lugaratencionId": 3,
         "horarios": [
-          { "horaInicio": "10:00", "horaFin": "12:00", "duracion": 15, "dias": [2, 4] },
-          { "horaInicio": "16:00", "horaFin": "20:00", "duracion": 25, "dias": [1, 3, 5] }
+          { "horaInicio": "10:00", "horaFin": "12:00", "duracion": 15, "dias": ["Martes", "Jueves"] },
+          { "horaInicio": "16:00", "horaFin": "20:00", "duracion": 25, "dias": ["Lunes", "Miércoles", "Viernes"] }
         ]
       }
     ]
@@ -34,19 +34,17 @@ module.exports = {
       });
 
       for (const horario of agenda.horarios) {
-        const nuevoHorario = await HorarioAtencion.create({
-          agendaTurnosId: nuevaAgendaTurnos.id,
-          horaInicio: horario.horaInicio,
-          horaFin: horario.horaFin,
-          duracionTurno: horario.duracion
-        });
 
-        for (const diaId of horario.dias) {
-          const diaExistente = await Dia.findByPk(diaId);
-          if (diaExistente) {
-            await nuevoHorario.addDia(diaExistente);
-          }
+        for (const dia of horario.dias) {
+          const nuevoHorario = await HorarioAtencion.create({
+            agendaTurnosId: nuevaAgendaTurnos.id,
+            horaInicio: horario.horaInicio,
+            horaFin: horario.horaFin,
+            duracionTurno: horario.duracion,
+            dia: dia
+          });
         }
+
       }
 
     }
@@ -57,16 +55,13 @@ module.exports = {
     const { AgendaTurnos, HorarioAtencion } = require('../models');
 
     const agendas = await AgendaTurnos.findAll({ include: [HorarioAtencion] });
-    
+
     for (const agenda of agendas) {
-      for (const horario of agenda.HorarioAtencions) {
-        await horario.setDia([]);
-      }
 
       await HorarioAtencion.destroy({ where: { agendaTurnosId: agenda.id } });
 
       await AgendaTurnos.destroy({ where: { id: agenda.id } });
     }
   }
-  
+
 };

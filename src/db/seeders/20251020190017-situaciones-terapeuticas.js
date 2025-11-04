@@ -72,6 +72,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('SituacionesTerapeuticas', null, {});
+    await queryInterface.bulkDelete('SituacionTerapeuticas', null, {});
   },
 };

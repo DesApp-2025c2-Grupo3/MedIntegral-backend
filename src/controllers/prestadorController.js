@@ -7,7 +7,6 @@ const {
   LugarAtencion,
   HorarioAtencion,
   Especialidad,
-  Dia,
   AgendaTurnos
 } = require("../db/models");
 
@@ -42,7 +41,7 @@ const crearPrestador = async (req, res) => {
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
     propietarioId: nuevoPrestadorId,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
@@ -50,7 +49,7 @@ const crearPrestador = async (req, res) => {
   const datosTelefonos = telefonos.map((t) => ({
     numero: t.numero,
     propietarioId: nuevoPrestadorId,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
@@ -79,19 +78,16 @@ const crearPrestador = async (req, res) => {
 
     //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
     for (const horarioData of lugar.horarios) {
-      const nuevoHorario = await HorarioAtencion.create({
-        horaInicio: horarioData.horaInicio,
-        horaFin: horarioData.horaFin,
-        lugarAtencionId: nuevoLugarAtencion.id,
-      });
 
-      //Por cada horario extraemos el array de días
-      for (const diaData of horarioData.dias) {
-        const diaExistente = await Dia.findByPk(diaData);
-        if (diaExistente) {
-          await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-        }
+      for (const dia of horarioData.dias) {
+        const nuevoHorario = await HorarioAtencion.create({
+          horaInicio: horarioData.horaInicio,
+          horaFin: horarioData.horaFin,
+          lugarAtencionId: nuevoLugarAtencion.id,
+          dia: dia
+        });
       }
+
     }
   }
   res.status(201).json(nuevoPrestador);
@@ -104,15 +100,17 @@ const obtenerPrestadores = async (_, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["direccion"] },
-      { model: Telefono, attributes: ["numero"] },
+      { model: Email, attributes: ["id","direccion"] },
+      { model: Telefono, attributes: ["id","numero"] },
       {
         model: Especialidad,
-        attributes: ["nombre"],
+        as: "Especialidad",
+        attributes: ["id","nombre"],
         through: { attributes: [] },
       },
       {
         model: LugarAtencion,
+        as: "CentroDeAtencion",
         attributes: {
           exclude: ["createdAt", "updatedAt"],
         },
@@ -124,20 +122,14 @@ const obtenerPrestadores = async (_, res) => {
             include: [
               {
                 model: Provincia,
+                as: "Provincia",
                 attributes: ["nombre"],
               },
             ],
           },
           {
             model: HorarioAtencion,
-            attributes: ["horaInicio", "horaFin"],
-            include: [
-              {
-                model: Dia,
-                attributes: ["nombre"],
-                through: { attributes: [] },
-              },
-            ],
+            as: "Horarios"
           },
         ],
       },
@@ -158,15 +150,17 @@ const obtenerPrestador = async (req, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["direccion"] },
-      { model: Telefono, attributes: ["numero"] },
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
       {
         model: Especialidad,
-        attributes: ["nombre"],
+        as: "Especialidad",
+        attributes: ["id", "nombre"],
         through: { attributes: [] },
       },
       {
         model: LugarAtencion,
+        as: "CentroDeAtencion",
         attributes: {
           exclude: ["createdAt", "updatedAt"],
         },
@@ -178,25 +172,20 @@ const obtenerPrestador = async (req, res) => {
             include: [
               {
                 model: Provincia,
+                as: "Provincia",
                 attributes: ["nombre"],
               },
             ],
           },
           {
             model: HorarioAtencion,
-            attributes: ["horaInicio", "horaFin"],
-            include: [
-              {
-                model: Dia,
-                attributes: ["nombre"],
-                through: { attributes: [] },
-              },
-            ],
+            as: "Horarios"
           },
         ],
       },
     ],
   });
+
   return res.status(200).json(prestador);
 };
 
@@ -210,26 +199,28 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
   await prestador.update({ nombre, cuilCuit });
 
   //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
-  await Email.destroy({ where: { prestadorId: id } });
+  await Email.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
 
   const datosEmails = emails.map((e) => ({
     direccion: e.direccion,
     propietarioId: id,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Email.bulkCreate(datosEmails); // Si falla, los emails viejos ya fueron borrados
 
   //Teléfonos (borramos los viejos e insertamos los nuevos)
-  await Telefono.destroy({ where: { prestadorId: id } });
+  await Telefono.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
 
   const datosTelefonos = telefonos.map((tel) => ({
     numero: tel.numero,
     propietarioId: id,
-    propietarioTipo: 'Prestador',
+    propietarioTipo: "Prestador",
   }));
   await Telefono.bulkCreate(datosTelefonos); // Si falla, los teléfonos viejos ya fueron borrados
 
-  return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
+  return res
+    .status(200)
+    .json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
 //Actualizar lugares de atencion y horarios
@@ -242,13 +233,10 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   //Eliminacion:
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
-    include: [{ model: HorarioAtencion, as: "HorarioAtencions" }],
+    include: [{ model: HorarioAtencion, as: "Horarios" }],
   });
 
   for (const lugar of lugaresActuales) {
-    for (const horario of lugar.HorarioAtencions) {
-      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
-    }
     await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
     await lugar.destroy();
     //destruyo las direcciones? porque otros lugares de atención podrían usarla también
@@ -273,23 +261,23 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
     });
 
     for (const horarioData of lugar.horarios) {
-      const nuevoHorario = await HorarioAtencion.create({
-        horaInicio: horarioData.horaInicio,
-        horaFin: horarioData.horaFin,
-        lugarAtencionId: nuevoLugarAtencion.id,
-      });
 
-      //Por cada horario extraemos el array de días
-      for (const diaData of horarioData.dias) {
-        const diaExistente = await Dia.findByPk(diaData);
-        if (diaExistente) {
-          await nuevoHorario.addDia(diaExistente); // Usamos addDia para agregar un solo día
-        }
+      for (const dia of horarioData.dias) {
+        const nuevoHorario = await HorarioAtencion.create({
+          horaInicio: horarioData.horaInicio,
+          horaFin: horarioData.horaFin,
+          lugarAtencionId: nuevoLugarAtencion.id,
+          dia: dia
+        });
       }
+
     }
   }
 
-  return res.status(200).json({ message: "Lugares de atencion del Prestador actualizados correctamente.", prestador });
+  return res.status(200).json({
+    message: "Lugares de atencion del Prestador actualizados correctamente.",
+    prestador,
+  });
 };
 
 //actualizar especialidades
@@ -300,7 +288,7 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
   const prestador = await Prestador.findByPk(id);
 
   //Vacío el array de especialidades actuales
-  await prestador.setEspecialidads([]); // funciona con Especialidads porque así lo generó Sequelize
+  await prestador.setEspecialidad([]);
 
   for (const espId of especialidades) {
     const esp = await Especialidad.findByPk(espId);
@@ -308,63 +296,54 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
       await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
     }
   }
-  return res.status(200).json({ message: "Especialidades actualizadas correctamente." });
+  return res
+    .status(200)
+    .json({ message: "Especialidades actualizadas correctamente." });
 };
 
 //actualizar si es centro médico
 const actualizarCentroMedicoPrestador = async (req, res) => {
   const { id } = req.params;
-  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } = req.body;
+  const { esCentroMedico, integraCentroMedico, centroMedicoQueIntegra } =
+    req.body;
 
   const prestador = await Prestador.findByPk(id);
   await prestador.update({
     esCentroMedico,
-    integraCentroMedico: (esCentroMedico ? false : integraCentroMedico),
-    centroMedicoId: (integraCentroMedico ? centroMedicoQueIntegra : null),
+    integraCentroMedico: esCentroMedico ? false : integraCentroMedico,
+    centroMedicoId: integraCentroMedico ? centroMedicoQueIntegra : null,
   });
-  return res.status(200).json({ message: "Prestador actualizado correctamente." }, prestador);
+  return res
+    .status(200)
+    .json({ message: "Prestador actualizado correctamente." }, prestador);
 };
 
 //falta eliminar entidades relacionadas
 const eliminarPrestador = async (req, res) => {
   const { id } = req.params;
 
-  const prestador = await Prestador.findByPk(id, {
-    include: [
-      { model: Email },
-      { model: Telefono },
-      { model: Especialidad },
-      { model: LugarAtencion, include: [
-          { model: Direccion, include: { model: Provincia } },
-          { model: HorarioAtencion, include: { model: Dia } }
-        ],
-      }
-    ]
-  });
+  const prestador = await Prestador.findByPk(id);
 
   await Email.destroy({
     where: {
       propietarioId: id,
-      propietarioTipo: 'Prestador'
-    }
+      propietarioTipo: "Prestador",
+    },
   });
   await Telefono.destroy({
     where: {
       propietarioId: id,
-      propietarioTipo: 'Prestador'
-    }
+      propietarioTipo: "Prestador",
+    },
   });
-  await prestador.setEspecialidads([]);
+  await prestador.setEspecialidad([]); 
 
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
-    include: [{ model: HorarioAtencion }],
+    include: [{ model: HorarioAtencion, as: "Horarios" }],
   });
 
   for (const lugar of lugaresActuales) {
-    for (const horario of lugar.HorarioAtencions) {
-      await horario.setDia([]); //Es setDia y no setDias porque se generó sin plural
-    }
     await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
     await lugar.destroy();
     //destruyo las direcciones? porque otros lugares de atención podrían usarla también
@@ -373,21 +352,12 @@ const eliminarPrestador = async (req, res) => {
 
   await prestador.destroy();
 
-  return res.status(200).json({ message: "Prestador eliminado correctamente." });
-}
-
-const obtenerPrestadoresSinAgenda = async (req, res) => {
-  const prestadoresConAgenda = await AgendaTurnos.findAll({
-    attributes: ['prestadorId'],
-    group: ['prestadorId']
-  });
-  const idsDePrestadoresConAgenda = prestadoresConAgenda.map(pa => pa.prestadorId);
-  const prestadores = await Prestador.findAll({
-    attributes: ["id", "nombre"]
-  });
-  const prestadoresSinAgenda = prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id));
-  return res.status(200).json(prestadoresSinAgenda);
+  return res
+    .status(200)
+    .json({ message: "Prestador eliminado correctamente." });
 };
+
+
 
 module.exports = {
   crearPrestador,
@@ -397,6 +367,5 @@ module.exports = {
   actualizarLugaresAtencionPrestador,
   actualizarEspecialidadesPrestador,
   actualizarCentroMedicoPrestador,
-  obtenerPrestadoresSinAgenda,
-  eliminarPrestador
+  eliminarPrestador,
 };
