@@ -9,11 +9,15 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      nAfiliado: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       nIntegrante: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      tipoDocumentoId: {
+      tipoDocumento: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
@@ -45,7 +49,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true,
       },
-      contratoId: {
+      grupoFamiliarId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
