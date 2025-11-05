@@ -108,7 +108,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
         where["$CentroDeAtencion.Direccion.localidad$"] = localidad;
     }
     if (provincia) {
-        where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia;
+        where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia;
     }
 
     const queryOptions = {
@@ -373,6 +373,37 @@ const obtenerLocalidadesAgendas = async (_, res) => {
     res.status(200).json(localidadesFormateadas);
 };
 
+const obtenerProvinciasAgendas = async (_, res) => {
+    const agendas = await AgendaTurnos.findAll({
+        include: [
+            {
+                model: LugarAtencion, as: "CentroDeAtencion",
+                include: [{ model: Direccion, as: "Direccion",
+                            include: [{ model: Provincia, as: "Provincia"}] }],
+            },
+        ],
+    });
+
+    const setProvincias = new Set();
+
+    agendas.forEach((agenda) => {
+        const provincia = agenda.CentroDeAtencion?.Direccion?.Provincia;
+        if (provincia) {
+            setProvincias.add(provincia);
+        }
+    });
+
+
+    const provinciasFormateadas = Array.from(setProvincias).map(
+        (provincia) => ({
+            value: provincia.id,
+            label: provincia.nombre,
+        })
+    );
+
+    res.status(200).json(provinciasFormateadas);
+};
+
 const formatearPrestador = (prestador) => {
 
     const lugares = prestador.CentroDeAtencion.map((lugar) => ({
@@ -497,6 +528,7 @@ module.exports = {
     actualizarEspecialidadDeAgendaTurnos,
     eliminarAgendaTurnos,
     obtenerLocalidadesAgendas,
+    obtenerProvinciasAgendas,
     obtenerPrestadoresConAgendaIncompleta
 };
 
