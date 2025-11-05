@@ -23,6 +23,8 @@ router.get('/',
 
 router.get('/localidades', agendaTurnosController.obtenerLocalidadesAgendas);
 
+router.get('/provincias', agendaTurnosController.obtenerProvinciasAgendas);
+
 router.get('/listado',
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnosFormateados

@@ -184,7 +184,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
   }
 
   if(provincia){
-    where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia
+    where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia
   }
 
   if(creacionDesde){
@@ -290,6 +290,34 @@ const obtenerLocalidadesPrestadores = async (_, res) => {
   const localidadesFormateadas = Array.from(setLocalidades).map((l) => ({value: l, label: l}))
 
   res.status(200).json(localidadesFormateadas);
+}
+
+const obtenerProvinciasPrestadores = async (_, res) => {
+    const prestadores = await Prestador.findAll({
+    include: [
+      { model: LugarAtencion, 
+        as: "CentroDeAtencion",
+        include: [{model: Direccion, as: "Direccion", include: [{ model: Provincia, as: "Provincia"}]}]
+      }
+    ]
+  })
+
+  const setProvincias = new Set()
+
+  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion) )
+  
+  direcciones.forEach((d) => {
+    const provincia = d.Provincia
+    if(provincia){
+      setProvincias.add(provincia.nombre)
+    }
+  })
+
+  const provinciasFormateadas = Array.from(setProvincias).map((p) => ({value: p, label: p}))
+
+  
+
+  res.status(200).json(provinciasFormateadas);
 }
 
 const formatearPrestador = (prestador) => {
@@ -580,4 +608,5 @@ module.exports = {
   eliminarPrestador,
   obtenerLocalidadesPrestadores,
   obtenerCentrosMedicos
+  obtenerProvinciasPrestadores
 };
