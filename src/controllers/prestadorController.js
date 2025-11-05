@@ -607,6 +607,6 @@ module.exports = {
   actualizarCentroMedicoPrestador,
   eliminarPrestador,
   obtenerLocalidadesPrestadores,
-  obtenerCentrosMedicos
+  obtenerCentrosMedicos,
   obtenerProvinciasPrestadores
 };
