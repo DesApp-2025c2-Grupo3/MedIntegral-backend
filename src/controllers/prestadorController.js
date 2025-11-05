@@ -103,12 +103,12 @@ const obtenerPrestadores = async (_, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["id","direccion"] },
-      { model: Telefono, attributes: ["id","numero"] },
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
       {
         model: Especialidad,
         as: "Especialidad",
-        attributes: ["id","nombre"],
+        attributes: ["id", "nombre"],
         through: { attributes: [] },
       },
       {
@@ -146,7 +146,7 @@ const obtenerPrestadores = async (_, res) => {
 
 const obtenerPrestadoresFormateados = async (req, res) => {
 
-  const { 
+  const {
     textInputSearch,
     tipoPrestador,
     especialidad,
@@ -158,12 +158,12 @@ const obtenerPrestadoresFormateados = async (req, res) => {
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-  const offset = ( page-1 ) * limit;
+  const offset = (page - 1) * limit;
 
   const where = {};
   const rangoDeFecha = {};
 
-  if(textInputSearch && textInputSearch.trim() !== ""){
+  if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
       { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
       { cuilCuit: { [Op.iLike]: `%${textInputSearch}%` } },
@@ -171,35 +171,35 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     ]
   }
 
-  if(tipoPrestador){
+  if (tipoPrestador) {
     where.esCentroMedico = tipoPrestador;
   }
 
-  if(especialidad){
+  if (especialidad) {
     where["$Especialidad.id$"] = especialidad
   }
 
-  if(localidad){
+  if (localidad) {
     where["$CentroDeAtencion.Direccion.localidad$"] = localidad
   }
 
-  if(provincia){
+  if (provincia) {
     where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia
   }
 
-  if(creacionDesde){
+  if (creacionDesde) {
     const fechaDesde = new Date(creacionDesde);
     fechaDesde.setHours(0, 0, 0, 0);
-    rangoDeFecha[Op.gte] = fechaDesde; 
+    rangoDeFecha[Op.gte] = fechaDesde;
   }
 
-  if(creacionHasta){
+  if (creacionHasta) {
     const fechaHasta = new Date(creacionHasta);
     fechaHasta.setHours(23, 59, 59, 999);
-    rangoDeFecha[Op.lte] = fechaHasta; 
+    rangoDeFecha[Op.lte] = fechaHasta;
   }
 
-  if(creacionDesde||creacionHasta){
+  if (creacionDesde || creacionHasta) {
     where.createdAt = rangoDeFecha
   }
 
@@ -248,11 +248,11 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           },
         ],
       },
-    ], 
+    ],
     where: where
   }
 
-  const { count, rows: prestadores} = await Prestador.findAndCountAll(queryOptions);
+  const { count, rows: prestadores } = await Prestador.findAndCountAll(queryOptions);
 
   const prestadoresFormateados = prestadores.map((prestador) => {
     return formatearPrestador(prestador)
@@ -262,60 +262,63 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     total: count,
     page: page,
     limit: limit,
-    items: prestadoresFormateados});
+    items: prestadoresFormateados
+  });
 };
 
 const obtenerLocalidadesPrestadores = async (_, res) => {
 
   const prestadores = await Prestador.findAll({
     include: [
-      { model: LugarAtencion, 
+      {
+        model: LugarAtencion,
         as: "CentroDeAtencion",
-        include: [{model: Direccion, as: "Direccion"}]
+        include: [{ model: Direccion, as: "Direccion" }]
       }
     ]
   })
 
   const setLocalidades = new Set()
 
-  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion) )
-  
+  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion))
+
   direcciones.forEach((d) => {
     const localidad = d.localidad
-    if(localidad){
+    if (localidad) {
       setLocalidades.add(localidad)
     }
   })
 
-  const localidadesFormateadas = Array.from(setLocalidades).map((l) => ({value: l, label: l}))
+  const localidadesFormateadas = Array.from(setLocalidades).map((l) => ({ value: l, label: l }))
 
   res.status(200).json(localidadesFormateadas);
 }
 
 const obtenerProvinciasPrestadores = async (_, res) => {
-    const prestadores = await Prestador.findAll({
+  const prestadores = await Prestador.findAll({
     include: [
-      { model: LugarAtencion, 
+      {
+        model: LugarAtencion,
         as: "CentroDeAtencion",
-        include: [{model: Direccion, as: "Direccion", include: [{ model: Provincia, as: "Provincia"}]}]
+        include: [{ model: Direccion, as: "Direccion", include: [{ model: Provincia, as: "Provincia" }] }]
       }
     ]
   })
 
   const setProvincias = new Set()
 
-  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion) )
-  
+  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion))
+
   direcciones.forEach((d) => {
     const provincia = d.Provincia
-    if(provincia){
+    if (provincia) {
       setProvincias.add(provincia.nombre)
     }
   })
 
-  const provinciasFormateadas = Array.from(setProvincias).map((p) => ({value: p, label: p}))
+  const provinciasFormateadas = Array.from(setProvincias).map((p) => ({ value: p, label: p }))
 
-  
+
 
   res.status(200).json(provinciasFormateadas);
 }
@@ -360,12 +363,11 @@ const obtenerPrestador = async (req, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["id", "direccion"] },
-      { model: Telefono, attributes: ["id", "numero"] },
+      { model: Email},
+      { model: Telefono},
       {
         model: Especialidad,
         as: "Especialidad",
-        attributes: ["id", "nombre"],
         through: { attributes: [] },
       },
       {
@@ -378,12 +380,10 @@ const obtenerPrestador = async (req, res) => {
           {
             model: Direccion,
             as: "Direccion",
-            attributes: ["calle", "altura", "pisoDepto", "localidad"],
             include: [
               {
                 model: Provincia,
                 as: "Provincia",
-                attributes: ["nombre"],
               },
             ],
           },
@@ -396,7 +396,17 @@ const obtenerPrestador = async (req, res) => {
     ],
   });
 
-  return res.status(200).json(prestador);
+  let centro;
+
+  if (prestador.integraCentroMedico) {
+    centro = await Prestador.findByPk(prestador.centroMedicoId, {
+      attributes: ['id', 'nombre']
+    });
+  }
+
+  const respuesta = prestador.integraCentroMedico ? { ...prestador.toJSON(), CentroMedico: centro } : prestador;
+
+  return res.status(200).json(respuesta);
 };
 
 //Actualizar datos personales de un prestador
@@ -546,7 +556,7 @@ const eliminarPrestador = async (req, res) => {
       propietarioTipo: "Prestador",
     },
   });
-  await prestador.setEspecialidad([]); 
+  await prestador.setEspecialidad([]);
 
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },
