@@ -108,7 +108,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
         where["$CentroDeAtencion.Direccion.localidad$"] = localidad;
     }
     if (provincia) {
-        where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia;
+        where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia;
     }
 
     const queryOptions = {
@@ -389,15 +389,15 @@ const obtenerProvinciasAgendas = async (_, res) => {
     agendas.forEach((agenda) => {
         const provincia = agenda.CentroDeAtencion?.Direccion?.Provincia;
         if (provincia) {
-            setProvincias.add(provincia);
+            setProvincias.add(provincia.nombre);
         }
     });
 
 
     const provinciasFormateadas = Array.from(setProvincias).map(
         (provincia) => ({
-            value: provincia.id,
-            label: provincia.nombre,
+            value: provincia,
+            label: provincia,
         })
     );
 
