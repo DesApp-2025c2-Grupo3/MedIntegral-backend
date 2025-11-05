@@ -345,8 +345,7 @@ const formatearPrestador = (prestador) => {
     emails: prestador.Emails,
     telefonos: prestador.Telefonos,
     centrosDeAtencion: lugares,
-    createdAt: prestador.createdAt,
-    agenda: prestador.AgendasTurnos
+    createdAt: prestador.createdAt
   }
 
   return (prestadorFormateado)
@@ -585,7 +584,17 @@ const eliminarPrestador = async (req, res) => {
     .json({ message: "Prestador eliminado correctamente." });
 };
 
+const obtenerCentrosMedicos = async (req, res) => {
+  const prestadores = await Prestador.findAll();
 
+  const centrosMedicos = prestadores.filter(p => p.esCentroMedico);
+
+  const centros = centrosMedicos.map(c => ({
+    id: c.id,
+    nombre: c.nombre
+  }));
+  return res.status(200).json(centros);
+}
 
 module.exports = {
   crearPrestador,
@@ -598,5 +607,6 @@ module.exports = {
   actualizarCentroMedicoPrestador,
   eliminarPrestador,
   obtenerLocalidadesPrestadores,
+  obtenerCentrosMedicos
   obtenerProvinciasPrestadores
 };

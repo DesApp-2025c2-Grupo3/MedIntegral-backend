@@ -21,7 +21,16 @@ router.get('/listado',
   prestadorController.obtenerPrestadoresFormateados
 );
 
-router.get('/localidades', prestadorController.obtenerLocalidadesPrestadores);
+router.get('/localidades', 
+  genericMiddleware.existsAnyByModel(Prestador),
+  prestadorController.obtenerLocalidadesPrestadores
+);
+
+router.get('/centros-medicos', 
+  genericMiddleware.existsAnyByModel(Prestador),
+  prestadorMiddleware.existeAlgunCentroMedico,
+  prestadorController.obtenerCentrosMedicos
+);
 
 router.get("/provincias", prestadorController.obtenerProvinciasPrestadores)
 
