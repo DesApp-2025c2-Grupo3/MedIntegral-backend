@@ -28,7 +28,17 @@ const validarQueNoSeaCentroMedicoONoTengaIntegrantes = async (req, res, next) =>
     next();
 };
 
+const existeAlgunCentroMedico = async (req, res, next) => {
+    const prestadores = await Prestador.findAll();
+    const centrosMedicos = prestadores.filter(p => p.esCentroMedico);
+    if (!centrosMedicos) {
+        return errorPersonalizado(`No hay ningún centro medico registrado`, 204, next);
+    }
+    next();
+};
+
 module.exports = {
     validarExistenciaCentroMedico,
-    validarQueNoSeaCentroMedicoONoTengaIntegrantes
+    validarQueNoSeaCentroMedicoONoTengaIntegrantes,
+    existeAlgunCentroMedico
 };
