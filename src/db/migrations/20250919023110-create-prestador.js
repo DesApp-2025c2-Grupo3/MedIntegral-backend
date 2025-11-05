@@ -31,6 +31,11 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
       },
+      disponibilidad:{
+        type: Sequelize.JSONB,
+        allowNull: false,
+        defaultValue: []
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

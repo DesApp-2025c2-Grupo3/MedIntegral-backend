@@ -119,6 +119,8 @@ module.exports = {
         }
       });
 
+      const horariosDisponibles = [];
+
       for (const lugar of prestador.lugaresAtencion) {
         const nuevaDireccion = await Direccion.create({
           calle: lugar.calle,
@@ -136,6 +138,8 @@ module.exports = {
 
         for (const horarioData of lugar.horarios) {
 
+          const horariosLugar = []
+
           for (const dia of horarioData.dias) {
             const nuevoHorario = await HorarioAtencion.create({
               horaInicio: horarioData.horaInicio,
@@ -144,11 +148,18 @@ module.exports = {
               dia: dia
             });
 
+            horariosLugar.push(nuevoHorario);
+
           }
+
+          horariosDisponibles.push({
+            lugarAtencionId: nuevoLugarAtencion.id,
+            horarios: horariosLugar
+          });
 
         }
       }
-
+      await nuevoPrestador.update({ disponibilidad: horariosDisponibles });
     }
   },
 

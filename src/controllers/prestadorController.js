@@ -63,15 +63,19 @@ const crearPrestador = async (req, res) => {
     }
   });
 
+  const horariosDisponibles = [];
+
   //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
   for (const lugar of lugaresAtencion) {
-    const nuevaDireccion = await Direccion.create({
-      calle: lugar.calle,
-      altura: lugar.altura,
-      pisoDepto: lugar.pisoDepto,
-      codigoPostal: lugar.codigoPostal,
-      localidad: lugar.localidad,
-      provinciaId: lugar.provincia,
+    const nuevaDireccion = await Direccion.findOrCreate({
+      where: {
+        calle: lugar.calle,
+        altura: lugar.altura,
+        pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
+        codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
+        localidad: lugar.localidad,
+        provinciaId: lugar.provincia
+      }
     });
 
     const nuevoLugarAtencion = await LugarAtencion.create({
@@ -82,6 +86,8 @@ const crearPrestador = async (req, res) => {
     //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
     for (const horarioData of lugar.horarios) {
 
+      const horariosLugar = []
+
       for (const dia of horarioData.dias) {
         const nuevoHorario = await HorarioAtencion.create({
           horaInicio: horarioData.horaInicio,
@@ -89,10 +95,19 @@ const crearPrestador = async (req, res) => {
           lugarAtencionId: nuevoLugarAtencion.id,
           dia: dia
         });
-      }
 
+        horariosLugar.push(nuevoHorario);
+      }
+      
+      horariosDisponibles.push({
+        lugarAtencionId: nuevoLugarAtencion.id,
+        horarios: horariosLugar
+      });
     }
   }
+
+  await nuevoPrestador.update({ disponibilidad: horariosDisponibles });
+
   res.status(201).json(nuevoPrestador);
 };
 
@@ -103,12 +118,12 @@ const obtenerPrestadores = async (_, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["id","direccion"] },
-      { model: Telefono, attributes: ["id","numero"] },
+      { model: Email, attributes: ["id", "direccion"] },
+      { model: Telefono, attributes: ["id", "numero"] },
       {
         model: Especialidad,
         as: "Especialidad",
-        attributes: ["id","nombre"],
+        attributes: ["id", "nombre"],
         through: { attributes: [] },
       },
       {
@@ -146,7 +161,7 @@ const obtenerPrestadores = async (_, res) => {
 
 const obtenerPrestadoresFormateados = async (req, res) => {
 
-  const { 
+  const {
     textInputSearch,
     tipoPrestador,
     especialidad,
@@ -158,12 +173,12 @@ const obtenerPrestadoresFormateados = async (req, res) => {
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-  const offset = ( page-1 ) * limit;
+  const offset = (page - 1) * limit;
 
   const where = {};
   const rangoDeFecha = {};
 
-  if(textInputSearch && textInputSearch.trim() !== ""){
+  if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
       { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
       { cuilCuit: { [Op.iLike]: `%${textInputSearch}%` } },
@@ -171,35 +186,35 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     ]
   }
 
-  if(tipoPrestador){
+  if (tipoPrestador) {
     where.esCentroMedico = tipoPrestador;
   }
 
-  if(especialidad){
+  if (especialidad) {
     where["$Especialidad.id$"] = especialidad
   }
 
-  if(localidad){
+  if (localidad) {
     where["$CentroDeAtencion.Direccion.localidad$"] = localidad
   }
 
-  if(provincia){
+  if (provincia) {
     where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia
   }
 
-  if(creacionDesde){
+  if (creacionDesde) {
     const fechaDesde = new Date(creacionDesde);
     fechaDesde.setHours(0, 0, 0, 0);
-    rangoDeFecha[Op.gte] = fechaDesde; 
+    rangoDeFecha[Op.gte] = fechaDesde;
   }
 
-  if(creacionHasta){
+  if (creacionHasta) {
     const fechaHasta = new Date(creacionHasta);
     fechaHasta.setHours(23, 59, 59, 999);
-    rangoDeFecha[Op.lte] = fechaHasta; 
+    rangoDeFecha[Op.lte] = fechaHasta;
   }
 
-  if(creacionDesde||creacionHasta){
+  if (creacionDesde || creacionHasta) {
     where.createdAt = rangoDeFecha
   }
 
@@ -248,11 +263,11 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           },
         ],
       },
-    ], 
+    ],
     where: where
   }
 
-  const { count, rows: prestadores} = await Prestador.findAndCountAll(queryOptions);
+  const { count, rows: prestadores } = await Prestador.findAndCountAll(queryOptions);
 
   const prestadoresFormateados = prestadores.map((prestador) => {
     return formatearPrestador(prestador)
@@ -262,32 +277,34 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     total: count,
     page: page,
     limit: limit,
-    items: prestadoresFormateados});
+    items: prestadoresFormateados
+  });
 };
 
 const obtenerLocalidadesPrestadores = async (_, res) => {
 
   const prestadores = await Prestador.findAll({
     include: [
-      { model: LugarAtencion, 
+      {
+        model: LugarAtencion,
         as: "CentroDeAtencion",
-        include: [{model: Direccion, as: "Direccion"}]
+        include: [{ model: Direccion, as: "Direccion" }]
       }
     ]
   })
 
   const setLocalidades = new Set()
 
-  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion) )
-  
+  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion))
+
   direcciones.forEach((d) => {
     const localidad = d.localidad
-    if(localidad){
+    if (localidad) {
       setLocalidades.add(localidad)
     }
   })
 
-  const localidadesFormateadas = Array.from(setLocalidades).map((l) => ({value: l, label: l}))
+  const localidadesFormateadas = Array.from(setLocalidades).map((l) => ({ value: l, label: l }))
 
   res.status(200).json(localidadesFormateadas);
 }
@@ -535,7 +552,7 @@ const eliminarPrestador = async (req, res) => {
       propietarioTipo: "Prestador",
     },
   });
-  await prestador.setEspecialidad([]); 
+  await prestador.setEspecialidad([]);
 
   const lugaresActuales = await LugarAtencion.findAll({
     where: { prestadorId: id },

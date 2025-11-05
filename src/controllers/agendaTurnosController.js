@@ -377,11 +377,11 @@ const formatearPrestador = (prestador) => {
 
     const lugares = prestador.CentroDeAtencion.map((lugar) => ({
         id: lugar.id,
-        calle: lugar.Direccion.calle,
-        altura: lugar.Direccion.altura,
-        pisoDepto: lugar.Direccion.pisoDepto,
-        localidad: lugar.Direccion.localidad,
-        provincia: lugar.Direccion.Provincia.nombre,
+        calle: lugar.calle,
+        altura: lugar.altura,
+        pisoDepto: lugar.pisoDepto,
+        localidad: lugar.localidad,
+        provincia: lugar.provincia,
         horarios: lugar.Horarios,
     }));
 
