@@ -17,31 +17,38 @@ const prestadorSchemaCreate = Joi.object({
   }),
 
   esCentroMedico: Joi.boolean().required().messages({
-    "boolean.base": "esCentroMedico debe ser un valor booleano",
-    "any.required": "esCentroMedico es obligatorio",
+    'boolean.base': 'esCentroMedico debe ser un valor booleano',
+    'any.required': 'esCentroMedico es obligatorio',
   }),
 
-  integraCentroMedico: Joi.when('esCentroMedico', {
-    is: false,
-    then: Joi.boolean().required().messages({
-      'boolean.base': 'integraCentroMedico debe ser un valor booleano',
-      'any.required': 'integraCentroMedico es obligatorio cuando esCentroMedico es false'
-    }),
-    otherwise: Joi.forbidden().messages({
-      'any.unknown': 'No se debe proporcionar integraCentroMedico cuando esCentroMedico es true'
-    })
-  }),
-
-  centroMedicoQueIntegra: Joi.when('integraCentroMedico', {
+  integraCentroMedico: Joi.boolean().required().when('esCentroMedico', {
     is: true,
-    then: Joi.number().integer().required().messages({
-      'number.base': 'El ID del centro médico debe ser un número',
-      'number.integer': 'El ID del centro médico debe contener sólo números',
-      'any.required': 'El ID del centro médico es obligatorio cuando integraCentroMedico es true'
+    then: Joi.valid(false).messages({
+      'any.only': 'Cuando esCentroMedico es true, integraCentroMedico debe ser false',
     }),
-    otherwise: Joi.forbidden().messages({
-      'any.unknown': 'No se debe proporcionar centroMedicoQueIntegra cuando integraCentroMedico es false'
-    })
+  }).messages({
+    'boolean.base': 'integraCentroMedico debe ser un valor booleano',
+    'any.required': 'integraCentroMedico es obligatorio',
+  }),
+
+  centroMedicoQueIntegra: Joi.alternatives().conditional('esCentroMedico', {
+    is: true,
+    then: Joi.valid(null).required().messages({
+      'any.only': 'Cuando esCentroMedico es true, centroMedicoQueIntegra debe ser null',
+      'any.required': 'centroMedicoQueIntegra es obligatorio y debe ser null cuando esCentroMedico es true',
+    }),
+    otherwise: Joi.alternatives().conditional('integraCentroMedico', {
+      is: true,
+      then: Joi.number().integer().required().messages({
+        'number.base': 'El ID del centro médico debe ser un número',
+        'number.integer': 'El ID del centro médico debe ser un entero',
+        'any.required': 'El ID del centro médico es obligatorio cuando integraCentroMedico es true',
+      }),
+      otherwise: Joi.valid(null).required().messages({
+        'any.only': 'Cuando integraCentroMedico es false, centroMedicoQueIntegra debe ser null',
+        'any.required': 'centroMedicoQueIntegra es obligatorio y debe ser null cuando integraCentroMedico es false',
+      }),
+    }),
   }),
 
   especialidades: Joi.array().items(
@@ -298,36 +305,41 @@ const prestadorSchemaUpdateEspecialidades = Joi.object({
 });
 
 const prestadorSchemaUpdateCentroMedico = Joi.object({
-
   esCentroMedico: Joi.boolean().required().messages({
-    "boolean.base": "esCentroMedico debe ser un valor booleano",
-    "any.required": "esCentroMedico es obligatorio",
+    'boolean.base': 'esCentroMedico debe ser un valor booleano',
+    'any.required': 'esCentroMedico es obligatorio',
   }),
 
-  integraCentroMedico: Joi.when('esCentroMedico', {
-    is: false,
-    then: Joi.boolean().required().messages({
-      'boolean.base': 'integraCentroMedico debe ser un valor booleano',
-      'any.required': 'integraCentroMedico es obligatorio cuando esCentroMedico es false'
-    }),
-    otherwise: Joi.forbidden().messages({
-      'any.unknown': 'No se debe proporcionar integraCentroMedico cuando esCentroMedico es true'
-    })
-  }),
-
-  centroMedicoQueIntegra: Joi.when('integraCentroMedico', {
+  integraCentroMedico: Joi.boolean().required().when('esCentroMedico', {
     is: true,
-    then: Joi.number().integer().required().messages({
-      'number.base': 'El ID del centro médico debe ser un número',
-      'number.integer': 'El ID del centro médico debe contener sólo números',
-      'any.required': 'El ID del centro médico es obligatorio cuando integraCentroMedico es true'
+    then: Joi.valid(false).messages({
+      'any.only': 'Cuando esCentroMedico es true, integraCentroMedico debe ser false',
     }),
-    otherwise: Joi.forbidden().messages({
-      'any.unknown': 'No se debe proporcionar centroMedicoQueIntegra cuando integraCentroMedico es false'
-    })
-  })
+  }).messages({
+    'boolean.base': 'integraCentroMedico debe ser un valor booleano',
+    'any.required': 'integraCentroMedico es obligatorio',
+  }),
 
-});
+  centroMedicoQueIntegra: Joi.alternatives().conditional('esCentroMedico', {
+    is: true,
+    then: Joi.valid(null).required().messages({
+      'any.only': 'Cuando esCentroMedico es true, centroMedicoQueIntegra debe ser null',
+      'any.required': 'centroMedicoQueIntegra es obligatorio y debe ser null cuando esCentroMedico es true',
+    }),
+    otherwise: Joi.alternatives().conditional('integraCentroMedico', {
+      is: true,
+      then: Joi.number().integer().required().messages({
+        'number.base': 'El ID del centro médico debe ser un número',
+        'number.integer': 'El ID del centro médico debe ser un entero',
+        'any.required': 'El ID del centro médico es obligatorio cuando integraCentroMedico es true',
+      }),
+      otherwise: Joi.valid(null).required().messages({
+        'any.only': 'Cuando integraCentroMedico es false, centroMedicoQueIntegra debe ser null',
+        'any.required': 'centroMedicoQueIntegra es obligatorio y debe ser null cuando integraCentroMedico es false',
+      }),
+    }),
+  }),
+}).prefs({ abortEarly: false });
 
 module.exports = {
   prestadorSchemaCreate,
