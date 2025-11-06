@@ -108,10 +108,10 @@ const prestadorSchemaCreate = Joi.object({
         'number.max': 'La altura debe ser como máximo {#limit}',
         'any.required': 'La altura es obligatoria'
       }),
-      pisoDepto: Joi.string().messages({
+      pisoDepto: Joi.string().allow(null, '').optional().messages({
         'string.base': 'El piso/departamento debe ser una cadena de texto'
       }),
-      codigoPostal: Joi.string().messages({
+      codigoPostal: Joi.string().allow(null, '').optional().messages({
         'string.base': 'El código postal debe ser una cadena de texto'
       }),
       localidad: Joi.string().min(3).max(100).required().messages({
@@ -229,10 +229,10 @@ const prestadorSchemaUpdateLugaresAtencion = Joi.object({
         'number.max': 'La altura debe ser como máximo {#limit}',
         'any.required': 'La altura es obligatoria'
       }),
-      pisoDepto: Joi.string().messages({
-        'string.base': 'El piso/departamento debe ser una cadena de texto'
+      pisoDepto: Joi.string().allow(null, '').optional().messages({
+        'string.base': 'El piso/departamento debe ser una cadena de texto',
       }),
-      codigoPostal: Joi.string().messages({
+      codigoPostal: Joi.string().allow(null, '').optional().messages({
         'string.base': 'El código postal debe ser una cadena de texto'
       }),
       localidad: Joi.string().min(3).max(100).required().messages({
