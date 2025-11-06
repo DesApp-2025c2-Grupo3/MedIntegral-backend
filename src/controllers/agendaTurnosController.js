@@ -324,8 +324,6 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
 
     await agendaTurnos.save();
 
-    console.log(agendaTurnos);
-
     res.status(200).json(agendaTurnos);
 };
 
