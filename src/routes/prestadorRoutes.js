@@ -7,6 +7,7 @@ const { prestadorSchema } = require("../middlewares/schemas");
 
 router.post('/',
   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaCreate),
+  prestadorMiddleware.noSeRepiteElCuil,
   prestadorMiddleware.validarExistenciaCentroMedico,
   prestadorController.crearPrestador
 );
