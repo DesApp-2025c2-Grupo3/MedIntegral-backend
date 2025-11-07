@@ -174,14 +174,58 @@ const obtenerTitulares = async (req, res) => {
     email,
     vigenciaDesde,
     vigenciaHasta,
-    estado
+    //estado
   } = req.query;
 
-  const page = parseInt(req.query.page);
-  const limit = parseInt(req.query.limit);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
   const where = {};
+
+  if(textInputSearch && textInputSearch.trim() !== ""){
+    where[Op.or] = [
+      {nombre: {[Op.iLike]: `%${textInputSearch}%`}},
+      {apellido: {[Op.iLike]: `%${textInputSearch}%`}},
+      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}}
+      //Agregar búsqueda por número de afiliado
+    ]
+  }    
+  if(tipoDocumento){
+    where["$tipoDocumento.tipo$"] = tipoDocumento
+  }
+  if(numeroDocumento){
+    where["numeroDocumento"] = numeroDocumento
+  }
+  if(fechaNacimiento){
+    const fecha = new Date(fechaNacimiento)
+    where["fechaNacimiento"] = fecha
+  }
+  if(planMedico){
+    where["$Contrato.plan.plan$"] = planMedico
+  }
+  if(provincia){
+    where["$domicilios.Direccion.Provincia.nombre$"] = provincia
+  }
+  if(localidad){
+    where["$domicilios.Direccion.localidad$"] = localidad
+  }
+  if(telefono){
+    where["$telefonos.numero$"] = telefono
+  }
+  if(email){
+    where["$emails.direccion$"] = email
+  }
+  if(vigenciaDesde){
+    where["vigenciaInicio"] = {[Op.gte]: vigenciaDesde}
+  }
+  if(vigenciaHasta){
+    where["vigenciaFin"] = {[Op.lte]: vigenciaHasta}
+  }
+
   const queryOptions = {
+    limit: limit,
+    offset: offset,
+    distinct: true,
     attributes: [
       "id",
       "nombre",
@@ -237,49 +281,14 @@ const obtenerTitulares = async (req, res) => {
     where: where
   } 
 
-  if(textInputSearch && textInputSearch.trim() !== ""){
-    where[Op.or] = [
-      {nombre: {[Op.iLike]: `%${textInputSearch}%`}},
-      {apellido: {[Op.iLike]: `%${textInputSearch}%`}},
-      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}}
-      //Agregar búsqueda por número de afiliado
-    ]
-  }    
-  if(tipoDocumento){
-    where["$tipoDocumento.tipo$"] = tipoDocumento
-  }
-  if(numeroDocumento){
-    where["numeroDocumento"] = numeroDocumento
-  }
-  if(fechaNacimiento){
-    const fecha = new Date(fechaNacimiento)
-    where["fechaNacimiento"] = fecha
-  }
-  if(planMedico){
-    where["$Contrato.plan.plan$"] = planMedico
-  }
-  if(provincia){
-    where["$domicilios.Direccion.Provincia.nombre$"] = provincia
-  }
-  if(localidad){
-    where["$domicilios.Direccion.localidad$"] = localidad
-  }
-  if(telefono){
-    where["$telefonos.numero$"] = telefono
-  }
-  if(email){
-    where["$emails.direccion$"] = email
-  }
-  if(vigenciaDesde){
-    where["vigenciaInicio"] = {[Op.gte]: vigenciaDesde}
-  }
-  if(vigenciaHasta){
-    where["vigenciaFin"] = {[Op.lte]: vigenciaHasta}
-  }
+  const { count, rows: titulares} = await Afiliado.findAndCountAll(queryOptions);
 
-  const titulares = await Afiliado.findAll(queryOptions);
-
-  res.status(200).json(titulares);
+  res.status(200).json({
+    total: count,
+    page: page,
+    limit: limit,
+    items: titulares
+  });
 };
 
 const obtenerAfiliado = async (req, res) => {
