@@ -23,6 +23,10 @@ router.get(
   afiliadoController.obtenerTitulares
 );
 
+router.get("/localidades", afiliadoController.obtenerLocalidadesAfiliados);
+
+router.get("/provincias", afiliadoController.obtenerProvinciasAfiliados);
+
 router.get(
   "/:id",
   genericMiddleware.existsAnyByModel(Afiliado),

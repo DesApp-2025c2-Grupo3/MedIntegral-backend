@@ -223,8 +223,8 @@ const obtenerTitulares = async (req, res) => {
   }
 
   const queryOptions = {
-    limit: limit,
-    offset: offset,
+    //limit: limit,
+    //offset: offset,
     distinct: true,
     attributes: [
       "id",
@@ -289,6 +289,43 @@ const obtenerTitulares = async (req, res) => {
     limit: limit,
     items: titulares
   });
+};
+
+const obtenerLocalidadesAfiliados = async(_, res) => {
+  const afiliados = await Afiliado.findAll({include: [{model: Domicilio, as: "domicilios", include: [{model: Direccion}]}]});
+  const setLocalidades = new Set();
+
+  const direcciones = afiliados.flatMap((a) => a.domicilios.map((d) => d.Direccion));
+  const localidades = direcciones.map((d) => d.localidad);
+
+  localidades.forEach((localidad) => {
+    if(localidad){
+      setLocalidades.add(localidad)
+    }
+  })
+
+  const localidadesFormateadas = Array.from(setLocalidades).map((localidad) => ({value: localidad, label: localidad}))
+
+  return res.status(200).json(localidadesFormateadas);
+
+};
+
+const obtenerProvinciasAfiliados = async(_, res) => {
+  const afiliados = await Afiliado.findAll({include: [{model: Domicilio, as: "domicilios", include: [{model:Direccion, include:[{model:Provincia, as: "Provincia"}]}]}]});
+  const setProvincias = new Set();
+
+  const direcciones = afiliados.flatMap((a) => a.domicilios.map((d) => d.Direccion));
+  const provincias = direcciones.map((d) => d.Provincia.nombre)
+
+  provincias.forEach((provincia) => {
+    if(provincia){
+      setProvincias.add(provincia)
+    }
+  })
+
+  const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({value: provincia, label: provincia}))
+
+  return res.status(200).json(provinciasFormateadas);
 };
 
 const obtenerAfiliado = async (req, res) => {
@@ -485,6 +522,8 @@ module.exports = {
   crearAfiliado,
   obtenerTitulares,
   obtenerAfiliado,
+  obtenerLocalidadesAfiliados,
+  obtenerProvinciasAfiliados,
   agregarDependiente,
   bajaAfiliado,
 };
