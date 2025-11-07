@@ -170,7 +170,7 @@ const obtenerTitulares = async (req, res) => {
     planMedico,
     provincia,
     localidad,
-    teléfono,
+    telefono,
     email,
     vigenciaDesde,
     vigenciaHasta,
@@ -180,6 +180,7 @@ const obtenerTitulares = async (req, res) => {
   const page = parseInt(req.query.page);
   const limit = parseInt(req.query.limit);
   const offset = (page - 1) * limit;
+  const where = {};
   const queryOptions = {
     attributes: [
       "id",
@@ -188,6 +189,7 @@ const obtenerTitulares = async (req, res) => {
       "vigenciaInicio",
       "vigenciaFin",
       "numeroDocumento",
+      "fechaNacimiento"
     ],
     include: [
       {
@@ -215,13 +217,13 @@ const obtenerTitulares = async (req, res) => {
         attributes: ["numero"],
       },
       {
-        model: Domicilio, //Entramos por domicilio
+        model: Domicilio, 
         as: "domicilios",
         attributes: {
           exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"],
         },
         include: {
-          model: Direccion, // Y dentro de Domicilio, incluyo Direccion
+          model: Direccion, 
           attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
           include: {
             model: Provincia,
@@ -232,6 +234,47 @@ const obtenerTitulares = async (req, res) => {
       },
     ],
     order: [["id", "ASC"]],
+    where: where
+  } 
+
+  if(textInputSearch && textInputSearch.trim() !== ""){
+    where[Op.or] = [
+      {nombre: {[Op.iLike]: `%${textInputSearch}%`}},
+      {apellido: {[Op.iLike]: `%${textInputSearch}%`}},
+      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}}
+      //Agregar búsqueda por número de afiliado
+    ]
+  }    
+  if(tipoDocumento){
+    where["$tipoDocumento.tipo$"] = tipoDocumento
+  }
+  if(numeroDocumento){
+    where["numeroDocumento"] = numeroDocumento
+  }
+  if(fechaNacimiento){
+    const fecha = new Date(fechaNacimiento)
+    where["fechaNacimiento"] = fecha
+  }
+  if(planMedico){
+    where["$Contrato.plan.plan$"] = planMedico
+  }
+  if(provincia){
+    where["$domicilios.Direccion.Provincia.nombre$"] = provincia
+  }
+  if(localidad){
+    where["$domicilios.Direccion.localidad$"] = localidad
+  }
+  if(telefono){
+    where["$telefonos.numero$"] = telefono
+  }
+  if(email){
+    where["$emails.direccion$"] = email
+  }
+  if(vigenciaDesde){
+    where["vigenciaInicio"] = {[Op.gte]: vigenciaDesde}
+  }
+  if(vigenciaHasta){
+    where["vigenciaFin"] = {[Op.lte]: vigenciaHasta}
   }
 
   const titulares = await Afiliado.findAll(queryOptions);
