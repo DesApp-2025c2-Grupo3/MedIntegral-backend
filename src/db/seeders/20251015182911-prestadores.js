@@ -8,7 +8,7 @@ module.exports = {
     const { Prestador, Email, Telefono, Especialidad, Direccion, LugarAtencion, HorarioAtencion, Dia } = require("../models")
     const prestadoresARegistrar = [
       {
-        "nombre": "Dr. Pepe Grillo",
+        "nombre": "Dr Pepe Grillo",
         "cuilCuit": "12345678901",
         "esCentroMedico": false,
         "integraCentroMedico": false,
@@ -62,7 +62,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dr. Armando Paredes",
+        "nombre": "Dr Armando Paredes",
         "cuilCuit": "11223344556",
         "esCentroMedico": false,
         "integraCentroMedico": true,
@@ -116,7 +116,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dra. Laura Nieve",
+        "nombre": "Dra Laura Nieve",
         "cuilCuit": "27456789012",
         "esCentroMedico": false,
         "integraCentroMedico": true,
@@ -166,7 +166,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dr. Juan Herrera",
+        "nombre": "Dr Juan Herrera",
         "cuilCuit": "20123456780",
         "esCentroMedico": false,
         "integraCentroMedico": true,
@@ -191,7 +191,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dra. María Solís",
+        "nombre": "Dra María Solís",
         "cuilCuit": "27890123456",
         "esCentroMedico": false,
         "integraCentroMedico": false,
@@ -216,7 +216,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dr. Ricardo Tapia",
+        "nombre": "Dr Ricardo Tapia",
         "cuilCuit": "20900112233",
         "esCentroMedico": false,
         "integraCentroMedico": true,
@@ -267,7 +267,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dra. Ana Torres",
+        "nombre": "Dra Ana Torres",
         "cuilCuit": "27999888111",
         "esCentroMedico": false,
         "integraCentroMedico": true,
@@ -292,7 +292,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dr. Esteban Quiroga",
+        "nombre": "Dr Esteban Quiroga",
         "cuilCuit": "20881234567",
         "esCentroMedico": false,
         "integraCentroMedico": false,
