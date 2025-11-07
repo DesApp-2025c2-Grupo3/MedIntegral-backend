@@ -51,7 +51,9 @@ const includeAfiliadoCompleto = () => [
   {
     model: Domicilio,
     as: "domicilios",
-    attributes: { exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"] },
+    attributes: {
+      exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"],
+    },
     include: {
       model: Direccion,
       attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
@@ -160,24 +162,25 @@ const crearAfiliado = async (req, res) => {
 };
 
 const obtenerTitulares = async (req, res) => {
-  const { estado } = req.query; //el query param 'estado' (ej: /api/afiliados?estado=todos trae todos los titulares, sin importar su vigencia)
-  const hoy = new Date();
-  let condicion = [];
+  const {
+    textInputSearch,
+    tipoDocumento,
+    numeroDocumento,
+    fechaNacimiento,
+    planMedico,
+    provincia,
+    localidad,
+    teléfono,
+    email,
+    vigenciaDesde,
+    vigenciaHasta,
+    estado
+  } = req.query;
 
-  if (!estado) {
-    condicion = [
-      { titularId: null, vigenciaFin: { [Op.is]: null } },
-      { titularId: null, vigenciaFin: { [Op.gte]: hoy } }
-    ];
-  } else{
-    condicion = [
-      { titularId: null },
-    ]
-  }
-
-  const titulares = await Afiliado.findAll({
-    where: { [Op.or]: condicion },
-
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+  const offset = (page - 1) * limit;
+  const queryOptions = {
     attributes: [
       "id",
       "nombre",
@@ -229,7 +232,9 @@ const obtenerTitulares = async (req, res) => {
       },
     ],
     order: [["id", "ASC"]],
-  });
+  }
+
+  const titulares = await Afiliado.findAll(queryOptions);
 
   res.status(200).json(titulares);
 };
@@ -249,7 +254,6 @@ const obtenerAfiliado = async (req, res) => {
       "nIntegrante",
       "titularId",
     ],
-
 
     include: [
       ...includeAfiliadoCompleto(), //los 3 puntos son para desestructurar el array y agregar sus elementos al nuevo array
@@ -277,7 +281,8 @@ const obtenerAfiliado = async (req, res) => {
     // order: [[{ model: Afiliado, as: "dependientes" }, "nIntegrante", "ASC"]]
   });
 
-  if (!afiliado) { // TODO: manejar error en el middleware
+  if (!afiliado) {
+    // TODO: manejar error en el middleware
     return res.status(404).json({ error: "Afiliado no encontrado." });
   }
 
@@ -303,11 +308,13 @@ const agregarDependiente = async (req, res) => {
     situacionesTerapeuticas = [],
   } = req.body;
 
-
   const titular = await Afiliado.findByPk(id);
 
-  if (titular.titularId !== null) { //Delegar la verificación a un middleware de autorización ? TODO
-    return res.status(400).json({ error: "El ID proporcionado no pertenece a un titular." });
+  if (titular.titularId !== null) {
+    //Delegar la verificación a un middleware de autorización ? TODO
+    return res
+      .status(400)
+      .json({ error: "El ID proporcionado no pertenece a un titular." });
   }
 
   //Calcular el próximo número de integrante
@@ -336,7 +343,10 @@ const agregarDependiente = async (req, res) => {
   await crearDirecciones(direcciones, nuevoIntegrante.id);
 
   if (tieneSituacionTerapeutica) {
-    await crearSituacionesTerapeuticas(situacionesTerapeuticas, nuevoIntegrante.id);
+    await crearSituacionesTerapeuticas(
+      situacionesTerapeuticas,
+      nuevoIntegrante.id
+    );
   }
 
   res.status(201).json(nuevoIntegrante);
