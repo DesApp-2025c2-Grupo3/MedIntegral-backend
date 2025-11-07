@@ -36,4 +36,10 @@ router.delete(
   afiliadoController.bajaAfiliado
 );
 
+router.put(
+  "/:id",
+  //Agregar middlewares si es necesario: TODO
+  afiliadoController.actualizarDatosPersonalesAfiliado
+);
+
 module.exports = router;

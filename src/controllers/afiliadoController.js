@@ -368,6 +368,38 @@ const bajaAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 };
 
+const actualizarDatosPersonalesAfiliado = async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    tipoDocumentoId,
+    numeroDocumento,
+    nombre,
+    apellido,
+    fechaNacimiento,
+  } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+
+  const datosAActualizar = {};
+
+  if (tipoDocumentoId) datosAActualizar.tipoDocumentoId = tipoDocumentoId;
+  if (numeroDocumento) datosAActualizar.numeroDocumento = numeroDocumento;
+  if (fechaNacimiento) datosAActualizar.fechaNacimiento = fechaNacimiento;
+  if (nombre) {
+    datosAActualizar.nombre = await capitalizarCadena(nombre);
+  }
+  if (apellido) {
+    datosAActualizar.apellido = await capitalizarCadena(apellido);
+  }
+
+  await afiliado.update(datosAActualizar);
+
+  res.status(200).json(afiliado);
+};
+
+
+
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
 const crearEmails = async (emails, afiliadoId) => {
   const datosEmails = emails.map((e) => ({
@@ -440,4 +472,5 @@ module.exports = {
   obtenerAfiliado,
   agregarDependiente,
   bajaAfiliado,
+  actualizarDatosPersonalesAfiliado,
 };
