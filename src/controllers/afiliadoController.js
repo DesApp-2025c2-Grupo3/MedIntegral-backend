@@ -173,8 +173,7 @@ const obtenerTitulares = async (req, res) => {
     telefono,
     email,
     vigenciaDesde,
-    vigenciaHasta,
-    //estado
+    vigenciaHasta
   } = req.query;
 
   const page = parseInt(req.query.page) || 1;
@@ -186,8 +185,8 @@ const obtenerTitulares = async (req, res) => {
     where[Op.or] = [
       {nombre: {[Op.iLike]: `%${textInputSearch}%`}},
       {apellido: {[Op.iLike]: `%${textInputSearch}%`}},
-      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}}
-      //Agregar búsqueda por número de afiliado
+      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}},
+      //{"Contrato.nAfiliado": {[Op.iLike]: `%${textInputSearch}%`}}
     ]
   }    
   if(tipoDocumento){
@@ -200,21 +199,6 @@ const obtenerTitulares = async (req, res) => {
     const fecha = new Date(fechaNacimiento)
     where["fechaNacimiento"] = fecha
   }
-  if(planMedico){
-    where["$Contrato.plan.plan$"] = planMedico
-  }
-  if(provincia){
-    where["$domicilios.Direccion.Provincia.nombre$"] = provincia
-  }
-  if(localidad){
-    where["$domicilios.Direccion.localidad$"] = localidad
-  }
-  if(telefono){
-    where["$telefonos.numero$"] = telefono
-  }
-  if(email){
-    where["$emails.direccion$"] = email
-  }
   if(vigenciaDesde){
     where["vigenciaInicio"] = {[Op.gte]: vigenciaDesde}
   }
@@ -223,8 +207,8 @@ const obtenerTitulares = async (req, res) => {
   }
 
   const queryOptions = {
-    //limit: limit,
-    //offset: offset,
+    limit,
+    offset,
     distinct: true,
     attributes: [
       "id",
@@ -239,26 +223,36 @@ const obtenerTitulares = async (req, res) => {
       {
         model: Contrato,
         attributes: ["nAfiliado"],
+        required: !!planMedico,
         include: {
           model: PlanMedico,
           as: "plan",
           attributes: ["plan"],
+          required: !!planMedico,
+          where: {...(planMedico && { plan: planMedico })} 
         },
       },
       {
         model: TipoDocumento,
         as: "tipoDocumento",
         attributes: ["tipo"],
+        required: !!tipoDocumento
       },
       {
         model: Email,
         as: "emails",
         attributes: ["direccion"],
+        required: !!email,
+        duplicating: false,
+        where: {...(email && {direccion: email})}
       },
       {
         model: Telefono,
         as: "telefonos",
         attributes: ["numero"],
+        required: !!telefono,
+        duplicating: false,
+        where: {...(telefono && {numero: telefono})}
       },
       {
         model: Domicilio, 
@@ -266,13 +260,20 @@ const obtenerTitulares = async (req, res) => {
         attributes: {
           exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"],
         },
+        required: !!(localidad || provincia),
+        duplicating: false,
         include: {
           model: Direccion, 
           attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
+          required: !!localidad,
+          duplicating: false,
+          where: {...(localidad && { localidad: localidad })},
           include: {
             model: Provincia,
             as: "Provincia",
             attributes: ["nombre"],
+            required: !!provincia,
+            where: {...(provincia && { nombre: provincia })}
           },
         },
       },
