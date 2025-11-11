@@ -165,7 +165,7 @@ const obtenerTitulares = async (req, res) => {
   const {
     textInputSearch,
     tipoDocumento,
-    numeroDocumento,
+    nroAfiliado,
     fechaNacimiento,
     planMedico,
     provincia,
@@ -173,43 +173,62 @@ const obtenerTitulares = async (req, res) => {
     telefono,
     email,
     vigenciaDesde,
-    vigenciaHasta
+    vigenciaHasta,
+    creacionDesde,
+    creacionHasta,
   } = req.query;
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
   const where = {};
+  const rangoDeFecha = {};
 
   if(textInputSearch && textInputSearch.trim() !== ""){
     where[Op.or] = [
       {nombre: {[Op.iLike]: `%${textInputSearch}%`}},
       {apellido: {[Op.iLike]: `%${textInputSearch}%`}},
-      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}},
-      //{"Contrato.nAfiliado": {[Op.iLike]: `%${textInputSearch}%`}}
+      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}}
     ]
   }    
   if(tipoDocumento){
     where["$tipoDocumento.tipo$"] = tipoDocumento
   }
-  if(numeroDocumento){
-    where["numeroDocumento"] = numeroDocumento
+  if(planMedico){
+    where["$Contrato.plan.plan$"] = planMedico
+  }
+  if(nroAfiliado){
+    where["$Contrato.nAfiliado$"] = nroAfiliado
   }
   if(fechaNacimiento){
     const fecha = new Date(fechaNacimiento)
-    where["fechaNacimiento"] = fecha
+    where.fechaNacimiento = fecha
   }
   if(vigenciaDesde){
-    where["vigenciaInicio"] = {[Op.gte]: vigenciaDesde}
+    where.vigenciaInicio = {[Op.gte]: vigenciaDesde}
   }
   if(vigenciaHasta){
-    where["vigenciaFin"] = {[Op.lte]: vigenciaHasta}
+    where.vigenciaFin = {[Op.lte]: vigenciaHasta}
+  }
+  if (creacionDesde) {
+    const fechaDesde = new Date(creacionDesde);
+    fechaDesde.setHours(0, 0, 0, 0);
+    rangoDeFecha[Op.gte] = fechaDesde;
+  }
+  if (creacionHasta) {
+    const fechaHasta = new Date(creacionHasta);
+    fechaHasta.setHours(23, 59, 59, 999);
+    rangoDeFecha[Op.lte] = fechaHasta;
+  }
+  if (creacionDesde || creacionHasta) {
+    where.createdAt = rangoDeFecha
   }
 
   const queryOptions = {
     limit,
     offset,
     distinct: true,
+    subQuery: false,
     attributes: [
       "id",
       "nombre",
@@ -223,13 +242,12 @@ const obtenerTitulares = async (req, res) => {
       {
         model: Contrato,
         attributes: ["nAfiliado"],
-        required: !!planMedico,
+        required: !!(planMedico || nroAfiliado),
         include: {
           model: PlanMedico,
           as: "plan",
           attributes: ["plan"],
-          required: !!planMedico,
-          where: {...(planMedico && { plan: planMedico })} 
+          required: !!(planMedico || nroAfiliado)
         },
       },
       {
@@ -243,7 +261,7 @@ const obtenerTitulares = async (req, res) => {
         as: "emails",
         attributes: ["direccion"],
         required: !!email,
-        duplicating: false,
+        separate: !email,
         where: {...(email && {direccion: email})}
       },
       {
@@ -251,7 +269,7 @@ const obtenerTitulares = async (req, res) => {
         as: "telefonos",
         attributes: ["numero"],
         required: !!telefono,
-        duplicating: false,
+        separate: !telefono,
         where: {...(telefono && {numero: telefono})}
       },
       {
@@ -261,21 +279,21 @@ const obtenerTitulares = async (req, res) => {
           exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"],
         },
         required: !!(localidad || provincia),
-        duplicating: false,
-        include: {
-          model: Direccion, 
-          attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
-          required: !!localidad,
-          duplicating: false,
-          where: {...(localidad && { localidad: localidad })},
-          include: {
+        separate: !(localidad || provincia),
+        include: [{
+          model: Direccion,
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+          required: !!(localidad || provincia),
+          where: {
+            ...(localidad && {localidad:localidad}),
+            ...(provincia && {provinciaId:provincia})
+          },
+          include: [{
             model: Provincia,
             as: "Provincia",
-            attributes: ["nombre"],
-            required: !!provincia,
-            where: {...(provincia && { nombre: provincia })}
-          },
-        },
+            attributes: ["nombre"]
+          }],
+        }],
       },
     ],
     order: [["id", "ASC"]],
@@ -292,41 +310,68 @@ const obtenerTitulares = async (req, res) => {
   });
 };
 
-const obtenerLocalidadesAfiliados = async(_, res) => {
-  const afiliados = await Afiliado.findAll({include: [{model: Domicilio, as: "domicilios", include: [{model: Direccion}]}]});
+const obtenerLocalidadesAfiliados = async (_, res) => {
+  const afiliados = await Afiliado.findAll({
+    include: [
+      { model: Domicilio, as: "domicilios", include: [{ model: Direccion }] },
+    ],
+  });
   const setLocalidades = new Set();
 
-  const direcciones = afiliados.flatMap((a) => a.domicilios.map((d) => d.Direccion));
+  const direcciones = afiliados.flatMap((a) =>
+    a.domicilios.map((d) => d.Direccion)
+  );
   const localidades = direcciones.map((d) => d.localidad);
 
   localidades.forEach((localidad) => {
-    if(localidad){
-      setLocalidades.add(localidad)
+    if (localidad) {
+      setLocalidades.add(localidad);
     }
-  })
+  });
 
-  const localidadesFormateadas = Array.from(setLocalidades).map((localidad) => ({value: localidad, label: localidad}))
+  const localidadesFormateadas = Array.from(setLocalidades).map(
+    (localidad) => ({ value: localidad, label: localidad })
+  );
 
   return res.status(200).json(localidadesFormateadas);
-
 };
 
-const obtenerProvinciasAfiliados = async(_, res) => {
-  const afiliados = await Afiliado.findAll({include: [{model: Domicilio, as: "domicilios", include: [{model:Direccion, include:[{model:Provincia, as: "Provincia"}]}]}]});
+const obtenerProvinciasAfiliados = async (_, res) => {
+  const afiliados = await Afiliado.findAll({
+    include: [
+      {
+        model: Domicilio,
+        as: "domicilios",
+        include: [
+          {
+            model: Direccion,
+            include: [{ model: Provincia, as: "Provincia" }],
+          },
+        ],
+      },
+    ],
+  });
   const setProvincias = new Set();
 
-  const direcciones = afiliados.flatMap((a) => a.domicilios.map((d) => d.Direccion));
-  const provincias = direcciones.map((d) => d.Provincia.nombre)
+  const direcciones = afiliados.flatMap((a) =>
+    a.domicilios.map((d) => d.Direccion)
+  );
+  const provincias = direcciones.map((d) => d.Provincia.nombre);
 
   provincias.forEach((provincia) => {
-    if(provincia){
-      setProvincias.add(provincia)
+    if (provincia) {
+      setProvincias.add(provincia);
     }
-  })
+  });
 
-  const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({value: provincia, label: provincia}))
+  const provinciasTotales = await Provincia.findAll();
+  const filtradas = Array.from(setProvincias).flatMap((provincia) =>
+    provinciasTotales.filter((p) => p.nombre == provincia)
+  );
 
-  return res.status(200).json(provinciasFormateadas);
+  //const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({value: provincia, label: provincia}))
+
+  return res.status(200).json(filtradas);
 };
 
 const obtenerAfiliado = async (req, res) => {
