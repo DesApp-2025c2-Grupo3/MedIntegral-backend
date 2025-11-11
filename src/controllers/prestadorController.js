@@ -99,9 +99,6 @@ const crearPrestador = async (req, res) => {
 //obtener prestadores
 const obtenerPrestadores = async (_, res) => {
   const prestadores = await Prestador.findAll({
-    attributes: {
-      exclude: ["createdAt", "updatedAt"],
-    },
     include: [
       { model: Email, attributes: ["id", "direccion"] },
       { model: Telefono, attributes: ["id", "numero"] },
@@ -121,7 +118,7 @@ const obtenerPrestadores = async (_, res) => {
           {
             model: Direccion,
             as: "Direccion",
-            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            attributes: ["calle", "altura", "pisoDepto", "codigoPostal", "localidad"],
             include: [
               {
                 model: Provincia,
@@ -138,7 +135,7 @@ const obtenerPrestadores = async (_, res) => {
       },
     ],
     order: [
-      ["nombre", "ASC"], //ToDo: Opcional: ordenar los resultados alfabéticamente
+      ["id", "DESC"],
     ],
   });
   return res.status(200).json(prestadores);
