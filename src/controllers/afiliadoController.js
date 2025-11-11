@@ -233,7 +233,7 @@ const obtenerTitulares = async (req, res) => {
         },
       },
     ],
-    order: [["id", "ASC"]],
+    order: [["updatedAt", "DESC"]],
   });
 
   res.status(200).json(titulares);

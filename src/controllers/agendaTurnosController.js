@@ -55,8 +55,10 @@ const obtenerAgendasTurnos = async (req, res) => {
                 include: [{ model: Direccion, as: "Direccion", attributes: ["calle", "altura", "pisoDepto", "localidad"], include: [{ model: Provincia, as: "Provincia", attributes: ["nombre"] }] }]
             },
             { model: HorarioAtencion, as: "Horarios" }
-        ], attributes: { exclude: ["createdAt", "updatedAt"] }
-
+        ],
+        order: [
+            ["updatedAt", "DESC"],
+        ]
     });
     res.status(200).json(agendas);
 };
@@ -117,6 +119,7 @@ const obtenerAgendasTurnosFormateados = async (req, res) => {
         offset: offset,
         distinct: true,
         where: where,
+        order: [["updatedAt", "DESC"]],
         include: [
             {
                 model: Prestador,
@@ -318,13 +321,9 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const { especialidadId } = req.body;
 
-    const agendaTurnos = await AgendaTurnos.findByPk(id, { include: { model: Especialidad, as: "Especialidad" } });
+    await AgendaTurnos.update({ especialidadId }, { where: { id } });
 
-    agendaTurnos.especialidadId = especialidadId;
-
-    await agendaTurnos.save();
-
-    res.status(200).json(agendaTurnos);
+    res.status(200).json({ message: "Agenda de turnos modificada correctamente" });
 };
 
 const eliminarAgendaTurnos = async (req, res) => {
@@ -376,8 +375,10 @@ const obtenerProvinciasAgendas = async (_, res) => {
         include: [
             {
                 model: LugarAtencion, as: "CentroDeAtencion",
-                include: [{ model: Direccion, as: "Direccion",
-                            include: [{ model: Provincia, as: "Provincia"}] }],
+                include: [{
+                    model: Direccion, as: "Direccion",
+                    include: [{ model: Provincia, as: "Provincia" }]
+                }],
             },
         ],
     });
@@ -421,7 +422,7 @@ const formatearPrestador = (prestador) => {
         centrosDeAtencion: lugares,
     };
 
-    return {...prestadorFormateado};
+    return { ...prestadorFormateado };
 }
 
 const obtenerIdPrestadoresConAgenda = async () => {
@@ -486,8 +487,8 @@ const convertirAMinutos = (horario) => {
 
 const compararAgendaConPrestador = (agendas, prestador) => {
     let horarios = prestador.CentroDeAtencion.flatMap(lugar => lugar.Horarios.map(h => { return { dia: h.dia, horaInicio: h.horaInicio, horaFin: h.horaFin } }));
-console.log("centros de atencion del prestador")
-console.log(prestador.CentroDeAtencion)
+    console.log("centros de atencion del prestador")
+    console.log(prestador.CentroDeAtencion)
 
     agendas.forEach(a => {
         if (a.Prestador.id === prestador.id) {
