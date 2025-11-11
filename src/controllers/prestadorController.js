@@ -135,7 +135,7 @@ const obtenerPrestadores = async (_, res) => {
       },
     ],
     order: [
-      ["id", "DESC"],
+      ["updatedAt", "DESC"],
     ],
   });
   return res.status(200).json(prestadores);
@@ -204,6 +204,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     limit,
     offset,
     distinct: true,
+    order: [["updatedAt", "DESC"]],
     include: [
       { model: Email, attributes: ["id", "direccion"] },
       { model: Telefono, attributes: ["id", "numero"] },
