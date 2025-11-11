@@ -5,7 +5,6 @@ const validarLosHorariosEntreAgendasYPrestadores = async (req, res, next) => {
 
     const { horarios } = req.body;
 
-
     const prestador = await Prestador.findByPk(req.body.prestadorId , {
         include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
     });
@@ -48,7 +47,7 @@ const convertirAMinutos = (horario) => {
     return hora * 60 + minutos;
 }
 
-const validarLugarDeAtencion = async (req, res, next) => {
+const validarQueElLugarTengaRelacionConElPrestador = async (req, res, next) => {
 
     const { prestadorId, lugaratencionId } = req.body;
     const prestador = await Prestador.findByPk(prestadorId, {
@@ -62,14 +61,12 @@ const validarLugarDeAtencion = async (req, res, next) => {
     next();
 };
 
-const validarEspecialidad = async (req, res, next) => {
+const validarQueLaEspecialidadTengaRelacionConElPrestador = async (req, res, next) => {
 
     const { prestadorId, especialidadId } = req.body;
     const prestador = await Prestador.findByPk(prestadorId, {
         include: [{ model: Especialidad, as: 'Especialidad' }]
     });
-
-    console.log(prestador.Especialidad.filter(especialidad => especialidad.id === especialidadId))
 
     if (prestador.Especialidad.filter(especialidad => especialidad.id === especialidadId).length === 0) {
         return errorPersonalizado(`La especialidad con id ${especialidadId} no pertenece al prestador con id ${prestadorId}`, 400, next);
@@ -78,8 +75,28 @@ const validarEspecialidad = async (req, res, next) => {
     next();
 };
 
+const validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad = async (req, res, next) => {
+
+    const { prestadorId, lugaratencionId, especialidadId } = req.body;
+
+    const agendaExistente = await AgendaTurnos.findOne({
+        where: {
+            prestadorId: prestadorId,
+            lugarAtencionId: lugaratencionId,
+            especialidadId: especialidadId
+        }
+    });
+
+    if (agendaExistente) {
+        return errorPersonalizado(`Ya existe una agenda para el prestador con id ${prestadorId} en el lugar de atención con id ${lugaratencionId} y con la especialidad con id ${especialidadId}`, 400, next);
+    }
+
+    next();
+};
+
 module.exports = {
     validarLosHorariosEntreAgendasYPrestadores,
-    validarLugarDeAtencion,
-    validarEspecialidad
+    validarQueElLugarTengaRelacionConElPrestador,
+    validarQueLaEspecialidadTengaRelacionConElPrestador,
+    validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad
 };

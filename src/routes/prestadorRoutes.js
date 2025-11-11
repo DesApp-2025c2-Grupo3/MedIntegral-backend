@@ -7,6 +7,7 @@ const { prestadorSchema } = require("../middlewares/schemas");
 
 router.post('/',
   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaCreate),
+  prestadorMiddleware.noSeRepiteElCuil,
   prestadorMiddleware.validarExistenciaCentroMedico,
   prestadorController.crearPrestador
 );
@@ -31,6 +32,8 @@ router.get('/centros-medicos',
   prestadorMiddleware.existeAlgunCentroMedico,
   prestadorController.obtenerCentrosMedicos
 );
+
+router.get("/provincias", prestadorController.obtenerProvinciasPrestadores)
 
 router.get("/:id",
   genericMiddleware.existsModelById(Prestador),

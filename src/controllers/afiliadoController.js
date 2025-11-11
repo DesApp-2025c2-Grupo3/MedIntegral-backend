@@ -57,6 +57,7 @@ const includeAfiliadoCompleto = () => [
       attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
       include: {
         model: Provincia,
+        as: "Provincia",
         attributes: ["nombre"],
       },
     },
@@ -221,12 +222,13 @@ const obtenerTitulares = async (req, res) => {
           attributes: { exclude: ["createdAt", "updatedAt", "provinciaId"] },
           include: {
             model: Provincia,
+            as: "Provincia",
             attributes: ["nombre"],
           },
         },
       },
     ],
-    order: [["id", "ASC"]],
+    order: [["updatedAt", "DESC"]],
   });
 
   res.status(200).json(titulares);

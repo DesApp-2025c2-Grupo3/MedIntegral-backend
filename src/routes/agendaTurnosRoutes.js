@@ -10,8 +10,8 @@ router.post('/',
     genericMiddleware.existModelRequest(Prestador),
     genericMiddleware.existModelRequest(Especialidad),
     genericMiddleware.existModelRequest(LugarAtencion),
-    agendaTurnosMiddleware.validarLugarDeAtencion,
-    //agendaTurnosMiddleware.validarEspecialidad,
+    //agendaTurnosMiddleware.validarQueElLugarTengaRelacionConElPrestador,
+    //agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
     //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
     agendaTurnosController.crearAgendaTurnos
 );
@@ -22,6 +22,8 @@ router.get('/',
 );
 
 router.get('/localidades', agendaTurnosController.obtenerLocalidadesAgendas);
+
+router.get('/provincias', agendaTurnosController.obtenerProvinciasAgendas);
 
 router.get('/listado',
     genericMiddleware.existsAnyByModel(AgendaTurnos),

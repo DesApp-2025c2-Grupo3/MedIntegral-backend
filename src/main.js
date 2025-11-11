@@ -8,7 +8,7 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3002;
 
 APP.use(CORS({
-  origin: 'http://localhost:5173',
+  origin: '*',  //'http://localhost:5173', 'https://medintegral.vmdigitai.com/api'
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));

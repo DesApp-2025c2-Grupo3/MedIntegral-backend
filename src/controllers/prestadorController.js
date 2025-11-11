@@ -114,9 +114,6 @@ const crearPrestador = async (req, res) => {
 //obtener prestadores
 const obtenerPrestadores = async (_, res) => {
   const prestadores = await Prestador.findAll({
-    attributes: {
-      exclude: ["createdAt", "updatedAt"],
-    },
     include: [
       { model: Email, attributes: ["id", "direccion"] },
       { model: Telefono, attributes: ["id", "numero"] },
@@ -136,7 +133,7 @@ const obtenerPrestadores = async (_, res) => {
           {
             model: Direccion,
             as: "Direccion",
-            attributes: ["calle", "altura", "pisoDepto", "localidad"],
+            attributes: ["calle", "altura", "pisoDepto", "codigoPostal", "localidad"],
             include: [
               {
                 model: Provincia,
@@ -153,7 +150,7 @@ const obtenerPrestadores = async (_, res) => {
       },
     ],
     order: [
-      ["nombre", "ASC"], //ToDo: Opcional: ordenar los resultados alfabéticamente
+      ["updatedAt", "DESC"],
     ],
   });
   return res.status(200).json(prestadores);
@@ -199,7 +196,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
   }
 
   if (provincia) {
-    where["$CentroDeAtencion.Direccion.Provincia.id$"] = provincia
+    where["$CentroDeAtencion.Direccion.Provincia.nombre$"] = provincia
   }
 
   if (creacionDesde) {
@@ -222,6 +219,7 @@ const obtenerPrestadoresFormateados = async (req, res) => {
     limit,
     offset,
     distinct: true,
+    order: [["updatedAt", "DESC"]],
     include: [
       { model: Email, attributes: ["id", "direccion"] },
       { model: Telefono, attributes: ["id", "numero"] },
@@ -309,6 +307,35 @@ const obtenerLocalidadesPrestadores = async (_, res) => {
   res.status(200).json(localidadesFormateadas);
 }
 
+const obtenerProvinciasPrestadores = async (_, res) => {
+  const prestadores = await Prestador.findAll({
+    include: [
+      {
+        model: LugarAtencion,
+        as: "CentroDeAtencion",
+        include: [{ model: Direccion, as: "Direccion", include: [{ model: Provincia, as: "Provincia" }] }]
+      }
+    ]
+  })
+
+  const setProvincias = new Set()
+
+  const direcciones = prestadores.flatMap((p) => p.CentroDeAtencion.map((c) => c.Direccion))
+
+  direcciones.forEach((d) => {
+    const provincia = d.Provincia
+    if (provincia) {
+      setProvincias.add(provincia.nombre)
+    }
+  })
+
+  const provinciasFormateadas = Array.from(setProvincias).map((p) => ({ value: p, label: p }))
+
+
+
+  res.status(200).json(provinciasFormateadas);
+}
+
 const formatearPrestador = (prestador) => {
 
   const lugares = prestador.CentroDeAtencion.map(
@@ -349,12 +376,11 @@ const obtenerPrestador = async (req, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email, attributes: ["id", "direccion"] },
-      { model: Telefono, attributes: ["id", "numero"] },
+      { model: Email},
+      { model: Telefono},
       {
         model: Especialidad,
         as: "Especialidad",
-        attributes: ["id", "nombre"],
         through: { attributes: [] },
       },
       {
@@ -367,12 +393,10 @@ const obtenerPrestador = async (req, res) => {
           {
             model: Direccion,
             as: "Direccion",
-            attributes: ["calle", "altura", "pisoDepto", "localidad"],
             include: [
               {
                 model: Provincia,
                 as: "Provincia",
-                attributes: ["nombre"],
               },
             ],
           },
@@ -385,24 +409,17 @@ const obtenerPrestador = async (req, res) => {
     ],
   });
 
-  const lugares = prestador.CentroDeAtencion.map((lugar) => ({
-    id: lugar.id,
-    calle: lugar.Direccion.calle,
-    altura: lugar.Direccion.altura,
-    pisoDepto: lugar.Direccion.pisoDepto,
-    localidad: lugar.Direccion.localidad,
-    provincia: lugar.Direccion.Provincia.nombre,
-    horarios: lugar.Horarios,
-  }));
+  let centro;
 
-  const prestadorFormateado = {
-    id: prestador.id,
-    nombre: prestador.nombre,
-    especialidades: prestador.Especialidad,
-    centrosDeAtencion: lugares,
-  };
+  if (prestador.integraCentroMedico) {
+    centro = await Prestador.findByPk(prestador.centroMedicoId, {
+      attributes: ['id', 'nombre']
+    });
+  }
 
-  return res.status(200).json(prestadorFormateado);
+  const respuesta = prestador.integraCentroMedico ? { ...prestador.toJSON(), CentroMedico: centro } : prestador;
+
+  return res.status(200).json(respuesta);
 };
 
 //Actualizar datos personales de un prestador
@@ -596,5 +613,6 @@ module.exports = {
   actualizarCentroMedicoPrestador,
   eliminarPrestador,
   obtenerLocalidadesPrestadores,
-  obtenerCentrosMedicos
+  obtenerCentrosMedicos,
+  obtenerProvinciasPrestadores
 };

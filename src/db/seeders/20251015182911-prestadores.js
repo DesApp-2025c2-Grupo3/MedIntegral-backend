@@ -8,10 +8,11 @@ module.exports = {
     const { Prestador, Email, Telefono, Especialidad, Direccion, LugarAtencion, HorarioAtencion, Dia } = require("../models")
     const prestadoresARegistrar = [
       {
-        "nombre": "Dr. Pepe Grillo",
+        "nombre": "Dr Pepe Grillo",
         "cuilCuit": "12345678901",
         "esCentroMedico": false,
         "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
         "especialidades": [1, 2],
         "emails": [
           { "direccion": "pepeg@gmail.com" },
@@ -37,6 +38,8 @@ module.exports = {
         "nombre": "Centro Medico Springfield",
         "cuilCuit": "12345654321",
         "esCentroMedico": true,
+        "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
         "especialidades": [1, 2, 3, 4, 5],
         "emails": [
           { "direccion": "centromedicos@gmail.com" },
@@ -59,7 +62,7 @@ module.exports = {
         }]
       },
       {
-        "nombre": "Dr. Armando Paredes ",
+        "nombre": "Dr Armando Paredes",
         "cuilCuit": "11223344556",
         "esCentroMedico": false,
         "integraCentroMedico": true,
@@ -84,9 +87,237 @@ module.exports = {
             { "horaInicio": "12:00", "horaFin": "20:00", "dias": ["Lunes", "Miércoles", "Viernes"] }
           ]
         }]
+      },
+      {
+        "nombre": "Centro Médico San Martín",
+        "cuilCuit": "20999888777",
+        "esCentroMedico": true,
+        "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
+        "especialidades": [1, 3, 6],
+        "emails": [
+          { "direccion": "contacto@cmsanmartin.com" },
+          { "direccion": "guardia@cmsanmartin.com" }
+        ],
+        "telefonos": [
+          { "numero": "1100223344" },
+          { "numero": "1100223345" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Av. San Martín",
+          "altura": 2500,
+          "codigoPostal": "b1650",
+          "localidad": "San Martín",
+          "provincia": 1,
+          "horarios": [
+            { "horaInicio": "07:00", "horaFin": "19:00", "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] },
+            { "horaInicio": "08:00", "horaFin": "13:00", "dias": ["Sábado"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Dra Laura Nieve",
+        "cuilCuit": "27456789012",
+        "esCentroMedico": false,
+        "integraCentroMedico": true,
+        "centroMedicoQueIntegra": 4,
+        "especialidades": [2, 6],
+        "emails": [
+          { "direccion": "laura.nieve@medmail.com" }
+        ],
+        "telefonos": [
+          { "numero": "1167890045" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Belgrano",
+          "altura": 780,
+          "codigoPostal": "b1642",
+          "localidad": "Vicente López",
+          "provincia": 1,
+          "horarios": [
+            { "horaInicio": "09:00", "horaFin": "13:00", "dias": ["Lunes", "Miércoles", "Viernes"] },
+            { "horaInicio": "14:00", "horaFin": "18:00", "dias": ["Martes", "Jueves"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Clínica Los Olivos",
+        "cuilCuit": "30765432109",
+        "esCentroMedico": true,
+        "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
+        "especialidades": [3, 4, 7],
+        "emails": [
+          { "direccion": "turnos@losolivos.com" }
+        ],
+        "telefonos": [
+          { "numero": "1133004455" },
+          { "numero": "1133004466" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Los Olivos",
+          "altura": 1200,
+          "codigoPostal": "x5000",
+          "localidad": "Córdoba",
+          "provincia": 3,
+          "horarios": [
+            { "horaInicio": "08:00", "horaFin": "20:00", "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Dr Juan Herrera",
+        "cuilCuit": "20123456780",
+        "esCentroMedico": false,
+        "integraCentroMedico": true,
+        "centroMedicoQueIntegra": 6,
+        "especialidades": [3],
+        "emails": [
+          { "direccion": "juan.herrera@medmail.com" }
+        ],
+        "telefonos": [
+          { "numero": "1144455566" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Av. Colón",
+          "altura": 3456,
+          "codigoPostal": "x5002",
+          "localidad": "Córdoba",
+          "provincia": 3,
+          "horarios": [
+            { "horaInicio": "10:00", "horaFin": "14:00", "dias": ["Lunes", "Miércoles", "Viernes"] },
+            { "horaInicio": "16:00", "horaFin": "19:00", "dias": ["Martes", "Jueves"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Dra María Solís",
+        "cuilCuit": "27890123456",
+        "esCentroMedico": false,
+        "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
+        "especialidades": [5],
+        "emails": [
+          { "direccion": "maria.solis@medmail.com" }
+        ],
+        "telefonos": [
+          { "numero": "1177008800" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Ituzaingó",
+          "altura": 220,
+          "codigoPostal": "b1708",
+          "localidad": "Morón",
+          "provincia": 1,
+          "horarios": [
+            { "horaInicio": "08:30", "horaFin": "12:30", "dias": ["Martes", "Jueves"] },
+            { "horaInicio": "15:00", "horaFin": "18:00", "dias": ["Sábado"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Dr Ricardo Tapia",
+        "cuilCuit": "20900112233",
+        "esCentroMedico": false,
+        "integraCentroMedico": true,
+        "centroMedicoQueIntegra": 2,
+        "especialidades": [1, 4],
+        "emails": [
+          { "direccion": "ricardo.tapia@medmail.com" }
+        ],
+        "telefonos": [
+          { "numero": "1166112288" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Primera Junta",
+          "altura": 910,
+          "codigoPostal": "c1425",
+          "localidad": "CABA",
+          "provincia": 2,
+          "horarios": [
+            { "horaInicio": "09:00", "horaFin": "13:00", "dias": ["Lunes", "Miércoles"] },
+            { "horaInicio": "14:00", "horaFin": "19:00", "dias": ["Viernes"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Centro Pediátrico Norte",
+        "cuilCuit": "30555111222",
+        "esCentroMedico": true,
+        "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
+        "especialidades": [4, 8],
+        "emails": [
+          { "direccion": "info@cpnorte.com" },
+          { "direccion": "pediatria@cpnorte.com" }
+        ],
+        "telefonos": [
+          { "numero": "1122003344" },
+          { "numero": "1122003355" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Av. del Libertador",
+          "altura": 15000,
+          "codigoPostal": "b1640",
+          "localidad": "Martínez",
+          "provincia": 1,
+          "horarios": [
+            { "horaInicio": "08:00", "horaFin": "18:00", "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Dra Ana Torres",
+        "cuilCuit": "27999888111",
+        "esCentroMedico": false,
+        "integraCentroMedico": true,
+        "centroMedicoQueIntegra": 10,
+        "especialidades": [8],
+        "emails": [
+          { "direccion": "ana.torres@medmail.com" }
+        ],
+        "telefonos": [
+          { "numero": "1188009900" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "Sarmiento",
+          "altura": 455,
+          "codigoPostal": "b1640",
+          "localidad": "Martínez",
+          "provincia": 1,
+          "horarios": [
+            { "horaInicio": "09:00", "horaFin": "13:00", "dias": ["Martes", "Jueves"] },
+            { "horaInicio": "14:00", "horaFin": "17:00", "dias": ["Miércoles"] }
+          ]
+        }]
+      },
+      {
+        "nombre": "Dr Esteban Quiroga",
+        "cuilCuit": "20881234567",
+        "esCentroMedico": false,
+        "integraCentroMedico": false,
+        "centroMedicoQueIntegra": null,
+        "especialidades": [2, 7],
+        "emails": [
+          { "direccion": "esteban.quiroga@medmail.com" }
+        ],
+        "telefonos": [
+          { "numero": "1155667799" }
+        ],
+        "lugaresAtencion": [{
+          "calle": "9 de Julio",
+          "altura": 320,
+          "codigoPostal": "t4000",
+          "localidad": "San Miguel de Tucumán",
+          "provincia": 4,
+          "horarios": [
+            { "horaInicio": "08:00", "horaFin": "12:00", "dias": ["Lunes", "Miércoles", "Viernes"] },
+            { "horaInicio": "16:00", "horaFin": "19:00", "dias": ["Martes"] }
+          ]
+        }]
       }
-
     ]
+
 
     for (const prestador of prestadoresARegistrar) {
 
