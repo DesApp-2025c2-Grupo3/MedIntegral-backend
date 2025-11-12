@@ -37,7 +37,7 @@ router.delete(
 );
 
 router.put(
-  "/:id",
+  "/:id/datos-personales",
   //Agregar middlewares si es necesario: TODO
   afiliadoController.actualizarDatosPersonalesAfiliado
 );
