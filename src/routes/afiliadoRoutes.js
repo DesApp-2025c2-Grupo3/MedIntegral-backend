@@ -48,4 +48,10 @@ router.put(
   afiliadoController.actualizarCoberturaAfiliado
 );
 
+router.put(
+  "/:id/situaciones-terapeuticas",
+  //Agregar middlewares si es necesario: TODO
+  afiliadoController.actualizarSituacionesTerapeuticasAfiliado
+);
+
 module.exports = router;
