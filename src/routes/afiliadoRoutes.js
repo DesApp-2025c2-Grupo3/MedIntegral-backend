@@ -42,4 +42,10 @@ router.put(
   afiliadoController.actualizarDatosPersonalesAfiliado
 );
 
+router.put(
+  "/:id/plan-medico",
+  //Agregar middlewares si es necesario: TODO
+  afiliadoController.actualizarCoberturaAfiliado
+);
+
 module.exports = router;

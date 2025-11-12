@@ -481,4 +481,5 @@ module.exports = {
   agregarDependiente,
   bajaAfiliado,
   actualizarDatosPersonalesAfiliado,
+  actualizarCoberturaAfiliado
 };
