@@ -377,6 +377,7 @@ const actualizarDatosPersonalesAfiliado = async (req, res) => {
     nombre,
     apellido,
     fechaNacimiento,
+    vigenciaInicio,
   } = req.body;
 
   const afiliado = await Afiliado.findByPk(id);
@@ -392,6 +393,7 @@ const actualizarDatosPersonalesAfiliado = async (req, res) => {
   if (apellido) {
     datosAActualizar.apellido = await capitalizarCadena(apellido);
   }
+  if (vigenciaInicio) datosAActualizar.vigenciaInicio = vigenciaInicio;
 
   await afiliado.update(datosAActualizar);
 
