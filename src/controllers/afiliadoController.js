@@ -384,22 +384,28 @@ const actualizarDatosPersonalesAfiliado = async (req, res) => {
 
   const datosAActualizar = {};
 
-  if (tipoDocumentoId) datosAActualizar.tipoDocumentoId = tipoDocumentoId;
-  if (numeroDocumento) datosAActualizar.numeroDocumento = numeroDocumento;
-  if (fechaNacimiento) datosAActualizar.fechaNacimiento = fechaNacimiento;
-  if (nombre) {
-    datosAActualizar.nombre = await capitalizarCadena(nombre);
-  }
-  if (apellido) {
-    datosAActualizar.apellido = await capitalizarCadena(apellido);
-  }
-  if (vigenciaInicio) datosAActualizar.vigenciaInicio = vigenciaInicio;
+  datosAActualizar.tipoDocumentoId = tipoDocumentoId;
+  datosAActualizar.numeroDocumento = numeroDocumento;
+  datosAActualizar.fechaNacimiento = fechaNacimiento;
+  datosAActualizar.nombre = await capitalizarCadena(nombre);
+  datosAActualizar.apellido = await capitalizarCadena(apellido);
+  datosAActualizar.vigenciaInicio = vigenciaInicio;
 
   await afiliado.update(datosAActualizar);
 
   res.status(200).json(afiliado);
 };
 
+const actualizarCoberturaAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { planId } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  const contrato = await Contrato.findByPk(afiliado.contratoId);
+  await contrato.update({ planId });
+
+  res.status(200).json(afiliado);
+};
 
 
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
