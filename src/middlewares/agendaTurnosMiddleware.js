@@ -1,11 +1,27 @@
 const { errorPersonalizado } = require('./genericMiddleware');
 const { AgendaTurnos, Prestador, LugarAtencion, HorarioAtencion, Especialidad } = require("../db/models");
+const { convertirAMinutos, horariosCorrectos, noSeSuperponenHorarios } = require("../services/horarioService");
+
+const validarHorarios = async (req, res, next) => {
+    const { horarios } = req.body;
+
+    // Validar que cada horario tenga hora de fin mayor a hora de inicio
+    for (const horario of horarios) {
+        horariosCorrectos(horario, next);
+    }
+
+    // Validar que los horarios no se superpongan
+    noSeSuperponenHorarios(horarios, next);
+
+    next();
+}
+
 
 const validarLosHorariosEntreAgendasYPrestadores = async (req, res, next) => {
 
     const { horarios } = req.body;
 
-    const prestador = await Prestador.findByPk(req.body.prestadorId , {
+    const prestador = await Prestador.findByPk(req.body.prestadorId, {
         include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
     });
 
@@ -41,11 +57,6 @@ const validarLosHorariosEntreAgendasYPrestadores = async (req, res, next) => {
 
     next();
 };
-
-const convertirAMinutos = (horario) => {
-    const [hora, minutos] = horario.split(":").map(Number);
-    return hora * 60 + minutos;
-}
 
 const validarQueElLugarTengaRelacionConElPrestador = async (req, res, next) => {
 
@@ -98,5 +109,8 @@ module.exports = {
     validarLosHorariosEntreAgendasYPrestadores,
     validarQueElLugarTengaRelacionConElPrestador,
     validarQueLaEspecialidadTengaRelacionConElPrestador,
-    validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad
+    validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
+    validarHorarios
 };
+
+//al crear agendas se saca de disponibilidad, y al modificar o eliminar agendas se vuelve a poner en disponibilidad

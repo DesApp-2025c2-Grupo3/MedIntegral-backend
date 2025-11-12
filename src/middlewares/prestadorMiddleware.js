@@ -1,5 +1,6 @@
 const { errorPersonalizado } = require('./genericMiddleware');
 const { Prestador } = require("../db/models");
+const { horariosCorrectos, noSeSuperponenHorarios } = require("../services/horarioService");
 
 const validarExistenciaCentroMedico = async (req, res, next) => {
     const { integraCentroMedico, centroMedicoQueIntegra, esCentroMedico } = req.body;
@@ -48,9 +49,27 @@ const noSeRepiteElCuil = async (req, res, next) => {
     next();
 };
 
+const validarHorarios = async (req, res, next) => {
+    const { lugaresAtencion } = req.body;
+
+    for (const lugar of lugaresAtencion) {
+        const { horarios } = lugar;
+
+        // Validar que cada horario tenga hora de fin mayor a hora de inicio
+        for (const horario of horarios) {
+            horariosCorrectos(horario, next);
+        }
+
+        // Validar que los horarios no se superpongan
+        noSeSuperponenHorarios(horarios, next);
+    }
+    next();
+}
+
 module.exports = {
     validarExistenciaCentroMedico,
     validarQueNoSeaCentroMedicoONoTengaIntegrantes,
     existeAlgunCentroMedico,
-    noSeRepiteElCuil
+    noSeRepiteElCuil,
+    validarHorarios
 };

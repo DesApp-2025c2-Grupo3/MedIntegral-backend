@@ -18,7 +18,11 @@ module.exports = (sequelize, DataTypes) => {
     horaInicio: DataTypes.STRING,
     horaFin: DataTypes.STRING,
     duracionTurno: DataTypes.INTEGER,
-    dia: DataTypes.STRING
+    dia: DataTypes.STRING,
+    disponible: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true
+    }
   }, {
     sequelize,
     modelName: 'HorarioAtencion',

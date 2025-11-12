@@ -49,11 +49,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL'
-    },
-    disponibilidad: {
-      type: DataTypes.JSONB,
-      allowNull: false,
-      defaultValue: []
     }
   }, {
     sequelize,

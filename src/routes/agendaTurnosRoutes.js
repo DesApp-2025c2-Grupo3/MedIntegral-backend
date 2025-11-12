@@ -10,9 +10,11 @@ router.post('/',
     genericMiddleware.existModelRequest(Prestador),
     genericMiddleware.existModelRequest(Especialidad),
     genericMiddleware.existModelRequest(LugarAtencion),
-    //agendaTurnosMiddleware.validarQueElLugarTengaRelacionConElPrestador,
-    //agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
-    //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
+    agendaTurnosMiddleware.validarHorarios,
+    agendaTurnosMiddleware.validarQueElLugarTengaRelacionConElPrestador,
+    agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
+    agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
+    agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
     agendaTurnosController.crearAgendaTurnos
 );
 

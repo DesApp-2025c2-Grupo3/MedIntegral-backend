@@ -63,19 +63,16 @@ const crearPrestador = async (req, res) => {
     }
   });
 
-  const horariosDisponibles = [];
-
   //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
   for (const lugar of lugaresAtencion) {
-    const nuevaDireccion = await Direccion.findOrCreate({
-      where: {
-        calle: lugar.calle,
-        altura: lugar.altura,
-        pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
-        codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
-        localidad: lugar.localidad,
-        provinciaId: lugar.provincia
-      }
+    const nuevaDireccion = await Direccion.create({
+      calle: lugar.calle,
+      altura: lugar.altura,
+      pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
+      codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
+      localidad: lugar.localidad,
+      provinciaId: lugar.provincia
+
     });
 
     const nuevoLugarAtencion = await LugarAtencion.create({
@@ -86,27 +83,19 @@ const crearPrestador = async (req, res) => {
     //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
     for (const horarioData of lugar.horarios) {
 
-      const horariosLugar = []
-
       for (const dia of horarioData.dias) {
         const nuevoHorario = await HorarioAtencion.create({
           horaInicio: horarioData.horaInicio,
           horaFin: horarioData.horaFin,
           lugarAtencionId: nuevoLugarAtencion.id,
-          dia: dia
+          dia: dia,
+          disponible: true
         });
 
-        horariosLugar.push(nuevoHorario);
       }
-      
-      horariosDisponibles.push({
-        lugarAtencionId: nuevoLugarAtencion.id,
-        horarios: horariosLugar
-      });
+
     }
   }
-
-  await nuevoPrestador.update({ disponibilidad: horariosDisponibles });
 
   res.status(201).json(nuevoPrestador);
 };
@@ -337,7 +326,7 @@ const obtenerProvinciasPrestadores = async (_, res) => {
 }
 
 const formatearPrestador = (prestador) => {
-
+  //disponibilidad
   const lugares = prestador.CentroDeAtencion.map(
     (c) => (
       {
@@ -376,8 +365,8 @@ const obtenerPrestador = async (req, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email},
-      { model: Telefono},
+      { model: Email },
+      { model: Telefono },
       {
         model: Especialidad,
         as: "Especialidad",

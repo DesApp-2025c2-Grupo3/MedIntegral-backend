@@ -9,6 +9,7 @@ router.post('/',
   genericMiddleware.schemaValidator(prestadorSchema.prestadorSchemaCreate),
   prestadorMiddleware.noSeRepiteElCuil,
   prestadorMiddleware.validarExistenciaCentroMedico,
+  prestadorMiddleware.validarHorarios,
   prestadorController.crearPrestador
 );
 
