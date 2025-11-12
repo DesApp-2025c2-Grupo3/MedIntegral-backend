@@ -419,6 +419,27 @@ const actualizarSituacionesTerapeuticasAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 }
 
+const actualizarDatosContactoAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { emails, telefonos } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  await Email.destroy({ where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" } });
+  await Telefono.destroy({ where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" } });
+  await crearEmails(emails, afiliado.id);
+  await crearTelefonos(telefonos, afiliado.id);
+  res.status(200).json(afiliado);
+}
+
+const actualizarDireccionesAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { direcciones } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  await Domicilio.destroy({ where: { afiliadoId: afiliado.id } });
+  await crearDirecciones(direcciones, afiliado.id);
+  res.status(200).json(afiliado);
+}
 
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
 const crearEmails = async (emails, afiliadoId) => {
@@ -495,4 +516,6 @@ module.exports = {
   actualizarDatosPersonalesAfiliado,
   actualizarCoberturaAfiliado,
   actualizarSituacionesTerapeuticasAfiliado,
+  actualizarDatosContactoAfiliado,
+  actualizarDireccionesAfiliado
 };

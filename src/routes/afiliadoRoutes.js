@@ -54,4 +54,16 @@ router.put(
   afiliadoController.actualizarSituacionesTerapeuticasAfiliado
 );
 
+router.put(
+  "/:id/datos-contacto",
+  //Agregar middlewares si es necesario: TODO
+  afiliadoController.actualizarDatosContactoAfiliado
+);
+
+router.put(
+  "/:id/direcciones",
+  //Agregar middlewares si es necesario: TODO
+  afiliadoController.actualizarDireccionesAfiliado
+);
+
 module.exports = router;
