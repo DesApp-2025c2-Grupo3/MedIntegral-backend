@@ -8,7 +8,7 @@ const { Afiliado } = require("../db/models");
 router.post(
   "/",
   genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreate),
-  afiliadoMiddleware.yaExisteElTipoYNumeroDeDni,
+  afiliadoMiddleware.yaExisteNumeroDeDni,
   afiliadoController.crearAfiliado
 );
 
