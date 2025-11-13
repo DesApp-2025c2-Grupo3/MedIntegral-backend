@@ -181,52 +181,76 @@ const obtenerTitulares = async (req, res) => {
     vigenciaHasta,
     creacionDesde,
     creacionHasta,
+    estado,
   } = req.query;
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
   const where = {};
+  where[Op.and] = [];
   const rangoDeFecha = {};
+  const hoy = new Date();
 
-  if(textInputSearch && textInputSearch.trim() !== ""){
+  if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
-      {nombre: {[Op.iLike]: `%${textInputSearch}%`}},
-      {apellido: {[Op.iLike]: `%${textInputSearch}%`}},
-      {numeroDocumento: {[Op.iLike]: `%${textInputSearch}%`}}
-    ]
-  }    
-  if(tipoDocumento){
-    where["$tipoDocumento.tipo$"] = tipoDocumento
+      { nombre: { [Op.iLike]: `%${textInputSearch}%` } },
+      { apellido: { [Op.iLike]: `%${textInputSearch}%` } },
+      { numeroDocumento: { [Op.iLike]: `%${textInputSearch}%` } },
+    ];
   }
-  if(planMedico){
-    where["$Contrato.plan.plan$"] = planMedico
+
+  if (!estado) {
+    where[Op.and].push({
+      [Op.or]: [
+        { titularId: null, vigenciaFin: { [Op.is]: null } },
+        { titularId: null, vigenciaFin: { [Op.gte]: hoy } },
+      ],
+    });
   }
-  if(nroAfiliado){
-    where["$Contrato.nAfiliado$"] = nroAfiliado
+  else{
+    where[Op.and].push({ titularId: null });
   }
-  if(fechaNacimiento){
-    const fecha = new Date(fechaNacimiento)
-    where.fechaNacimiento = fecha
+
+  if (tipoDocumento) {
+    where["$tipoDocumento.tipo$"] = tipoDocumento;
   }
-  if(vigenciaDesde){
-    where.vigenciaInicio = {[Op.gte]: vigenciaDesde}
+
+  if (planMedico) {
+    where["$Contrato.plan.plan$"] = planMedico;
   }
-  if(vigenciaHasta){
-    where.vigenciaFin = {[Op.lte]: vigenciaHasta}
+
+  if (nroAfiliado) {
+    where["$Contrato.nAfiliado$"] = nroAfiliado;
   }
+
+  if (fechaNacimiento) {
+    const fecha = new Date(fechaNacimiento);
+    where.fechaNacimiento = fecha;
+  }
+
+  if (vigenciaDesde) {
+    where.vigenciaInicio = { [Op.gte]: vigenciaDesde };
+  }
+
+  if (vigenciaHasta) {
+    where[Op.and].push({ vigenciaFin: { [Op.lte]: vigenciaHasta }});
+  }
+
   if (creacionDesde) {
     const fechaDesde = new Date(creacionDesde);
     fechaDesde.setHours(0, 0, 0, 0);
     rangoDeFecha[Op.gte] = fechaDesde;
   }
+
   if (creacionHasta) {
     const fechaHasta = new Date(creacionHasta);
     fechaHasta.setHours(23, 59, 59, 999);
     rangoDeFecha[Op.lte] = fechaHasta;
   }
+
   if (creacionDesde || creacionHasta) {
-    where.createdAt = rangoDeFecha
+    where.createdAt = rangoDeFecha;
   }
 
   const queryOptions = {
@@ -241,7 +265,7 @@ const obtenerTitulares = async (req, res) => {
       "vigenciaInicio",
       "vigenciaFin",
       "numeroDocumento",
-      "fechaNacimiento"
+      "fechaNacimiento",
     ],
     include: [
       {
@@ -252,14 +276,14 @@ const obtenerTitulares = async (req, res) => {
           model: PlanMedico,
           as: "plan",
           attributes: ["plan"],
-          required: !!(planMedico || nroAfiliado)
+          required: !!(planMedico || nroAfiliado),
         },
       },
       {
         model: TipoDocumento,
         as: "tipoDocumento",
         attributes: ["tipo"],
-        required: !!tipoDocumento
+        required: !!tipoDocumento,
       },
       {
         model: Email,
@@ -267,7 +291,7 @@ const obtenerTitulares = async (req, res) => {
         attributes: ["direccion"],
         required: !!email,
         separate: !email,
-        where: {...(email && {direccion: email})}
+        where: { ...(email && { direccion: email }) },
       },
       {
         model: Telefono,
@@ -275,43 +299,49 @@ const obtenerTitulares = async (req, res) => {
         attributes: ["numero"],
         required: !!telefono,
         separate: !telefono,
-        where: {...(telefono && {numero: telefono})}
+        where: { ...(telefono && { numero: telefono }) },
       },
       {
-        model: Domicilio, 
+        model: Domicilio,
         as: "domicilios",
         attributes: {
           exclude: ["createdAt", "updatedAt", "afiliadoId", "direccionId"],
         },
         required: !!(localidad || provincia),
         separate: !(localidad || provincia),
-        include: [{
-          model: Direccion,
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-          required: !!(localidad || provincia),
-          where: {
-            ...(localidad && {localidad:localidad}),
-            ...(provincia && {provinciaId:provincia})
+        include: [
+          {
+            model: Direccion,
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+            required: !!(localidad || provincia),
+            where: {
+              ...(localidad && { localidad: localidad }),
+              ...(provincia && { provinciaId: provincia }),
+            },
+            include: [
+              {
+                model: Provincia,
+                as: "Provincia",
+                attributes: ["nombre"],
+              },
+            ],
           },
-          include: [{
-            model: Provincia,
-            as: "Provincia",
-            attributes: ["nombre"]
-          }],
-        }],
+        ],
       },
     ],
     order: [["updatedAt", "DESC"]],
-    where: where
-  } 
+    where: where,
+  };
 
-  const { count, rows: titulares} = await Afiliado.findAndCountAll(queryOptions);
+  const { count, rows: titulares } = await Afiliado.findAndCountAll(
+    queryOptions
+  );
 
   res.status(200).json({
     total: count,
     page: page,
     limit: limit,
-    items: titulares
+    items: titulares,
   });
 };
 
@@ -562,19 +592,23 @@ const actualizarSituacionesTerapeuticasAfiliado = async (req, res) => {
   await crearSituacionesTerapeuticas(situacionesTerapeuticas, afiliado.id);
 
   res.status(200).json(afiliado);
-}
+};
 
 const actualizarDatosContactoAfiliado = async (req, res) => {
   const { id } = req.params;
   const { emails, telefonos } = req.body;
 
   const afiliado = await Afiliado.findByPk(id);
-  await Email.destroy({ where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" } });
-  await Telefono.destroy({ where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" } });
+  await Email.destroy({
+    where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" },
+  });
+  await Telefono.destroy({
+    where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" },
+  });
   await crearEmails(emails, afiliado.id);
   await crearTelefonos(telefonos, afiliado.id);
   res.status(200).json(afiliado);
-}
+};
 
 const actualizarDireccionesAfiliado = async (req, res) => {
   const { id } = req.params;
@@ -584,7 +618,7 @@ const actualizarDireccionesAfiliado = async (req, res) => {
   await Domicilio.destroy({ where: { afiliadoId: afiliado.id } });
   await crearDirecciones(direcciones, afiliado.id);
   res.status(200).json(afiliado);
-}
+};
 
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
 const crearEmails = async (emails, afiliadoId) => {
@@ -607,9 +641,10 @@ const crearTelefonos = async (telefonos, afiliadoId) => {
 
 const crearDirecciones = async (direcciones, afiliadoId) => {
   for (const direccionData of direcciones) {
-    
     const calleCapitalizada = await capitalizarCadena(direccionData.calle);
-    const localidadCapitalizada = await capitalizarCadena(direccionData.localidad);
+    const localidadCapitalizada = await capitalizarCadena(
+      direccionData.localidad
+    );
 
     const datosParaCrear = {
       ...direccionData,
@@ -664,5 +699,5 @@ module.exports = {
   actualizarCoberturaAfiliado,
   actualizarSituacionesTerapeuticasAfiliado,
   actualizarDatosContactoAfiliado,
-  actualizarDireccionesAfiliado
+  actualizarDireccionesAfiliado,
 };
