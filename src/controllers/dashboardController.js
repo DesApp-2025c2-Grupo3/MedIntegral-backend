@@ -129,7 +129,45 @@ const obtenerAfiliadosConBaja = async (_, res) => {
   res.status(200).json(afiliadosDeBaja)
 };
 
-const obtenerPrestadoresSinAgenda = async (_, res) => {};
+const obtenerPrestadoresSinAgenda = async (_, res) => {
+  const prestadoresConAgenda = await AgendaTurnos.findAll({
+        attributes: ["prestadorId"],
+        group: ["prestadorId"]
+    });
+  
+  const idsPrestadoresConAgenda = prestadoresConAgenda.map((p) => p.prestadorId)
+
+  const prestadoresSinAgenda = await Prestador.findAll({
+    include: [
+      {model: Especialidad, as: "Especialidad", attributes: ["nombre"], through: { attributes: [] }},
+      {model: LugarAtencion, as: "CentroDeAtencion", include: [{model:Direccion, as: "Direccion"}]},
+    ],
+    where: {id: {[Op.notIn]:idsPrestadoresConAgenda}}
+  })
+
+  const prestadoresFormateados = prestadoresSinAgenda.map((prestador) => {
+    return formatearPrestadorSinAgenda(prestador)
+  })
+  
+  res.status(200).json(prestadoresFormateados)
+};
+
+const formatearPrestadorSinAgenda = (prestador) => {
+
+    const direcciones = prestador.CentroDeAtencion.map((lugar) => ({
+        calle: lugar.Direccion.calle,
+        altura: lugar.Direccion.altura
+    }));
+
+    const prestadorFormateado = {
+        id: prestador.id,
+        nombre: prestador.nombre,
+        especialidades: prestador.Especialidad,
+        direcciones: direcciones,
+    };
+
+    return { ...prestadorFormateado };
+}
 
 const obtenerPlanesMedicosPorMes = async (_, res) => {
   const afiliados = await Afiliado.findAll({
