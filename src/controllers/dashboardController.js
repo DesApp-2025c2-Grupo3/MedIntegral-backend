@@ -113,7 +113,7 @@ const obtenerPrestadoresPorEspecialidad = async (_, res) => {
 };
 
 const obtenerAfiliadosConBaja = async (_, res) => {
-  const fechaActual = new Date(2025, 11, 13);
+  const fechaActual = new Date();
   const año = fechaActual.getFullYear();
   const mes = fechaActual.getMonth();
   const fechaFinMes = new Date(año, mes, 30);
