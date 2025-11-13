@@ -9,12 +9,16 @@ router.post(
   "/",
   genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreate),
   afiliadoMiddleware.yaExisteNumeroDeDni,
+  afiliadoMiddleware.validateVigencia,
   afiliadoController.crearAfiliado
 );
 
 router.post(
   "/:id/dependientes",
-  // genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreateDependiente), //TODO: crear schema para dependiente
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaCreateDependiente
+  ),
   afiliadoController.agregarDependiente
 );
 
@@ -38,31 +42,46 @@ router.delete(
 
 router.put(
   "/:id/datos-personales",
-  //Agregar middlewares si es necesario: TODO
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateDatosPersonales
+  ),
   afiliadoController.actualizarDatosPersonalesAfiliado
 );
 
 router.put(
   "/:id/plan-medico",
-  //Agregar middlewares si es necesario: TODO
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoUpdateSchemaCobertura
+  ),
   afiliadoController.actualizarCoberturaAfiliado
 );
 
 router.put(
   "/:id/situaciones-terapeuticas",
-  //Agregar middlewares si es necesario: TODO
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateSituacionesTerapeuticas
+  ),
   afiliadoController.actualizarSituacionesTerapeuticasAfiliado
 );
 
 router.put(
   "/:id/datos-contacto",
-  //Agregar middlewares si es necesario: TODO
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateDatosContacto
+  ),
   afiliadoController.actualizarDatosContactoAfiliado
 );
 
 router.put(
   "/:id/direcciones",
-  //Agregar middlewares si es necesario: TODO
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateDirecciones
+  ),
   afiliadoController.actualizarDireccionesAfiliado
 );
 
