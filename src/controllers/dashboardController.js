@@ -181,12 +181,12 @@ const obtenerPlanesMedicosPorMes = async (_, res) => {
     const planesMedicos = []
     
     for (var i = 0; i<4 ; i++){
-        const fechaActual = new Date(año, mes + i, 30)
+        const fechaActual = new Date(año, mes - i, 30)
         const nombreMesCompleto = fechaActual.toLocaleDateString('es-ES', { month: 'short' });
         const nombreMes = nombreMesCompleto.charAt(0).toUpperCase() + nombreMesCompleto.slice(1);
 
         const afiliadosDelMes = afiliados.filter(
-          (a) => a.vigenciaInicio <= fechaActual && a.vigenciaFin >= fechaActual 
+          (a) => a.vigenciaInicio <= fechaActual && (a.vigenciaFin >= fechaActual || !null) 
         )                                                
        
         const plan210 = afiliadosDelMes.filter((a) => a.Contrato.plan.plan === "210").length;
