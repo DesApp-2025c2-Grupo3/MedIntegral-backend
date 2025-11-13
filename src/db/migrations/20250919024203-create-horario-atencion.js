@@ -22,6 +22,15 @@ module.exports = {
       dia: {
         type: Sequelize.STRING
       },
+      disponible: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true
+      },
+      esParcial: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        defaultValue: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

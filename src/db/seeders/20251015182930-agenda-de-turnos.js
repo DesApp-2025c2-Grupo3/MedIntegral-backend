@@ -1,197 +1,115 @@
 'use strict';
 
-const { AgendaTurnos, HorarioAtencion, Dia } = require("../models")
+const { AgendaTurnos, HorarioAtencion, Prestador, LugarAtencion } = require("../models")
+const { convertirAMinutos } = require("../../services/horarioService");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
 
     const agendas = [
-  {
-    "prestadorId": 1,
-    "especialidadId": 1,
-    "lugaratencionId": 1,
-    "horarios": [
-      { "horaInicio": "08:00", "horaFin": "12:00", "duracion": 20, "dias": ["Lunes", "Viernes"] },
-      { "horaInicio": "15:00", "horaFin": "18:00", "duracion": 20, "dias": ["Miércoles"] }
+      {
+        "prestadorId": 1,
+        "especialidadId": 1,
+        "lugaratencionId": 1,
+        "horarios": [
+          { "horaInicio": "08:00", "horaFin": "12:00", "duracion": 20, "dias": ["Lunes", "Viernes"] },
+          { "horaInicio": "10:00", "horaFin": "12:00", "duracion": 15, "dias": ["Miércoles"] }
+        ]
+      },
+      {
+        "prestadorId": 3,
+        "especialidadId": 4,
+        "lugaratencionId": 3,
+        "horarios": [
+          { "horaInicio": "11:00", "horaFin": "14:00", "duracion": 30, "dias": ["Martes", "Jueves"] }
+        ]
+      }
     ]
-  },
-  {
-    "prestadorId": 1,
-    "especialidadId": 2,
-    "lugaratencionId": 1,
-    "horarios": [
-      { "horaInicio": "13:00", "horaFin": "16:00", "duracion": 30, "dias": ["Martes", "Jueves"] }
-    ]
-  },
-  {
-    "prestadorId": 2,
-    "especialidadId": 3,
-    "lugaratencionId": 2,
-    "horarios": [
-      { "horaInicio": "08:00", "horaFin": "20:00", "duracion": 20, "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] },
-      { "horaInicio": "10:00", "horaFin": "12:00", "duracion": 20, "dias": ["Domingo"] }
-    ]
-  },
-  {
-    "prestadorId": 3,
-    "especialidadId": 4,
-    "lugaratencionId": 3,
-    "horarios": [
-      { "horaInicio": "10:00", "horaFin": "12:00", "duracion": 15, "dias": ["Martes", "Jueves"] },
-      { "horaInicio": "16:00", "horaFin": "20:00", "duracion": 25, "dias": ["Lunes", "Miércoles", "Viernes"] }
-    ]
-  },
-  {
-    "prestadorId": 3,
-    "especialidadId": 5,
-    "lugaratencionId": 3,
-    "horarios": [
-      { "horaInicio": "09:00", "horaFin": "13:00", "duracion": 30, "dias": ["Sábado"] }
-    ]
-  },
-  {
-    "prestadorId": 4,
-    "especialidadId": 1,
-    "lugaratencionId": 4,
-    "horarios": [
-      { "horaInicio": "07:00", "horaFin": "11:00", "duracion": 20, "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] }
-    ]
-  },
-  {
-    "prestadorId": 4,
-    "especialidadId": 6,
-    "lugaratencionId": 4,
-    "horarios": [
-      { "horaInicio": "08:00", "horaFin": "13:00", "duracion": 20, "dias": ["Sábado"] }
-    ]
-  },
-  {
-    "prestadorId": 5,
-    "especialidadId": 2,
-    "lugaratencionId": 5,
-    "horarios": [
-      { "horaInicio": "09:00", "horaFin": "13:00", "duracion": 25, "dias": ["Lunes", "Miércoles", "Viernes"] }
-    ]
-  },
-  {
-    "prestadorId": 5,
-    "especialidadId": 6,
-    "lugaratencionId": 5,
-    "horarios": [
-      { "horaInicio": "14:00", "horaFin": "18:00", "duracion": 25, "dias": ["Martes", "Jueves"] }
-    ]
-  },
-  {
-    "prestadorId": 6,
-    "especialidadId": 3,
-    "lugaratencionId": 6,
-    "horarios": [
-      { "horaInicio": "08:00", "horaFin": "20:00", "duracion": 30, "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] }
-    ]
-  },
-  {
-    "prestadorId": 6,
-    "especialidadId": 4,
-    "lugaratencionId": 6,
-    "horarios": [
-      { "horaInicio": "09:00", "horaFin": "12:00", "duracion": 30, "dias": ["Sábado"] }
-    ]
-  },
-  {
-    "prestadorId": 7,
-    "especialidadId": 3,
-    "lugaratencionId": 7,
-    "horarios": [
-      { "horaInicio": "10:00", "horaFin": "14:00", "duracion": 25, "dias": ["Lunes", "Miércoles", "Viernes"] },
-      { "horaInicio": "16:00", "horaFin": "19:00", "duracion": 25, "dias": ["Martes", "Jueves"] }
-    ]
-  },
-  {
-    "prestadorId": 8,
-    "especialidadId": 5,
-    "lugaratencionId": 8,
-    "horarios": [
-      { "horaInicio": "08:30", "horaFin": "12:30", "duracion": 30, "dias": ["Martes", "Jueves"] },
-      { "horaInicio": "15:00", "horaFin": "18:00", "duracion": 30, "dias": ["Sábado"] }
-    ]
-  },
-  {
-    "prestadorId": 9,
-    "especialidadId": 1,
-    "lugaratencionId": 9,
-    "horarios": [
-      { "horaInicio": "09:00", "horaFin": "13:00", "duracion": 15, "dias": ["Lunes", "Miércoles"] }
-    ]
-  },
-  {
-    "prestadorId": 9,
-    "especialidadId": 4,
-    "lugaratencionId": 9,
-    "horarios": [
-      { "horaInicio": "14:00", "horaFin": "19:00", "duracion": 15, "dias": ["Viernes"] }
-    ]
-  },
-  {
-    "prestadorId": 10,
-    "especialidadId": 4,
-    "lugaratencionId": 10,
-    "horarios": [
-      { "horaInicio": "09:00", "horaFin": "13:00", "duracion": 20, "dias": ["Martes", "Jueves"] }
-    ]
-  },
-  {
-    "prestadorId": 10,
-    "especialidadId": 8,
-    "lugaratencionId": 10,
-    "horarios": [
-      { "horaInicio": "14:00", "horaFin": "17:00", "duracion": 20, "dias": ["Miércoles"] }
-    ]
-  },
-  {
-    "prestadorId": 11,
-    "especialidadId": 8,
-    "lugaratencionId": 11,
-    "horarios": [
-      { "horaInicio": "09:00", "horaFin": "13:00", "duracion": 25, "dias": ["Martes", "Jueves"] }
-    ]
-  },
-  {
-    "prestadorId": 12,
-    "especialidadId": 2,
-    "lugaratencionId": 12,
-    "horarios": [
-      { "horaInicio": "08:00", "horaFin": "12:00", "duracion": 20, "dias": ["Lunes", "Miércoles", "Viernes"] }
-    ]
-  },
-  {
-    "prestadorId": 12,
-    "especialidadId": 7,
-    "lugaratencionId": 12,
-    "horarios": [
-      { "horaInicio": "16:00", "horaFin": "19:00", "duracion": 20, "dias": ["Martes"] }
-    ]
-  }
-]
 
 
     for (const agenda of agendas) {
-      const nuevaAgendaTurnos = await AgendaTurnos.create({
-        prestadorId: agenda.prestadorId,
-        especialidadId: agenda.especialidadId,
-        lugarAtencionId: agenda.lugaratencionId
+
+      const { prestadorId, especialidadId, lugaratencionId, horarios } = agenda;
+
+      const prestador = await Prestador.findByPk(prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
       });
 
-      for (const horario of agenda.horarios) {
+      const horariosDelPrestadorEnEseLugar = prestador.CentroDeAtencion.find(lugar => lugar.id === lugaratencionId).Horarios;
+
+      const nuevaAgendaTurnos = await AgendaTurnos.create({
+
+        prestadorId: prestadorId,
+        especialidadId: especialidadId,
+        lugarAtencionId: lugaratencionId
+
+      });
+
+      const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
+
+      let nuevoHorarioInicioDisponible;
+      let nuevoHorarioFinDisponible;
+
+      for (const horario of horarios) {
 
         for (const dia of horario.dias) {
-          const nuevoHorario = await HorarioAtencion.create({
-            agendaTurnosId: nuevaAgendaTurnos.id,
-            horaInicio: horario.horaInicio,
-            horaFin: horario.horaFin,
-            duracionTurno: horario.duracion,
-            dia: dia
-          });
+
+          for (const horarioPrestador of horariosDelPrestadorEnEseLugar) {
+
+            if (horarioPrestador.dia === dia) {
+
+              if (convertirAMinutos(horarioPrestador.horaInicio) <= convertirAMinutos(horario.horaInicio) &&
+                convertirAMinutos(horarioPrestador.horaFin) >= convertirAMinutos(horario.horaFin) &&
+                horarioPrestador.disponible === true) {
+
+                const nuevoHorarioAgenda = await HorarioAtencion.create({
+                  agendaTurnosId: nuevaAgendaTurnosId,
+                  lugarAtencionId: null,
+                  horaInicio: horario.horaInicio,
+                  horaFin: horario.horaFin,
+                  duracionTurno: horario.duracion,
+                  dia: dia
+                });
+
+                const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
+                await horarioAActualizar.update({ disponible: false });
+
+                if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
+
+                  nuevoHorarioInicioDisponible = await HorarioAtencion.create({
+                    agendaTurnosId: null,
+                    lugarAtencionId: lugaratencionId,
+                    horaInicio: horarioPrestador.horaInicio,
+                    horaFin: horario.horaInicio,
+                    dia: dia,
+                    disponible: true,
+                    esParcial: true
+
+                  });
+
+                }
+
+                if (convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+
+                  nuevoHorarioFinDisponible = await HorarioAtencion.create({
+                    agendaTurnosId: null,
+                    lugarAtencionId: lugaratencionId,
+                    horaInicio: horario.horaFin,
+                    horaFin: horarioPrestador.horaFin,
+                    dia: dia,
+                    disponible: true,
+                    esParcial: true
+                  });
+
+                }
+
+              }
+
+            }
+
+          }
+
         }
 
       }
@@ -201,11 +119,23 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
 
-    const { AgendaTurnos, HorarioAtencion } = require('../models');
-
     const agendas = await AgendaTurnos.findAll({ include: [HorarioAtencion] });
 
     for (const agenda of agendas) {
+
+      const prestador = await Prestador.findByPk(agenda.prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
+      });
+
+      //hacer disponibles los horarios y borrar los superpuestos
+      prestador.CentroDeAtencion.find(lugar => lugar.id === agenda.lugarAtencionId).Horarios.map(async h => {
+        if (h.disponible === false) {
+          await HorarioAtencion.update({ disponible: true }, { where: { id: h.id } });
+        }
+        if (h.esParcial === true) {
+          await HorarioAtencion.destroy({ where: { id: h.id } });
+        }
+      });
 
       await HorarioAtencion.destroy({ where: { agendaTurnosId: agenda.id } });
 

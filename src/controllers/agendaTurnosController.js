@@ -5,36 +5,95 @@ const {
     Especialidad,
     LugarAtencion,
     Direccion,
-    Provincia,
-    Email,
-    Telefono
+    Provincia
 } = require("../db/models");
+const { convertirAMinutos } = require("../services/horarioService");
 
 const { Op } = require("sequelize");
 
 const crearAgendaTurnos = async (req, res) => {
     const { prestadorId, especialidadId, lugaratencionId, horarios } = req.body;
 
+    const prestador = await Prestador.findByPk(prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
+    });
+
+    const horariosDelPrestadorEnEseLugar = prestador.CentroDeAtencion.find(lugar => lugar.id === lugaratencionId).Horarios;
+
     const nuevaAgendaTurnos = await AgendaTurnos.create({
-        prestadorId,
-        especialidadId,
+
+        prestadorId: prestadorId,
+        especialidadId: especialidadId,
         lugarAtencionId: lugaratencionId
+
     });
 
     const nuevaAgendaTurnosId = nuevaAgendaTurnos.id;
+
+    let nuevoHorarioInicioDisponible;
+    let nuevoHorarioFinDisponible;
 
     for (const horario of horarios) {
 
         for (const dia of horario.dias) {
 
-            const nuevoHorario = await HorarioAtencion.create({
-                agendaTurnosId: nuevaAgendaTurnosId,
-                lugarAtencionId: null,
-                horaInicio: horario.horaInicio,
-                horaFin: horario.horaFin,
-                duracionTurno: horario.duracion,
-                dia: dia
-            });
+            for (const horarioPrestador of horariosDelPrestadorEnEseLugar) {
+
+                if (horarioPrestador.dia === dia) {
+
+                    if (convertirAMinutos(horarioPrestador.horaInicio) <= convertirAMinutos(horario.horaInicio) &&
+                        convertirAMinutos(horarioPrestador.horaFin) >= convertirAMinutos(horario.horaFin) &&
+                        horarioPrestador.disponible === true) {
+
+
+
+                        const nuevoHorarioAgenda = await HorarioAtencion.create({
+                            agendaTurnosId: nuevaAgendaTurnosId,
+                            lugarAtencionId: null,
+                            horaInicio: horario.horaInicio,
+                            horaFin: horario.horaFin,
+                            duracionTurno: horario.duracion,
+                            dia: dia,
+                            esParcial: convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio) || convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)
+                        });
+
+                        const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
+                        await horarioAActualizar.update({ disponible: false });
+
+                        if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
+
+                            nuevoHorarioInicioDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: lugaratencionId,
+                                horaInicio: horarioPrestador.horaInicio,
+                                horaFin: horario.horaInicio,
+                                dia: dia,
+                                disponible: true,
+                                esParcial: true
+
+                            });
+
+                        }
+
+                        if (convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+
+                            nuevoHorarioFinDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: lugaratencionId,
+                                horaInicio: horario.horaFin,
+                                horaFin: horarioPrestador.horaFin,
+                                dia: dia,
+                                disponible: true,
+                                esParcial: true
+                            });
+
+                        }
+
+                    }
+
+                }
+
+            }
 
         }
 
@@ -262,7 +321,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const agenda = await AgendaTurnos.findByPk(id, {
         include: [
-            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios", where: { disponible: true }, required: false }] }] },
             { model: Especialidad, as: "Especialidad" },
             {
                 model: LugarAtencion,
@@ -272,6 +331,13 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
             { model: HorarioAtencion, as: "Horarios" },
         ],
     });
+
+    const horariosDeAgenda = agenda.Horarios;
+
+    horariosDeAgenda.forEach(h => {
+        agenda.Prestador.CentroDeAtencion.find(lugar => lugar.id === agenda.lugarAtencionId).Horarios.push(h);
+    });
+
     res.status(200).json(formatearAgenda(agenda));
 };
 
@@ -281,7 +347,36 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     const { horarios } = req.body;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, {
-        include: [{ model: HorarioAtencion, as: 'Horarios' }]
+        include: [
+            { model: Prestador, as: "Prestador", include: [{ model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: HorarioAtencion, as: 'Horarios' }
+        ]
+    });
+
+    const prestador = await Prestador.findByPk(agendaTurnos.prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
+    });
+
+    //hacer disponibles los horarios de esta agenda hasta los parciales
+    prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios.map(async h => {
+
+        const horarioAgenda = agendaTurnos.Horarios.map(async hAgenda => {
+            console.log("hAgenda:", hAgenda);
+            if (hAgenda.dia === h.dia &&
+                convertirAMinutos(hAgenda.horaInicio) == convertirAMinutos(h.horaInicio) &&
+                convertirAMinutos(hAgenda.horaFin) == convertirAMinutos(h.horaFin)) {
+                await HorarioAtencion.update({ disponible: true }, { where: { horaInicio: hAgenda.horaInicio, horaFin: hAgenda.horaFin, dia: hAgenda.dia, lugarAtencionId: agendaTurnos.lugarAtencionId } });
+                return hAgenda;
+            }
+
+            // si es parcial reconstruir el completo
+        });
+
+        // if (horarioAgenda.esParcial === true) {
+        //     await HorarioAtencion.destroy({ where: { id: horarioAgenda.id } });
+        // }
+
+
     });
 
     // Eliminar solo los horarios asociados a esta agenda
@@ -289,19 +384,69 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
         where: { agendaTurnosId: id },
     });
 
-    // Crear nuevos horarios (independientes de los del prestador)
+    const horariosDelPrestadorEnEseLugar = agendaTurnos.Prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios;
+
+    let nuevoHorarioInicioDisponible;
+    let nuevoHorarioFinDisponible;
+
     for (const horario of horarios) {
 
         for (const dia of horario.dias) {
 
-            const nuevoHorario = await HorarioAtencion.create({
-                agendaTurnosId: id,
-                lugarAtencionId: null,
-                horaInicio: horario.horaInicio,
-                horaFin: horario.horaFin,
-                duracionTurno: horario.duracion,
-                dia: dia
-            });
+            for (const horarioPrestador of horariosDelPrestadorEnEseLugar) {
+
+                if (horarioPrestador.dia === dia) {
+
+                    if (convertirAMinutos(horarioPrestador.horaInicio) <= convertirAMinutos(horario.horaInicio) &&
+                        convertirAMinutos(horarioPrestador.horaFin) >= convertirAMinutos(horario.horaFin) &&
+                        horarioPrestador.disponible === true) {
+
+                        const nuevoHorarioAgenda = await HorarioAtencion.create({
+                            agendaTurnosId: id,
+                            lugarAtencionId: null,
+                            horaInicio: horario.horaInicio,
+                            horaFin: horario.horaFin,
+                            duracionTurno: horario.duracion,
+                            dia: dia
+                        });
+
+                        const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
+                        await horarioAActualizar.update({ disponible: false });
+
+                        if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
+
+                            nuevoHorarioInicioDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: agendaTurnos.lugarAtencionId,
+                                horaInicio: horarioPrestador.horaInicio,
+                                horaFin: horario.horaInicio,
+                                dia: dia,
+                                disponible: true,
+                                esParcial: true
+
+                            });
+
+                        }
+
+                        if (convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+
+                            nuevoHorarioFinDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: agendaTurnos.lugarAtencionId,
+                                horaInicio: horario.horaFin,
+                                horaFin: horarioPrestador.horaFin,
+                                dia: dia,
+                                disponible: true,
+                                esParcial: true
+                            });
+
+                        }
+
+                    }
+
+                }
+
+            }
 
         }
 
@@ -326,11 +471,29 @@ const actualizarEspecialidadDeAgendaTurnos = async (req, res) => {
     res.status(200).json({ message: "Agenda de turnos modificada correctamente" });
 };
 
+//al crear agendas se saca de disponibilidad, y al modificar o eliminar agendas se vuelve a poner en disponibilidad
 const eliminarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, {
-        include: { model: HorarioAtencion, as: 'Horarios' },
+        include: [
+            { model: Prestador, as: "Prestador", include: [{ model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: HorarioAtencion, as: 'Horarios' }
+        ]
+    });
+
+    const prestador = await Prestador.findByPk(agendaTurnos.prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
+    });
+
+    //hacer disponibles los horarios y borrar los superpuestos
+    prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios.map(async h => {
+        if (h.disponible === false) {
+            await HorarioAtencion.update({ disponible: true }, { where: { id: h.id } });
+        }
+        if (h.esParcial === true) {
+            await HorarioAtencion.destroy({ where: { id: h.id } });
+        }
     });
 
     await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
@@ -425,36 +588,9 @@ const formatearPrestador = (prestador) => {
     return { ...prestadorFormateado };
 }
 
-const obtenerIdPrestadoresConAgenda = async () => {
-    const prestadoresConAgenda = await AgendaTurnos.findAll({
-        attributes: ["prestadorId"],
-        group: ["prestadorId"]
-    });
-    return prestadoresConAgenda.map(pa => pa.prestadorId);
-};
 
-const obtenerIdPrestadoresSinAgenda = async () => {
-    const idsDePrestadoresConAgenda = obtenerIdPrestadoresConAgenda();
-
-    const prestadores = await Prestador.findAll({
-        attributes: ["id", "nombre"],
-    });
-    return prestadores.filter(p => !idsDePrestadoresConAgenda.includes(p.id)).map(p => p.id);
-};
 
 const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
-
-    let idsDePrestadoresConAgenda;
-    obtenerIdPrestadoresConAgenda().then(ids => idsDePrestadoresConAgenda = ids);
-
-    const agendas = await AgendaTurnos.findAll({
-        include: [
-            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
-            { model: Especialidad, as: "Especialidad" },
-            { model: LugarAtencion, as: "CentroDeAtencion", include: { model: Direccion, as: "Direccion", include: { model: Provincia, as: "Provincia" } }, },
-            { model: HorarioAtencion, as: "Horarios" },
-        ],
-    });
 
     const prestadores = await Prestador.findAll({
         include: [
@@ -467,56 +603,56 @@ const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
         ]
     });
 
-    const idPrestadoresConAgendaCompleta = prestadores
-        .filter(p => idsDePrestadoresConAgenda.includes(p.id))
-        .filter(p => compararAgendaConPrestador(agendas, p))
-        .map(p => p.id);
+    const prestadoresConDisponibilidad = prestadores.filter(p =>
+        p.CentroDeAtencion.some(lugar =>
+            lugar.Horarios.some(horario => horario.disponible === true)
+        )
+    );
 
-    const idPrestadoresConAgendaIncompleta = prestadores.filter(p => !idPrestadoresConAgendaCompleta.includes(p.id)).map(p => p.id);
-
-    const prestadoresConAgendaIncompleta = prestadores.filter(p => idPrestadoresConAgendaIncompleta.includes(p.id)).map(p => {
+    const prestadoresConAgendaIncompleta = prestadoresConDisponibilidad.map(p => {
         return formatearPrestador(p)
     });
     return res.status(200).json(prestadoresConAgendaIncompleta);
 };
 
-const convertirAMinutos = (horario) => {
-    const [hora, minutos] = horario.split(":").map(Number);
-    return hora * 60 + minutos;
-}
+// Obtener prestador por id
+const obtenerPrestador = async (req, res) => {
+    const { prestadorId } = req.params;
 
-const compararAgendaConPrestador = (agendas, prestador) => {
-    let horarios = prestador.CentroDeAtencion.flatMap(lugar => lugar.Horarios.map(h => { return { dia: h.dia, horaInicio: h.horaInicio, horaFin: h.horaFin } }));
-    console.log("centros de atencion del prestador")
-    console.log(prestador.CentroDeAtencion)
+    const prestador = await Prestador.findByPk(prestadorId, {
+        include: [
+            {
+                model: Especialidad,
+                as: "Especialidad"
+            },
+            {
+                model: LugarAtencion,
+                as: "CentroDeAtencion",
+                include: [
+                    {
+                        model: Direccion,
+                        as: "Direccion",
+                        include: [
+                            {
+                                model: Provincia,
+                                as: "Provincia",
+                            },
+                        ],
+                    },
+                    {
+                        model: HorarioAtencion,
+                        as: "Horarios",
+                        where: { disponible: true },
+                        required: false
 
-    agendas.forEach(a => {
-        if (a.Prestador.id === prestador.id) {
-            console.log("centros de atencion de la agenda")
-            console.log(a.CentroDeAtencion)
-            prestador.CentroDeAtencion.find(lugar => lugar.id === a.CentroDeAtencion.id).Horarios.forEach(hp => {
-                a.Horarios.forEach(ha => {
-                    if (mismoDia(hp, ha) && minutosDeDiferenciaInicio(hp, ha) === 0 && minutosDeDiferenciaFin(hp, ha) === 0) {
-                        horarios.filter(h => !(h.dia === ha.dia && h.horaInicio === ha.inicio && h.horaFin === ha.fin));
-                    }
-                });
-            });
-        }
+                    },
+                ],
+            },
+        ],
     });
-    return horarios.length === 0;
+
+    return res.status(200).json(formatearPrestador(prestador));
 };
-
-const mismoDia = (hp, ha) => {
-    return hp.dia === ha.dia
-}
-
-const minutosDeDiferenciaInicio = (hp, ha) => {
-    return convertirAMinutos(ha.horaInicio) - convertirAMinutos(hp.horaInicio);
-}
-
-const minutosDeDiferenciaFin = (hp, ha) => {
-    return convertirAMinutos(hp.horaFin) - convertirAMinutos(ha.horaFin);
-}
 
 module.exports = {
     crearAgendaTurnos,
@@ -528,6 +664,7 @@ module.exports = {
     eliminarAgendaTurnos,
     obtenerLocalidadesAgendas,
     obtenerProvinciasAgendas,
-    obtenerPrestadoresConAgendaIncompleta
+    obtenerPrestadoresConAgendaIncompleta,
+    obtenerPrestador
 };
 

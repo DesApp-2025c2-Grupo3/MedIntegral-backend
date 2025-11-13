@@ -68,10 +68,11 @@ const crearPrestador = async (req, res) => {
     const nuevaDireccion = await Direccion.create({
       calle: lugar.calle,
       altura: lugar.altura,
-      pisoDepto: lugar.pisoDepto,
-      codigoPostal: lugar.codigoPostal,
+      pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
+      codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
       localidad: lugar.localidad,
-      provinciaId: lugar.provincia,
+      provinciaId: lugar.provincia
+
     });
 
     const nuevoLugarAtencion = await LugarAtencion.create({
@@ -87,12 +88,15 @@ const crearPrestador = async (req, res) => {
           horaInicio: horarioData.horaInicio,
           horaFin: horarioData.horaFin,
           lugarAtencionId: nuevoLugarAtencion.id,
-          dia: dia
+          dia: dia,
+          disponible: true
         });
+
       }
 
     }
   }
+
   res.status(201).json(nuevoPrestador);
 };
 
@@ -129,7 +133,9 @@ const obtenerPrestadores = async (_, res) => {
           },
           {
             model: HorarioAtencion,
-            as: "Horarios"
+            as: "Horarios",
+            where: { esParcial: false },
+            required: false
           },
         ],
       },
@@ -243,6 +249,8 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           {
             model: HorarioAtencion,
             as: "Horarios",
+            where: { esParcial: false },
+            required: false
           },
         ],
       },
@@ -322,7 +330,7 @@ const obtenerProvinciasPrestadores = async (_, res) => {
 }
 
 const formatearPrestador = (prestador) => {
-
+  //disponibilidad
   const lugares = prestador.CentroDeAtencion.map(
     (c) => (
       {
@@ -361,8 +369,8 @@ const obtenerPrestador = async (req, res) => {
       exclude: ["createdAt", "updatedAt"],
     },
     include: [
-      { model: Email},
-      { model: Telefono},
+      { model: Email },
+      { model: Telefono },
       {
         model: Especialidad,
         as: "Especialidad",
@@ -388,6 +396,8 @@ const obtenerPrestador = async (req, res) => {
           {
             model: HorarioAtencion,
             as: "Horarios",
+            where: { esParcial: false },
+            required: false
           },
         ],
       },
@@ -456,10 +466,14 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
 
   for (const lugar of lugaresActuales) {
     await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
+
     await lugar.destroy();
     //destruyo las direcciones? porque otros lugares de atención podrían usarla también
     await Direccion.destroy({ where: { id: lugar.direccionId } });
   }
+
+  //deberia borrar las agendas del prestador ya que cambio los horarios y lugares de atencion
+  await AgendaTurnos.destroy({ where: { prestadorId: id } });
 
   //Creacion:
   for (const lugar of lugaresAtencion) {
@@ -485,7 +499,8 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
           horaInicio: horarioData.horaInicio,
           horaFin: horarioData.horaFin,
           lugarAtencionId: nuevoLugarAtencion.id,
-          dia: dia
+          dia: dia,
+          disponible: true
         });
       }
 
@@ -514,6 +529,10 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
       await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
     }
   }
+
+  //deberia borrar las agendas del prestador ya que cambio las especialidades
+  await AgendaTurnos.destroy({ where: { prestadorId: id } });
+
   return res
     .status(200)
     .json({ message: "Especialidades actualizadas correctamente." });
@@ -567,6 +586,9 @@ const eliminarPrestador = async (req, res) => {
     //destruyo las direcciones? porque otros lugares de atención podrían usarla también
     await Direccion.destroy({ where: { id: lugar.direccionId } });
   }
+
+  //deberia borrar las agendas del prestador ya que este no existira mas
+  await AgendaTurnos.destroy({ where: { prestadorId: id } });
 
   await prestador.destroy();
 
