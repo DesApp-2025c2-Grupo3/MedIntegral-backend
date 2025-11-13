@@ -582,18 +582,6 @@ const actualizarCoberturaAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 };
 
-const actualizarSituacionesTerapeuticasAfiliado = async (req, res) => {
-  const { id } = req.params;
-  const { situacionesTerapeuticas } = req.body;
-
-  const afiliado = await Afiliado.findByPk(id);
-  await AfiliadoSituaciones.destroy({ where: { afiliadoId: afiliado.id } });
-
-  await crearSituacionesTerapeuticas(situacionesTerapeuticas, afiliado.id);
-
-  res.status(200).json(afiliado);
-};
-
 const actualizarDatosContactoAfiliado = async (req, res) => {
   const { id } = req.params;
   const { emails, telefonos } = req.body;
@@ -697,7 +685,6 @@ module.exports = {
   bajaAfiliado,
   actualizarDatosPersonalesAfiliado,
   actualizarCoberturaAfiliado,
-  actualizarSituacionesTerapeuticasAfiliado,
   actualizarDatosContactoAfiliado,
   actualizarDireccionesAfiliado,
 };

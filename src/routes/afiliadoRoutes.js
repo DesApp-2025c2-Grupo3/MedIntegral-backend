@@ -63,15 +63,6 @@ router.put(
 );
 
 router.put(
-  "/:id/situaciones-terapeuticas",
-  genericMiddleware.existsAnyByModel(Afiliado),
-  genericMiddleware.schemaValidator(
-    afiliadoSchema.afiliadoSchemaUpdateSituacionesTerapeuticas
-  ),
-  afiliadoController.actualizarSituacionesTerapeuticasAfiliado
-);
-
-router.put(
   "/:id/datos-contacto",
   genericMiddleware.existsAnyByModel(Afiliado),
   genericMiddleware.schemaValidator(
