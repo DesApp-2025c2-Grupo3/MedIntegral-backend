@@ -133,7 +133,9 @@ const obtenerPrestadores = async (_, res) => {
           },
           {
             model: HorarioAtencion,
-            as: "Horarios"
+            as: "Horarios",
+            where: { esParcial: false },
+            required: false
           },
         ],
       },
@@ -247,6 +249,8 @@ const obtenerPrestadoresFormateados = async (req, res) => {
           {
             model: HorarioAtencion,
             as: "Horarios",
+            where: { esParcial: false },
+            required: false
           },
         ],
       },

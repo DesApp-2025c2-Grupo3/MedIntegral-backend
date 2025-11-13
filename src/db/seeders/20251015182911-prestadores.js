@@ -1,11 +1,11 @@
 'use strict';
 
-
+const { Prestador, Email, Telefono, Especialidad, Direccion, LugarAtencion, HorarioAtencion } = require("../models")
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const { Prestador, Email, Telefono, Especialidad, Direccion, LugarAtencion, HorarioAtencion, Dia } = require("../models")
+    
     const prestadoresARegistrar = [
       {
         "nombre": "Dr Pepe Grillo",
@@ -157,7 +157,8 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    const { Prestador } = require('../models');
+
     await Prestador.destroy({ where: {}, truncate: true, cascade: true });
+    
   }
 };
