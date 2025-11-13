@@ -368,6 +368,79 @@ const bajaAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 };
 
+const actualizarDatosPersonalesAfiliado = async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    tipoDocumentoId,
+    numeroDocumento,
+    nombre,
+    apellido,
+    fechaNacimiento,
+    vigenciaInicio,
+  } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+
+  const datosAActualizar = {};
+
+  datosAActualizar.tipoDocumentoId = tipoDocumentoId;
+  datosAActualizar.numeroDocumento = numeroDocumento;
+  datosAActualizar.fechaNacimiento = fechaNacimiento;
+  datosAActualizar.nombre = await capitalizarCadena(nombre);
+  datosAActualizar.apellido = await capitalizarCadena(apellido);
+  datosAActualizar.vigenciaInicio = vigenciaInicio;
+
+  await afiliado.update(datosAActualizar);
+
+  res.status(200).json(afiliado);
+};
+
+const actualizarCoberturaAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { planId } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  const contrato = await Contrato.findByPk(afiliado.contratoId);
+  await contrato.update({ planId });
+
+  res.status(200).json(afiliado);
+};
+
+const actualizarSituacionesTerapeuticasAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { situacionesTerapeuticas } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  await AfiliadoSituaciones.destroy({ where: { afiliadoId: afiliado.id } });
+
+  await crearSituacionesTerapeuticas(situacionesTerapeuticas, afiliado.id);
+
+  res.status(200).json(afiliado);
+}
+
+const actualizarDatosContactoAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { emails, telefonos } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  await Email.destroy({ where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" } });
+  await Telefono.destroy({ where: { propietarioId: afiliado.id, propietarioTipo: "Afiliado" } });
+  await crearEmails(emails, afiliado.id);
+  await crearTelefonos(telefonos, afiliado.id);
+  res.status(200).json(afiliado);
+}
+
+const actualizarDireccionesAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { direcciones } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  await Domicilio.destroy({ where: { afiliadoId: afiliado.id } });
+  await crearDirecciones(direcciones, afiliado.id);
+  res.status(200).json(afiliado);
+}
+
 // Helpers (ya que sino el código se repetiria para titular y miembros) -> pasarlo a services ?
 const crearEmails = async (emails, afiliadoId) => {
   const datosEmails = emails.map((e) => ({
@@ -440,4 +513,9 @@ module.exports = {
   obtenerAfiliado,
   agregarDependiente,
   bajaAfiliado,
+  actualizarDatosPersonalesAfiliado,
+  actualizarCoberturaAfiliado,
+  actualizarSituacionesTerapeuticasAfiliado,
+  actualizarDatosContactoAfiliado,
+  actualizarDireccionesAfiliado
 };
