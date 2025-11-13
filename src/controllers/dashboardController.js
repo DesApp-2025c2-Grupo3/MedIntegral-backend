@@ -1,12 +1,16 @@
 const {
   AgendaTurnos,
   Afiliado,
+  Contrato,
+  PlanMedico,
   Prestador,
   Especialidad,
   Provincia,
   Direccion,
   LugarAtencion,
 } = require("../db/models");
+
+const { Op } = require('sequelize');
 
 const obtenerAfiliadosTotales = async (_, res) => {
   const totalAfiliados = await Afiliado.count()
@@ -108,7 +112,22 @@ const obtenerPrestadoresPorEspecialidad = async (_, res) => {
   return res.status(200).json(listaEspecialidades);
 };
 
-const obtenerAfiliadosConBaja = async (_, res) => {};
+const obtenerAfiliadosConBaja = async (_, res) => {
+  const fechaActual = new Date(2025, 11, 13);
+  const año = fechaActual.getFullYear();
+  const mes = fechaActual.getMonth();
+  const fechaFinMes = new Date(año, mes, 30);
+
+  const afiliados = await Afiliado.findAll({where: {vigenciaFin:{[Op.between]:[fechaActual, fechaFinMes]}}})
+
+  const afiliadosDeBaja = afiliados.map((a) => ({
+      id: a.id,
+      nombre: a.nombre + " " + a.apellido,
+      vigenciaHasta: a.vigenciaFin
+  }))
+
+  res.status(200).json(afiliadosDeBaja)
+};
 
 const obtenerPrestadoresSinAgenda = async (_, res) => {};
 

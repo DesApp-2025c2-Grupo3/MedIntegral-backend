@@ -1,6 +1,6 @@
-const { Router } = require('express')
-const router = Router()
-const { dashboardController } = require('../controllers')
+const { Router } = require('express');
+const router = Router();
+const { dashboardController } = require('../controllers');
 
 router.get('/afiliados-totales', dashboardController.obtenerAfiliadosTotales);
 
