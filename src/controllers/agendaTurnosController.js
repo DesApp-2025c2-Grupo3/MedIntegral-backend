@@ -462,11 +462,11 @@ const formatearPrestador = (prestador) => {
 
     const lugares = prestador.CentroDeAtencion.map((lugar) => ({
         id: lugar.id,
-        calle: lugar.calle,
-        altura: lugar.altura,
-        pisoDepto: lugar.pisoDepto,
-        localidad: lugar.localidad,
-        provincia: lugar.provincia,
+        calle: lugar.Direccion.calle,
+        altura: lugar.Direccion.altura,
+        pisoDepto: lugar.Direccion.pisoDepto,
+        localidad: lugar.Direccion.localidad,
+        provincia: lugar.Direccion.Provincia.nombre,
         horarios: obtenerHorariosDisponibles(lugar.Horarios),
     }));
 
@@ -481,7 +481,7 @@ const formatearPrestador = (prestador) => {
 }
 
 const obtenerHorariosDisponibles = (horarios) =>{
-    return horarios.filter(horario => horario.disponible === true)
+    return horarios.filter(horario => horario.disponible === true);
 }
 
 const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
@@ -509,6 +509,42 @@ const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
     return res.status(200).json(prestadoresConAgendaIncompleta);
 };
 
+// Obtener prestador por id
+const obtenerPrestador = async (req, res) => {
+  const { prestadorId } = req.params;
+
+  const prestador = await Prestador.findByPk(prestadorId, {
+    include: [
+      {
+        model: Especialidad,
+        as: "Especialidad"
+      },
+      {
+        model: LugarAtencion,
+        as: "CentroDeAtencion",
+        include: [
+          {
+            model: Direccion,
+            as: "Direccion",
+            include: [
+              {
+                model: Provincia,
+                as: "Provincia",
+              },
+            ],
+          },
+          {
+            model: HorarioAtencion,
+            as: "Horarios",
+          },
+        ],
+      },
+    ],
+  });
+
+  return res.status(200).json(formatearPrestador(prestador));
+};
+
 module.exports = {
     crearAgendaTurnos,
     obtenerAgendasTurnos,
@@ -519,6 +555,7 @@ module.exports = {
     eliminarAgendaTurnos,
     obtenerLocalidadesAgendas,
     obtenerProvinciasAgendas,
-    obtenerPrestadoresConAgendaIncompleta
+    obtenerPrestadoresConAgendaIncompleta,
+    obtenerPrestador
 };
 
