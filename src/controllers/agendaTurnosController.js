@@ -318,7 +318,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const agenda = await AgendaTurnos.findByPk(id, {
         include: [
-            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios", where: { esParcial: false }, required: false }] }] },
             { model: Especialidad, as: "Especialidad" },
             {
                 model: LugarAtencion,
