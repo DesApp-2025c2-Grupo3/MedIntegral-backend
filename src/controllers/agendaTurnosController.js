@@ -318,7 +318,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
     const { id } = req.params;
     const agenda = await AgendaTurnos.findByPk(id, {
         include: [
-            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios", where: { esParcial: false }, required: false }] }] },
+            { model: Prestador, as: "Prestador", include: [{ model: Especialidad, as: "Especialidad" }, { model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios", where: { disponible: true }, required: false }] }] },
             { model: Especialidad, as: "Especialidad" },
             {
                 model: LugarAtencion,
@@ -328,6 +328,13 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
             { model: HorarioAtencion, as: "Horarios" },
         ],
     });
+
+    const horariosDeAgenda = agenda.Horarios;
+
+    horariosDeAgenda.forEach( h => {
+        agenda.Prestador.CentroDeAtencion.find(lugar => lugar.id === agenda.lugarAtencionId).Horarios.push(h);
+    });
+
     res.status(200).json(formatearAgenda(agenda));
 };
 
