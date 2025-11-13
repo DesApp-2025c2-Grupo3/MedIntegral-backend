@@ -131,7 +131,44 @@ const obtenerAfiliadosConBaja = async (_, res) => {
 
 const obtenerPrestadoresSinAgenda = async (_, res) => {};
 
-const obtenerPlanesMedicosPorMes = async (_, res) => {};
+const obtenerPlanesMedicosPorMes = async (_, res) => {
+  const afiliados = await Afiliado.findAll({
+        include: [{model: Contrato, include: [{model:PlanMedico, as: "plan"}]}]
+    })
+   
+    const fecha = new Date();
+    const año = fecha.getFullYear()
+    const mes = fecha.getMonth()
+   
+    const planesMedicos = []
+    
+    for (var i = 0; i<4 ; i++){
+        const fechaActual = new Date(año, mes + i, 30)
+        const nombreMesCompleto = fechaActual.toLocaleDateString('es-ES', { month: 'short' });
+        const nombreMes = nombreMesCompleto.charAt(0).toUpperCase() + nombreMesCompleto.slice(1);
+
+        const afiliadosDelMes = afiliados.filter(
+          (a) => a.vigenciaInicio <= fechaActual && a.vigenciaFin >= fechaActual 
+        )                                                
+       
+        const plan210 = afiliadosDelMes.filter((a) => a.Contrato.plan.plan === "210").length;
+        const plan310 = afiliadosDelMes.filter((a) => a.Contrato.plan.plan === "310").length;
+        const plan410 = afiliadosDelMes.filter((a) => a.Contrato.plan.plan === "410").length;
+        const plan510 = afiliadosDelMes.filter((a) => a.Contrato.plan.plan === "510").length;
+
+        planesMedicos.push({
+            mes: nombreMes,
+            planes: {
+                210: plan210,
+                310: plan310,
+                410: plan410,
+                510: plan510
+            }
+        })
+    }
+
+    res.status(200).json(planesMedicos);
+};
 
 module.exports = {
   obtenerAfiliadosTotales,
