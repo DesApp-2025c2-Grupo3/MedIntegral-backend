@@ -382,7 +382,10 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     }
 
     await AgendaTurnos.destroy({
-        where: { prestadorId: agendaTurnos.prestadorId }
+        where: {
+            prestadorId: agendaTurnos.prestadorId,
+            id: { [Op.ne]: agendaTurnos.id }
+        }
     });
 
 
