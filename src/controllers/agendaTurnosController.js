@@ -331,7 +331,7 @@ const obtenerUnaAgendaTurnos = async (req, res) => {
 
     const horariosDeAgenda = agenda.Horarios;
 
-    horariosDeAgenda.forEach( h => {
+    horariosDeAgenda.forEach(h => {
         agenda.Prestador.CentroDeAtencion.find(lugar => lugar.id === agenda.lugarAtencionId).Horarios.push(h);
     });
 
@@ -350,11 +350,6 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
         ]
     });
 
-    // Eliminar solo los horarios asociados a esta agenda
-    await HorarioAtencion.destroy({
-        where: { agendaTurnosId: id },
-    });
-
     const prestador = await Prestador.findByPk(agendaTurnos.prestadorId, {
         include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
     });
@@ -368,6 +363,28 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
             await HorarioAtencion.destroy({ where: { id: h.id } });
         }
     });
+
+    // Eliminar solo los horarios asociados a esta agenda
+    await HorarioAtencion.destroy({
+        where: { agendaTurnosId: id },
+    });
+
+    //esta parte tendre que editar en el futuro
+
+    const agendas = await AgendaTurnos.findAll({
+        where: { prestadorId: agendaTurnos.prestadorId }
+    });
+
+    for (const agenda of agendas) {
+        await HorarioAtencion.destroy({
+            where: { agendaTurnosId: agenda.id },
+        });
+    }
+
+    await AgendaTurnos.destroy({
+        where: { prestadorId: agendaTurnos.prestadorId }
+    });
+
 
     const horariosDelPrestadorEnEseLugar = agendaTurnos.Prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios;
 
