@@ -1,5 +1,7 @@
 const { Op } = require("sequelize");
 const { generarProximoNAfiliado } = require("../services/contratoService");
+const { capitalizarCadena } = require("../services/capitalizarCadena");
+
 const {
   TipoDocumento,
   PlanMedico,
@@ -96,6 +98,9 @@ const crearAfiliado = async (req, res) => {
 
   const nAfiliado = await generarProximoNAfiliado();
 
+  const capitalizedNombre = await capitalizarCadena(nombre);
+  const capitalizedApellido = await capitalizarCadena(apellido);
+
   const nuevoContrato = await Contrato.create({
     planId: planId,
     nAfiliado: nAfiliado,
@@ -107,8 +112,8 @@ const crearAfiliado = async (req, res) => {
     tipoDocumentoId,
     numeroDocumento,
     fechaNacimiento,
-    nombre,
-    apellido,
+    nombre: capitalizedNombre,
+    apellido: capitalizedApellido,
     vigenciaInicio,
     vigenciaFin,
     nIntegrante: 1,
@@ -296,7 +301,7 @@ const obtenerTitulares = async (req, res) => {
         }],
       },
     ],
-    order: [["id", "ASC"]],
+    order: [["updatedAt", "DESC"]],
     where: where
   } 
 
@@ -529,15 +534,25 @@ const crearTelefonos = async (telefonos, afiliadoId) => {
 
 const crearDirecciones = async (direcciones, afiliadoId) => {
   for (const direccionData of direcciones) {
+    
+    const calleCapitalizada = await capitalizarCadena(direccionData.calle);
+    const localidadCapitalizada = await capitalizarCadena(direccionData.localidad);
+
+    const datosParaCrear = {
+      ...direccionData,
+      calle: calleCapitalizada,
+      localidad: localidadCapitalizada,
+    };
+
     const [direccion] = await Direccion.findOrCreate({
       where: {
-        calle: direccionData.calle,
+        calle: calleCapitalizada,
         altura: direccionData.altura,
         pisoDepto: direccionData.pisoDepto,
         localidad: direccionData.localidad,
         codigoPostal: direccionData.codigoPostal,
       },
-      defaults: direccionData,
+      defaults: datosParaCrear,
     });
 
     await Domicilio.create({

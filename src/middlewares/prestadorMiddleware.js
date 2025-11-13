@@ -37,8 +37,20 @@ const existeAlgunCentroMedico = async (req, res, next) => {
     next();
 };
 
+const noSeRepiteElCuil = async (req, res, next) => {
+    const { cuilCuit } = req.body;
+    const prestadores = await Prestador.findAll();
+
+    const existeCuil = prestadores.some(p => p.cuilCuit === cuilCuit);
+    if (existeCuil) {
+        return errorPersonalizado(`El CUIL/CUIT ${cuilCuit} ya está registrado`, 400, next);
+    }
+    next();
+};
+
 module.exports = {
     validarExistenciaCentroMedico,
     validarQueNoSeaCentroMedicoONoTengaIntegrantes,
-    existeAlgunCentroMedico
+    existeAlgunCentroMedico,
+    noSeRepiteElCuil
 };

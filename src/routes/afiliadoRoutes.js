@@ -1,13 +1,14 @@
 const { Router } = require("express");
 const router = Router();
 const { afiliadoController } = require("../controllers");
-const { genericMiddleware } = require("../middlewares");
+const { genericMiddleware, afiliadoMiddleware } = require("../middlewares");
 const { afiliadoSchema } = require("../middlewares/schemas");
 const { Afiliado } = require("../db/models");
 
 router.post(
   "/",
   genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreate),
+  afiliadoMiddleware.yaExisteElTipoYNumeroDeDni,
   afiliadoController.crearAfiliado
 );
 
