@@ -8,13 +8,17 @@ const { Afiliado } = require("../db/models");
 router.post(
   "/",
   genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreate),
-  afiliadoMiddleware.yaExisteElTipoYNumeroDeDni,
+  afiliadoMiddleware.yaExisteNumeroDeDni,
+  afiliadoMiddleware.validateVigencia,
   afiliadoController.crearAfiliado
 );
 
 router.post(
   "/:id/dependientes",
-  // genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaCreateDependiente), //TODO: crear schema para dependiente
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaCreateDependiente
+  ),
   afiliadoController.agregarDependiente
 );
 
@@ -23,6 +27,10 @@ router.get(
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.obtenerTitulares
 );
+
+router.get("/localidades", afiliadoController.obtenerLocalidadesAfiliados);
+
+router.get("/provincias", afiliadoController.obtenerProvinciasAfiliados);
 
 router.get(
   "/:id",
@@ -34,6 +42,51 @@ router.delete(
   "/:id",
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.bajaAfiliado
+);
+
+router.put(
+  "/:id/datos-personales",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateDatosPersonales
+  ),
+  afiliadoController.actualizarDatosPersonalesAfiliado
+);
+
+router.put(
+  "/:id/plan-medico",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoUpdateSchemaCobertura
+  ),
+  afiliadoController.actualizarCoberturaAfiliado
+);
+
+router.put(
+  "/:id/situaciones-terapeuticas",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateSituacionesTerapeuticas
+  ),
+  afiliadoController.actualizarSituacionesTerapeuticasAfiliado
+);
+
+router.put(
+  "/:id/datos-contacto",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateDatosContacto
+  ),
+  afiliadoController.actualizarDatosContactoAfiliado
+);
+
+router.put(
+  "/:id/direcciones",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  genericMiddleware.schemaValidator(
+    afiliadoSchema.afiliadoSchemaUpdateDirecciones
+  ),
+  afiliadoController.actualizarDireccionesAfiliado
 );
 
 module.exports = router;

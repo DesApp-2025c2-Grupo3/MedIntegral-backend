@@ -1,5 +1,10 @@
 const Joi = require("joi");
 
+const REGEX_NUMERIC = /^[0-9]+$/;
+const REGEX_NOMBRE = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/;
+const REGEX_ALPHANUMERIC_MIN_4 = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\d]{4,}$/;
+const REGEX_TELEFONO = /^\d{8,15}$/;
+
 // Schema base para datos personales
 const datosPersonalesSchema = Joi.object({
   tipoDocumentoId: Joi.number().integer().required().messages({
@@ -8,36 +13,27 @@ const datosPersonalesSchema = Joi.object({
     "any.required": "El ID de tipo de documento es obligatorio",
   }),
 
-  numeroDocumento: Joi.string()
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      "string.base": "El numero de documento debe ser una cadena de texto",
-      "string.pattern": "El numero de documento debe contener sólo números",
-      "any.required": "El numero de documento es obligatorio",
-    }),
+  numeroDocumento: Joi.string().pattern(REGEX_NUMERIC).required().messages({
+    "string.base": "El numero de documento debe ser una cadena de texto",
+    "string.pattern": "El numero de documento debe contener sólo números",
+    "any.required": "El numero de documento es obligatorio",
+  }),
 
-  fechaNacimiento: Joi.string()
-    .pattern(/^\d{4}-\d{2}-\d{2}$/)
-    .required()
-    .messages({
-      "string.base": "La fecha de nacimiento debe ser una cadena de texto",
-      "string.pattern":
-        "La fecha de nacimiento debe tener el formato YYYY-MM-DD",
-      "any.required": "La fecha de nacimiento es obligatoria",
-    }),
+  fechaNacimiento: Joi.date().max("now").required().messages({
+    "date.base": "La fecha de nacimiento debe ser una fecha válida.",
+    "date.max": "La fecha de nacimiento no puede ser futura",
+    "any.required": "La fecha de nacimiento es obligatoria",
+  }),
 
-  nombre: Joi.string().min(3).max(100).required().messages({
+  nombre: Joi.string().pattern(REGEX_NOMBRE).required().messages({
     "string.base": "El nombre debe ser una cadena de texto",
-    "string.min": "El nombre debe tener al menos {#limit} caracteres",
-    "string.max": "El nombre debe tener como máximo {#limit} caracteres",
+    "string.pattern": "Solo letras y espacios (mínimo 2 caracteres)",
     "any.required": "El nombre es obligatorio",
   }),
 
-  apellido: Joi.string().min(3).max(100).required().messages({
+  apellido: Joi.string().pattern(REGEX_NOMBRE).required().messages({
     "string.base": "El apellido debe ser una cadena de texto",
-    "string.min": "El apellido debe tener al menos {#limit} caracteres",
-    "string.max": "El apellido debe tener como máximo {#limit} caracteres",
+    "string.pattern": "Solo letras y espacios (mínimo 2 caracteres)",
     "any.required": "El apellido es obligatorio",
   }),
 
@@ -61,6 +57,8 @@ const datosPersonalesSchema = Joi.object({
       "string.pattern":
         "La fecha de fin de vigencia debe tener el formato YYYY-MM-DD",
     }),
+
+  tieneFechaBaja: Joi.boolean().optional().default(false),
 });
 
 // Schema para datos de contacto
@@ -76,35 +74,29 @@ const contactosSchema = Joi.object({
       })
     )
     .min(1)
-    .unique()
     .required()
     .messages({
       "array.base": "Los emails deben estar dentro de un array",
       "array.min": "Debe haber al menos {#limit} email(s)",
-      "array.unique": "Los emails no deben repetirse",
       "any.required": "Los emails son obligatorios",
     }),
 
   telefonos: Joi.array()
     .items(
       Joi.object({
-        numero: Joi.string()
-          .pattern(/^[0-9]+$/)
-          .required()
-          .messages({
-            "string.base": "El teléfono debe ser una cadena de texto",
-            "string.pattern": "El teléfono debe contener sólo números",
-            "any.required": "El teléfono es obligatorio",
-          }),
+        numero: Joi.string().pattern(REGEX_TELEFONO).required().messages({
+          "string.base": "El teléfono debe ser una cadena de texto",
+          "string.pattern":
+            "Cada teléfono debe tener solo números entre 8 y 15 dígitos",
+          "any.required": "El teléfono es obligatorio",
+        }),
       })
     )
     .min(1)
-    .unique()
     .required()
     .messages({
       "array.base": "Los teléfonos deben estar dentro de un array",
       "array.min": "Debe haber al menos {#limit} teléfono(s)",
-      "array.unique": "Los teléfonos no deben repetirse",
       "any.required": "Los teléfonos son obligatorios",
     }),
 });
@@ -114,29 +106,35 @@ const direccionSchema = Joi.object({
   direcciones: Joi.array()
     .items(
       Joi.object({
-        calle: Joi.string().min(3).max(100).required().messages({
-          "string.base": "La calle debe ser una cadena de texto",
-          "string.min": "La calle debe tener al menos {#limit} caracteres",
-          "string.max": "La calle debe tener como máximo {#limit} caracteres",
-          "any.required": "La calle es obligatoria",
-        }),
-        altura: Joi.number().integer().max(1000000).required().messages({
-          "number.base": "La altura debe ser un número",
-          "number.integer": "La altura debe ser un número entero",
-          "number.max": "La altura debe ser como máximo {#limit}",
-          "any.required": "La altura es obligatoria",
-        }),
+        calle: Joi.string()
+          .pattern(REGEX_ALPHANUMERIC_MIN_4)
+          .required()
+          .messages({
+            "string.base": "La calle debe ser una cadena de texto",
+            "string.pattern":
+              "La calle no puede contener caracteres especiales (Mín. 4 caracteres)",
+            "any.required": "La calle es obligatoria",
+          }),
+        altura: Joi.string()
+          .pattern(/^\d{2,}$/)
+          .required()
+          .messages({
+            "string.base": "La altura debe ser un número",
+            "string.pattern": "La altura debe ser numérica (Mín. 2 dígitos)",
+            "any.required": "La altura es obligatoria",
+          }),
         pisoDepto: Joi.string().optional().allow("").messages({
           "string.base": "El piso/departamento debe ser una cadena de texto",
         }),
-        codigoPostal: Joi.string().min(4).max(8).required().messages({
-          "string.base": "El código postal debe ser una cadena de texto",
-          "string.min":
-            "El código postal debe tener al menos {#limit} caracteres",
-          "string.max":
-            "El código postal debe tener como máximo {#limit} caracteres",
-          "any.required": "El código postal es obligatorio",
-        }),
+        codigoPostal: Joi.string()
+          .pattern(REGEX_ALPHANUMERIC_MIN_4)
+          .required()
+          .messages({
+            "string.base": "El código postal debe ser una cadena de texto",
+            "string.pattern":
+              "El código postal no puede contener caracteres especiales (Mín. 4 caracteres)",
+            "any.required": "El código postal es obligatorio",
+          }),
         localidad: Joi.string().min(4).max(100).required().messages({
           "string.base": "La localidad debe ser una cadena de texto",
           "string.min": "La localidad debe tener al menos {#limit} caracteres",
@@ -193,9 +191,7 @@ const situacionesTerapeuticasSchema = Joi.object({
             .optional()
             .allow(null, "")
             .messages({
-              "string.base": "La fecha de fin debe ser una cadena de texto",
-              "string.pattern":
-                "La fecha de fin debe tener el formato YYYY-MM-DD",
+              "date.base": "La fecha de fin debe ser una fecha válida",
             }),
         })
       )
@@ -226,6 +222,8 @@ const miembroGrupoFamiliarSchema = datosPersonalesSchema
       "number.integer": "El ID del parentesco debe ser un número entero",
       "any.required": "El ID del parentesco es obligatorio",
     }),
+    usaMismaVigenciaTitular: Joi.boolean().required(),
+    usaMismaDireccionTitular: Joi.boolean().required(),
   })
   .concat(contactosSchema)
   .concat(direccionSchema)
@@ -269,6 +267,29 @@ const afiliadoSchemaCreate = Joi.object({
   .concat(direccionSchema)
   .concat(situacionesTerapeuticasSchema);
 
+const afiliadoSchemaUpdateDatosPersonales = datosPersonalesSchema;
+
+const afiliadoUpdateSchemaCobertura = Joi.object({
+  planId: Joi.number().integer().required().messages({
+    "any.required": "El ID del plan médico (cobertura) es obligatorio.",
+  }),
+});
+
+const afiliadoSchemaUpdateSituacionesTerapeuticas =
+  situacionesTerapeuticasSchema;
+
+const afiliadoSchemaUpdateDatosContacto = contactosSchema;
+
+const afiliadoSchemaUpdateDirecciones = direccionSchema;
+
+const afiliadoSchemaCreateDependiente = miembroGrupoFamiliarSchema;
+
 module.exports = {
   afiliadoSchemaCreate,
+  afiliadoSchemaUpdateDatosPersonales,
+  afiliadoUpdateSchemaCobertura,
+  afiliadoSchemaUpdateSituacionesTerapeuticas,
+  afiliadoSchemaUpdateDatosContacto,
+  afiliadoSchemaUpdateDirecciones,
+  afiliadoSchemaCreateDependiente,
 };

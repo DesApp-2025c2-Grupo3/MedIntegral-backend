@@ -7,6 +7,7 @@ const tipoDocumentoRutas = require("./tipoDocumentoRoutes");
 const parentescoRutas = require("./parentescoRoutes");
 const situacionTerapeuticaRutas = require("./situacionTerapeuticaRoutes");
 const planMedicoRutas = require("./planMedicoRoutes");
+const dashboardRutas = require("./dashboardRoutes");
 
 module.exports = {
   provinciaRutas,
@@ -18,4 +19,5 @@ module.exports = {
   situacionTerapeuticaRutas,
   planMedicoRutas,
   parentescoRutas,
+  dashboardRutas
 };
