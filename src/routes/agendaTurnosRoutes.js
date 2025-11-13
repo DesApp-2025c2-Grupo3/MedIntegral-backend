@@ -14,7 +14,7 @@ router.post('/',
     agendaTurnosMiddleware.validarQueElLugarTengaRelacionConElPrestador,
     agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
     //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
-    agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
+    //agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
     agendaTurnosController.crearAgendaTurnos
 );
 

@@ -65,7 +65,8 @@ const crearAgendaTurnos = async (req, res) => {
                                 horaInicio: horarioPrestador.horaInicio,
                                 horaFin: horario.horaInicio,
                                 dia: dia,
-                                disponible: true
+                                disponible: true,
+                                esParcial: true
 
                             });
 
@@ -79,7 +80,8 @@ const crearAgendaTurnos = async (req, res) => {
                                 horaInicio: horario.horaFin,
                                 horaFin: horarioPrestador.horaFin,
                                 dia: dia,
-                                disponible: true
+                                disponible: true,
+                                esParcial: true
                             });
 
                         }
@@ -335,7 +337,10 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     const { horarios } = req.body;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, {
-        include: [{ model: HorarioAtencion, as: 'Horarios' }]
+        include: [
+            { model: Prestador, as: "Prestador", include: [{ model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: HorarioAtencion, as: 'Horarios' }
+        ]
     });
 
     // Eliminar solo los horarios asociados a esta agenda
@@ -343,19 +348,83 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
         where: { agendaTurnosId: id },
     });
 
-    // Crear nuevos horarios (independientes de los del prestador)
+    const prestador = await Prestador.findByPk(agendaTurnos.prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
+    });
+
+    //hacer disponibles los horarios y borrar los superpuestos
+    prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios.map(async h => {
+        if (h.disponible === false) {
+            await HorarioAtencion.update({ disponible: true }, { where: { id: h.id } });
+        }
+        if (h.esParcial === true) {
+            await HorarioAtencion.destroy({ where: { id: h.id } });
+        }
+    });
+
+    const horariosDelPrestadorEnEseLugar = agendaTurnos.Prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios;
+
+    let nuevoHorarioInicioDisponible;
+    let nuevoHorarioFinDisponible;
+
     for (const horario of horarios) {
 
         for (const dia of horario.dias) {
 
-            const nuevoHorario = await HorarioAtencion.create({
-                agendaTurnosId: id,
-                lugarAtencionId: null,
-                horaInicio: horario.horaInicio,
-                horaFin: horario.horaFin,
-                duracionTurno: horario.duracion,
-                dia: dia
-            });
+            for (const horarioPrestador of horariosDelPrestadorEnEseLugar) {
+
+                if (horarioPrestador.dia === dia) {
+
+                    if (convertirAMinutos(horarioPrestador.horaInicio) <= convertirAMinutos(horario.horaInicio) &&
+                        convertirAMinutos(horarioPrestador.horaFin) >= convertirAMinutos(horario.horaFin) &&
+                        horarioPrestador.disponible === true) {
+
+                        const nuevoHorarioAgenda = await HorarioAtencion.create({
+                            agendaTurnosId: id,
+                            lugarAtencionId: null,
+                            horaInicio: horario.horaInicio,
+                            horaFin: horario.horaFin,
+                            duracionTurno: horario.duracion,
+                            dia: dia
+                        });
+
+                        const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
+                        await horarioAActualizar.update({ disponible: false });
+
+                        if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
+
+                            nuevoHorarioInicioDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: agendaTurnos.lugarAtencionId,
+                                horaInicio: horarioPrestador.horaInicio,
+                                horaFin: horario.horaInicio,
+                                dia: dia,
+                                disponible: true,
+                                esParcial: true
+
+                            });
+
+                        }
+
+                        if (convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+
+                            nuevoHorarioFinDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: agendaTurnos.lugarAtencionId,
+                                horaInicio: horario.horaFin,
+                                horaFin: horarioPrestador.horaFin,
+                                dia: dia,
+                                disponible: true,
+                                esParcial: true
+                            });
+
+                        }
+
+                    }
+
+                }
+
+            }
 
         }
 
@@ -385,7 +454,24 @@ const eliminarAgendaTurnos = async (req, res) => {
     const { id } = req.params;
 
     const agendaTurnos = await AgendaTurnos.findByPk(id, {
-        include: { model: HorarioAtencion, as: 'Horarios' },
+        include: [
+            { model: Prestador, as: "Prestador", include: [{ model: LugarAtencion, as: "CentroDeAtencion", include: [{ model: HorarioAtencion, as: "Horarios" }] }] },
+            { model: HorarioAtencion, as: 'Horarios' }
+        ]
+    });
+
+    const prestador = await Prestador.findByPk(agendaTurnos.prestadorId, {
+        include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
+    });
+
+    //hacer disponibles los horarios y borrar los superpuestos
+    prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios.map(async h => {
+        if (h.disponible === false) {
+            await HorarioAtencion.update({ disponible: true }, { where: { id: h.id } });
+        }
+        if (h.esParcial === true) {
+            await HorarioAtencion.destroy({ where: { id: h.id } });
+        }
     });
 
     await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
@@ -480,7 +566,7 @@ const formatearPrestador = (prestador) => {
     return { ...prestadorFormateado };
 }
 
-const obtenerHorariosDisponibles = (horarios) =>{
+const obtenerHorariosDisponibles = (horarios) => {
     return horarios.filter(horario => horario.disponible === true);
 }
 
@@ -497,7 +583,7 @@ const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
         ]
     });
 
-    const prestadoresConDisponibilidad= prestadores.filter(p =>
+    const prestadoresConDisponibilidad = prestadores.filter(p =>
         p.CentroDeAtencion.some(lugar =>
             lugar.Horarios.some(horario => horario.disponible === true)
         )
@@ -511,38 +597,38 @@ const obtenerPrestadoresConAgendaIncompleta = async (req, res) => {
 
 // Obtener prestador por id
 const obtenerPrestador = async (req, res) => {
-  const { prestadorId } = req.params;
+    const { prestadorId } = req.params;
 
-  const prestador = await Prestador.findByPk(prestadorId, {
-    include: [
-      {
-        model: Especialidad,
-        as: "Especialidad"
-      },
-      {
-        model: LugarAtencion,
-        as: "CentroDeAtencion",
+    const prestador = await Prestador.findByPk(prestadorId, {
         include: [
-          {
-            model: Direccion,
-            as: "Direccion",
-            include: [
-              {
-                model: Provincia,
-                as: "Provincia",
-              },
-            ],
-          },
-          {
-            model: HorarioAtencion,
-            as: "Horarios",
-          },
+            {
+                model: Especialidad,
+                as: "Especialidad"
+            },
+            {
+                model: LugarAtencion,
+                as: "CentroDeAtencion",
+                include: [
+                    {
+                        model: Direccion,
+                        as: "Direccion",
+                        include: [
+                            {
+                                model: Provincia,
+                                as: "Provincia",
+                            },
+                        ],
+                    },
+                    {
+                        model: HorarioAtencion,
+                        as: "Horarios",
+                    },
+                ],
+            },
         ],
-      },
-    ],
-  });
+    });
 
-  return res.status(200).json(formatearPrestador(prestador));
+    return res.status(200).json(formatearPrestador(prestador));
 };
 
 module.exports = {

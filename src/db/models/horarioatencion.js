@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
     disponible: {
       type: DataTypes.BOOLEAN,
       allowNull: true
+    },
+    esParcial:{
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false
     }
   }, {
     sequelize,
