@@ -207,6 +207,10 @@ const obtenerTitulares = async (req, res) => {
         { titularId: null, vigenciaFin: { [Op.gte]: hoy } },
       ],
     });
+
+    where[Op.and].push({
+      vigenciaInicio: { [Op.lte]: hoy }
+    });
   }
   else{
     where[Op.and].push({ titularId: null });
