@@ -265,7 +265,7 @@ module.exports = {
         fechaNacimiento: '1988-09-25',
         nombre: 'Mariana',
         apellido: 'Lopez',
-        vigenciaInicio: null,
+        vigenciaInicio: '01-01-2026',
         vigenciaFin: null,
         emails: [{ direccion: 'mariana.lopez@ejemplo.com' }],
         telefonos: [{ numero: '3416667788' }],
