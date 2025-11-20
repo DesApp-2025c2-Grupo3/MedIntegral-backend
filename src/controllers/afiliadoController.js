@@ -200,20 +200,35 @@ const obtenerTitulares = async (req, res) => {
     ];
   }
 
-  if (!estado) {
-    where[Op.and].push({
-      [Op.or]: [
-        { titularId: null, vigenciaFin: { [Op.is]: null } },
-        { titularId: null, vigenciaFin: { [Op.gte]: hoy } },
-      ],
-    });
+  switch(estado){
+    case "Bajas":
+      where[Op.and].push({ titularId: null, vigenciaFin: { [Op.lte]: hoy } });
+      break;
 
-    where[Op.and].push({
-      vigenciaInicio: { [Op.lte]: hoy }
-    });
-  }
-  else{
-    where[Op.and].push({ titularId: null });
+    case "Vigencia futura":
+      where[Op.and].push({
+          vigenciaInicio: { [Op.gte]: hoy }
+        });
+      break;
+
+    case "Todos":
+      where[Op.and].push({ titularId: null });
+      break;
+
+    default:
+      {
+        where[Op.and].push({
+          [Op.or]: [
+            { titularId: null, vigenciaFin: { [Op.is]: null } },
+            { titularId: null, vigenciaFin: { [Op.gte]: hoy } },
+          ],
+        });
+
+        where[Op.and].push({
+          vigenciaInicio: { [Op.lte]: hoy }
+        });
+      }
+      break;
   }
 
   if (tipoDocumento) {
@@ -234,11 +249,14 @@ const obtenerTitulares = async (req, res) => {
   }
 
   if (vigenciaDesde) {
-    where.vigenciaInicio = { [Op.gte]: vigenciaDesde };
+    fechaVigenciaDesde = new Date(vigenciaDesde);
+    where.vigenciaInicio = { [Op.gte]: fechaVigenciaDesde };
   }
 
   if (vigenciaHasta) {
-    where[Op.and].push({ vigenciaFin: { [Op.lte]: vigenciaHasta }});
+    fechaVigenciaHasta = new Date(vigenciaHasta);
+    fechaVigenciaHasta.setDate(fechaVigenciaHasta.getDate() + 1);
+    where.vigenciaFin = { [Op.lte]: fechaVigenciaHasta }; 
   }
 
   if (creacionDesde) {
@@ -249,7 +267,7 @@ const obtenerTitulares = async (req, res) => {
 
   if (creacionHasta) {
     const fechaHasta = new Date(creacionHasta);
-    fechaHasta.setHours(23, 59, 59, 999);
+    fechaHasta.setDate(fechaHasta.getDate()+1);
     rangoDeFecha[Op.lte] = fechaHasta;
   }
 
@@ -269,7 +287,7 @@ const obtenerTitulares = async (req, res) => {
       "vigenciaInicio",
       "vigenciaFin",
       "numeroDocumento",
-      "fechaNacimiento",
+      "fechaNacimiento"
     ],
     include: [
       {
@@ -407,8 +425,6 @@ const obtenerProvinciasAfiliados = async (_, res) => {
   const filtradas = Array.from(setProvincias).flatMap((provincia) =>
     provinciasTotales.filter((p) => p.nombre == provincia)
   );
-
-  //const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({value: provincia, label: provincia}))
 
   return res.status(200).json(filtradas);
 };
