@@ -105,12 +105,26 @@ const validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad
     next();
 };
 
+const validarQueExistaElPrestador = async (req, res, next) => {
+
+    const { prestadorId } = req.params;
+
+    const prestador = await Prestador.findByPk(prestadorId);
+
+    if (!prestador) {
+        return errorPersonalizado(`No existe el prestador con id ${prestadorId}`, 404, next);
+    }
+
+    next();
+}
+
 module.exports = {
     validarLosHorariosEntreAgendasYPrestadores,
     validarQueElLugarTengaRelacionConElPrestador,
     validarQueLaEspecialidadTengaRelacionConElPrestador,
     validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
-    validarHorarios
+    validarHorarios,
+    validarQueExistaElPrestador
 };
 
 //al crear agendas se saca de disponibilidad, y al modificar o eliminar agendas se vuelve a poner en disponibilidad
