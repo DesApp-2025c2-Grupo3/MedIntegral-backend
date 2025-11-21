@@ -1,4 +1,4 @@
-const { required } = require("joi");
+const { capitalizarCadena } = require("../services/capitalizarCadena");
 const {
   Prestador,
   Direccion,
@@ -28,7 +28,7 @@ const crearPrestador = async (req, res) => {
   } = req.body;
 
   const nuevoPrestador = await Prestador.create({
-    nombre,
+    nombre: await capitalizarCadena(nombre),
     cuilCuit,
     esCentroMedico,
     integraCentroMedico,
@@ -66,11 +66,11 @@ const crearPrestador = async (req, res) => {
   //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
   for (const lugar of lugaresAtencion) {
     const nuevaDireccion = await Direccion.create({
-      calle: lugar.calle,
+      calle: await capitalizarCadena(lugar.calle),
       altura: lugar.altura,
       pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
       codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
-      localidad: lugar.localidad,
+      localidad: await capitalizarCadena(lugar.localidad),
       provinciaId: lugar.provincia
 
     });
@@ -424,7 +424,7 @@ const actualizarDatosPersonalesPrestador = async (req, res) => {
 
   const prestador = await Prestador.findByPk(id);
 
-  await prestador.update({ nombre, cuilCuit });
+  await prestador.update({ nombre: await capitalizarCadena(nombre), cuilCuit });
 
   //Emails (Para que esto funcione al editar tendrían que volverse a enviar los mismos que tiene si no se modifican)
   await Email.destroy({ where: { propietarioId: id, propietarioTipo: 'Prestador' } });
@@ -479,11 +479,11 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   for (const lugar of lugaresAtencion) {
     //Si no elimino las direcciones, cómo sé que no estoy creando duplicados?
     const nuevaDireccion = await Direccion.create({
-      calle: lugar.calle,
+      calle: await capitalizarCadena(lugar.calle),
       altura: lugar.altura,
       pisoDepto: lugar.pisoDepto,
       codigoPostal: lugar.codigoPostal,
-      localidad: lugar.localidad,
+      localidad: await capitalizarCadena(lugar.localidad),
       provinciaId: lugar.provincia,
     });
 
