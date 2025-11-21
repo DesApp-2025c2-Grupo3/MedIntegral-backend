@@ -518,20 +518,46 @@ const actualizarEspecialidadesPrestador = async (req, res) => {
   const { id } = req.params;
   const { especialidades } = req.body;
 
-  const prestador = await Prestador.findByPk(id);
+  const prestador = await Prestador.findByPk(id, {
+    include: [{
+      model: Especialidad,
+      as: "Especialidad"
+    }]
+  });
 
-  //Vacío el array de especialidades actuales
-  await prestador.setEspecialidad([]);
+  const especialidadesViejas = prestador.Especialidad.map(e => e.id);
 
-  for (const espId of especialidades) {
-    const esp = await Especialidad.findByPk(espId);
-    if (esp) {
-      await prestador.addEspecialidad(esp); // Luego agrego las nuevas especialidades
+  // Especialidades a eliminar = estaban antes y ya no vienen
+  const idsAEliminar = especialidadesViejas.filter(idViejo => !especialidades.includes(idViejo));
+
+  // Especialidades a agregar = vienen nuevas y no estaban antes
+  const idsAAgregar = especialidades.filter(idNuevo => !especialidadesViejas.includes(idNuevo));
+
+  // 1) Eliminar relaciones viejas y sus agendas asociadas
+  if (idsAEliminar.length > 0) {
+    for (const espId of idsAEliminar) {
+      // eliminar relación M-M
+      await prestador.removeEspecialidad(espId);
+
+      // eliminar agendas asociadas SOLO a esa especialidad
+      await AgendaTurnos.destroy({
+        where: {
+          prestadorId: id,
+          especialidadId: espId
+        }
+      });
     }
   }
 
-  //deberia borrar las agendas del prestador ya que cambio las especialidades
-  await AgendaTurnos.destroy({ where: { prestadorId: id } });
+  // 2) Agregar nuevas especialidades
+  if (idsAAgregar.length > 0) {
+    for (const espId of idsAAgregar) {
+      const esp = await Especialidad.findByPk(espId);
+      if (esp) {
+        await prestador.addEspecialidad(esp);
+      }
+    }
+  }
 
   return res
     .status(200)

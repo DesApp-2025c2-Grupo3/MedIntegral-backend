@@ -20,9 +20,9 @@ const configureApp = (APP) => {
   APP.use("/api/prestadores", prestadorRutas);
   APP.use("/api/agenda-turnos", agendaTurnosRutas);
   APP.use("/api/afiliados", afiliadoRutas);
-  APP.use("/api/tipo-documentos", tipoDocumentoRutas);
-  APP.use("/api/situaciones-terapeuticas", situacionTerapeuticaRutas);
-  APP.use("/api/planes-medicos", planMedicoRutas);
+  APP.use("/api/tipoDocumentos", tipoDocumentoRutas);
+  APP.use("/api/situacionesTerapeuticas", situacionTerapeuticaRutas);
+  APP.use("/api/planesMedicos", planMedicoRutas);
   APP.use('/api/parentescos', parentescoRutas);
   APP.use('/api/dashboard', dashboardRutas);
 
