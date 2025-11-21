@@ -99,7 +99,7 @@ const validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad
     });
 
     if (agendaExistente) {
-        return errorPersonalizado(`Ya existe una agenda para el prestador con id ${prestadorId} en el lugar de atención con id ${lugaratencionId} y con la especialidad con id ${especialidadId}`, 400, next);
+        return errorPersonalizado(`Ya existe la agenda #${agendaExistente.id}# para el prestador con id ${prestadorId} en el lugar de atención con id ${lugaratencionId} y con la especialidad con id ${especialidadId}`, 400, next);
     }
 
     next();

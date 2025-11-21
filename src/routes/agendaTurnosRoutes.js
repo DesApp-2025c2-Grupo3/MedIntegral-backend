@@ -14,7 +14,7 @@ router.post('/',
     agendaTurnosMiddleware.validarQueElLugarTengaRelacionConElPrestador,
     agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
     //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
-    //agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
+    agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
     agendaTurnosController.crearAgendaTurnos
 );
 
@@ -43,7 +43,6 @@ router.get('/listado',
 
 router.get("/prestadores-con-agenda-incompleta",
     genericMiddleware.existsAnyByModel(Prestador),
-    genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerPrestadoresConAgendaIncompleta
 );
 

@@ -32,6 +32,7 @@ const crearAgendaTurnos = async (req, res) => {
 
     let nuevoHorarioInicioDisponible;
     let nuevoHorarioFinDisponible;
+    let nuevoHorarioNoDisponible;
 
     for (const horario of horarios) {
 
@@ -45,8 +46,6 @@ const crearAgendaTurnos = async (req, res) => {
                         convertirAMinutos(horarioPrestador.horaFin) >= convertirAMinutos(horario.horaFin) &&
                         horarioPrestador.disponible === true) {
 
-
-
                         const nuevoHorarioAgenda = await HorarioAtencion.create({
                             agendaTurnosId: nuevaAgendaTurnosId,
                             lugarAtencionId: null,
@@ -54,11 +53,25 @@ const crearAgendaTurnos = async (req, res) => {
                             horaFin: horario.horaFin,
                             duracionTurno: horario.duracion,
                             dia: dia,
-                            esParcial: convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio) || convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)
+                            esParcial: convertirAMinutos(horarioPrestador.horaInicio) < convertirAMinutos(horario.horaInicio) || convertirAMinutos(horarioPrestador.horaFin) > convertirAMinutos(horario.horaFin)
                         });
 
                         const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
                         await horarioAActualizar.update({ disponible: false });
+
+                        if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio) ||
+                            convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+                            nuevoHorarioNoDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: lugaratencionId,
+                                horaInicio: horario.horaInicio,
+                                horaFin: horario.horaFin,
+                                dia: dia,
+                                disponible: false,
+                                esParcial: true
+
+                            });
+                        }
 
                         if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
 
@@ -357,43 +370,125 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
         include: [{ model: LugarAtencion, as: 'CentroDeAtencion', include: [{ model: HorarioAtencion, as: 'Horarios' }] }]
     });
 
-    //hacer disponibles los horarios de esta agenda hasta los parciales
-    prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios.map(async h => {
+    // asumir que esto está dentro de un método async
+    const lugar = prestador.CentroDeAtencion.find(
+        (lugar) => lugar.id === agendaTurnos.lugarAtencionId
+    );
 
-        const horarioAgenda = agendaTurnos.Horarios.map(async hAgenda => {
-            console.log("hAgenda:", hAgenda);
-            if (hAgenda.dia === h.dia &&
-                convertirAMinutos(hAgenda.horaInicio) == convertirAMinutos(h.horaInicio) &&
-                convertirAMinutos(hAgenda.horaFin) == convertirAMinutos(h.horaFin)) {
-                await HorarioAtencion.update({ disponible: true }, { where: { horaInicio: hAgenda.horaInicio, horaFin: hAgenda.horaFin, dia: hAgenda.dia, lugarAtencionId: agendaTurnos.lugarAtencionId } });
-                return hAgenda;
+    const horariosPrestador = lugar.Horarios;       // (completos + parciales)
+    const horariosAgenda = agendaTurnos.Horarios;
+
+    // 1) Volver disponibles los hp parciales ocupados por ESTA agenda
+    for (const hAgenda of horariosAgenda) {
+        await HorarioAtencion.update(
+            { disponible: true },
+            {
+                where: {
+                    dia: hAgenda.dia,
+                    horaInicio: hAgenda.horaInicio,
+                    horaFin: hAgenda.horaFin,
+                    lugarAtencionId: agendaTurnos.lugarAtencionId,
+                    esParcial: true,           // solo los parciales del prestador
+                },
             }
+        );
+    }
 
-            // si es parcial reconstruir el completo
-        });
+    // 2) Intentar reconstruir horarios completos a partir de los parciales
+    for (const hCompleto of horariosPrestador) {
+        // solo me interesan los horarios "base" del prestador
+        if (hCompleto.esParcial) continue;
 
-        // if (horarioAgenda.esParcial === true) {
-        //     await HorarioAtencion.destroy({ where: { id: horarioAgenda.id } });
-        // }
+        const iniP = convertirAMinutos(hCompleto.horaInicio);
+        const finP = convertirAMinutos(hCompleto.horaFin);
 
+        // parciales hp dentro del rango de este completo
+        let parciales = horariosPrestador.filter((hp) =>
+            hp.esParcial &&
+            hp.dia === hCompleto.dia &&
+            hp.lugarAtencionId === lugar.id &&
+            convertirAMinutos(hp.horaInicio) >= iniP &&
+            convertirAMinutos(hp.horaFin) <= finP
+        );
 
+        if (parciales.length === 0) continue;
+
+        // Ordenarlos por horaInicio
+        parciales = parciales.sort(
+            (a, b) =>
+                convertirAMinutos(a.horaInicio) - convertirAMinutos(b.horaInicio)
+        );
+
+        // Chequear que cubran desde el inicio hasta el fin del horario completo
+        const cubreInicio =
+            convertirAMinutos(parciales[0].horaInicio) === iniP;
+        const cubreFin =
+            convertirAMinutos(parciales[parciales.length - 1].horaFin) === finP;
+
+        if (!cubreInicio || !cubreFin) {
+            // ejemplo: hp 8-16, pero solo hay parciales 8-12 → no reconstruimos
+            continue;
+        }
+
+        // Chequear que no haya huecos entre parciales (contiguos)
+        let contiguos = true;
+        for (let i = 1; i < parciales.length; i++) {
+            const finAnterior = convertirAMinutos(parciales[i - 1].horaFin);
+            const iniActual = convertirAMinutos(parciales[i].horaInicio);
+            if (finAnterior !== iniActual) {
+                contiguos = false;
+                break;
+            }
+        }
+        if (!contiguos) continue;
+
+        // Verificar que TODOS los parciales estén disponibles
+        const todosDisponibles = parciales.every((p) => p.disponible === true);
+
+        if (!todosDisponibles) continue;
+
+        //Llegado a este punto:
+        // - todos los parciales dentro del rango están disponibles
+        // - cubren de punta a punta el horario completo
+        // - son contiguos
+        //Entonces podemos volver disponible el horario completo y borrar los parciales
+
+        await HorarioAtencion.update(
+            { disponible: true },
+            { where: { id: hCompleto.id } }
+        );
+
+        const idsParciales = parciales.map((p) => p.id);
+        await HorarioAtencion.destroy({ where: { id: idsParciales } });
+    }
+
+    // Después de liberar y reconstruir:
+
+    await prestador.reload({
+        include: [{
+            model: LugarAtencion,
+            as: 'CentroDeAtencion',
+            include: [{ model: HorarioAtencion, as: 'Horarios' }]
+        }]
     });
 
-    // Eliminar solo los horarios asociados a esta agenda
-    await HorarioAtencion.destroy({
-        where: { agendaTurnosId: id },
-    });
+    const lugarActualizado = prestador.CentroDeAtencion
+        .find(lugar => lugar.id === agendaTurnos.lugarAtencionId);
 
-    const horariosDelPrestadorEnEseLugar = agendaTurnos.Prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios;
+    const horariosDelPrestadorEnEseLugar = lugarActualizado.Horarios;
+
 
     let nuevoHorarioInicioDisponible;
     let nuevoHorarioFinDisponible;
+    let nuevoHorarioNoDisponible;
 
     for (const horario of horarios) {
 
         for (const dia of horario.dias) {
 
             for (const horarioPrestador of horariosDelPrestadorEnEseLugar) {
+
+                if (horarioPrestador.esParcial) continue;
 
                 if (horarioPrestador.dia === dia) {
 
@@ -407,11 +502,26 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
                             horaInicio: horario.horaInicio,
                             horaFin: horario.horaFin,
                             duracionTurno: horario.duracion,
-                            dia: dia
+                            dia: dia,
+                            esParcial: convertirAMinutos(horarioPrestador.horaInicio) < convertirAMinutos(horario.horaInicio) || convertirAMinutos(horarioPrestador.horaFin) > convertirAMinutos(horario.horaFin)
                         });
 
                         const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
                         await horarioAActualizar.update({ disponible: false });
+
+                        if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio) ||
+                            convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+                            nuevoHorarioNoDisponible = await HorarioAtencion.create({
+                                agendaTurnosId: null,
+                                lugarAtencionId: agendaTurnos.lugarAtencionId,
+                                horaInicio: horario.horaInicio,
+                                horaFin: horario.horaFin,
+                                dia: dia,
+                                disponible: false,
+                                esParcial: true
+
+                            });
+                        }
 
                         if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
 
