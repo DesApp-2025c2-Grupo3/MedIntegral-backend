@@ -207,7 +207,7 @@ const obtenerTitulares = async (req, res) => {
 
     case "Vigencia futura":
       where[Op.and].push({
-          vigenciaInicio: { [Op.gte]: hoy }
+          vigenciaInicio: { [Op.gte]: hoy.setDate(hoy.getDate() + 1) }
         });
       break;
 
@@ -225,7 +225,7 @@ const obtenerTitulares = async (req, res) => {
         });
 
         where[Op.and].push({
-          vigenciaInicio: { [Op.lte]: hoy }
+          vigenciaInicio: { [Op.lte]: hoy.setDate(hoy.getDate() + 1) }
         });
       }
       break;
@@ -249,12 +249,12 @@ const obtenerTitulares = async (req, res) => {
   }
 
   if (vigenciaDesde) {
-    fechaVigenciaDesde = new Date(vigenciaDesde);
+    const fechaVigenciaDesde = new Date(vigenciaDesde);
     where.vigenciaInicio = { [Op.gte]: fechaVigenciaDesde };
   }
 
   if (vigenciaHasta) {
-    fechaVigenciaHasta = new Date(vigenciaHasta);
+    const fechaVigenciaHasta = new Date(vigenciaHasta);
     fechaVigenciaHasta.setDate(fechaVigenciaHasta.getDate() + 1);
     where.vigenciaFin = { [Op.lte]: fechaVigenciaHasta }; 
   }
@@ -267,7 +267,7 @@ const obtenerTitulares = async (req, res) => {
 
   if (creacionHasta) {
     const fechaHasta = new Date(creacionHasta);
-    fechaHasta.setDate(fechaHasta.getDate()+1);
+    fechaHasta.setDate(fechaHasta.getDate() + 1);
     rangoDeFecha[Op.lte] = fechaHasta;
   }
 
