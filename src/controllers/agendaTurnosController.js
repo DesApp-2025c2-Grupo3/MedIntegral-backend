@@ -375,7 +375,7 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
         (lugar) => lugar.id === agendaTurnos.lugarAtencionId
     );
 
-    const horariosPrestador = lugar.Horarios;       // (completos + parciales)
+    let horariosPrestador = lugar.Horarios;       // (completos + parciales)
     const horariosAgenda = agendaTurnos.Horarios;
 
     // 1) Volver disponibles los hp parciales ocupados por ESTA agenda
@@ -393,6 +393,19 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
             }
         );
     }
+
+    await prestador.reload({
+        include: [{
+            model: LugarAtencion,
+            as: 'CentroDeAtencion',
+            include: [{ model: HorarioAtencion, as: 'Horarios' }]
+        }]
+    });
+
+    const lugarDespuesDeLiberar = prestador.CentroDeAtencion
+        .find(lugar => lugar.id === agendaTurnos.lugarAtencionId);
+
+    horariosPrestador = lugarDespuesDeLiberar.Horarios;
 
     // 2) Intentar reconstruir horarios completos a partir de los parciales
     for (const hCompleto of horariosPrestador) {
@@ -471,6 +484,23 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
             include: [{ model: HorarioAtencion, as: 'Horarios' }]
         }]
     });
+
+    await agendaTurnos.reload({
+        include: [{ model: HorarioAtencion, as: 'Horarios' }]
+    });
+
+    console.log("--------------------");
+
+    console.log("----- Prestador recargado: -----");
+    console.log(prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios);
+
+    console.log("----- Agenda recargada: -----");
+    console.log(agendaTurnos.Horarios);
+
+    console.log("--------------------");
+
+
+    await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
 
     const lugarActualizado = prestador.CentroDeAtencion
         .find(lugar => lugar.id === agendaTurnos.lugarAtencionId);

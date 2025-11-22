@@ -55,7 +55,7 @@ router.put("/:id/horarios",
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateHorarios),
     agendaTurnosMiddleware.validarHorarios,
-    agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
+    //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
     agendaTurnosController.actualizarHorariosDeAgendaTurnos
 );
 
