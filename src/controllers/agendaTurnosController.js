@@ -388,7 +388,6 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
                     horaInicio: hAgenda.horaInicio,
                     horaFin: hAgenda.horaFin,
                     lugarAtencionId: agendaTurnos.lugarAtencionId,
-                    //esParcial: true,           // solo los parciales del prestador
                 },
             }
         );
@@ -488,17 +487,6 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
     await agendaTurnos.reload({
         include: [{ model: HorarioAtencion, as: 'Horarios' }]
     });
-
-    console.log("--------------------");
-
-    console.log("----- Prestador recargado: -----");
-    console.log(prestador.CentroDeAtencion.find(lugar => lugar.id === agendaTurnos.lugarAtencionId).Horarios);
-
-    console.log("----- Agenda recargada: -----");
-    console.log(agendaTurnos.Horarios);
-
-    console.log("--------------------");
-
 
     await HorarioAtencion.destroy({ where: { agendaTurnosId: id } });
 
