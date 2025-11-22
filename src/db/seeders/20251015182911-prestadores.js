@@ -1,11 +1,12 @@
 'use strict';
 
 const { Prestador, Email, Telefono, Especialidad, Direccion, LugarAtencion, HorarioAtencion } = require("../models")
+const { capitalizarCadena } = require("../../services/capitalizarCadena");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    
+
     const prestadoresARegistrar = [
       {
         "nombre": "Dr Pepe Grillo",
@@ -93,50 +94,72 @@ module.exports = {
 
     for (const prestador of prestadoresARegistrar) {
 
+      const {
+        nombre,
+        cuilCuit,
+        esCentroMedico,
+        integraCentroMedico,
+        centroMedicoQueIntegra,
+        especialidades, // Array de IDs { id: X }
+        emails, // Array de objetos { direccion:... }
+        telefonos, // Array de objetos { numero: ... }
+        lugaresAtencion, // Array de objetos , incluyendo la Dirección
+      } = prestador;
+
       const nuevoPrestador = await Prestador.create({
-        nombre: prestador.nombre,
-        cuilCuit: prestador.cuilCuit,
-        esCentroMedico: prestador.esCentroMedico,
-        integraCentroMedico: (prestador.esCentroMedico ? null : prestador.integraCentroMedico),
-        centroMedicoId: (prestador.integraCentroMedico ? prestador.centroMedicoQueIntegra : null)
+        nombre: await capitalizarCadena(nombre),
+        cuilCuit,
+        esCentroMedico,
+        integraCentroMedico,
       });
 
-      const datosEmails = prestador.emails.map((e) => ({
+      const nuevoPrestadorId = nuevoPrestador.id;
+
+      if (integraCentroMedico) {
+        await nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
+      }
+
+      //Asignamos todos los mails
+      const datosEmails = emails.map((e) => ({
         direccion: e.direccion,
-        propietarioId: nuevoPrestador.id,
-        propietarioTipo: 'Prestador',
+        propietarioId: nuevoPrestadorId,
+        propietarioTipo: "Prestador",
       }));
-      await Email.bulkCreate(datosEmails);
+      await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
-      const datosTelefonos = prestador.telefonos.map((t) => ({
+      //Asignamos todos los teléfonos
+      const datosTelefonos = telefonos.map((t) => ({
         numero: t.numero,
-        propietarioId: nuevoPrestador.id,
-        propietarioTipo: 'Prestador',
+        propietarioId: nuevoPrestadorId,
+        propietarioTipo: "Prestador",
       }));
-      await Telefono.bulkCreate(datosTelefonos);
+      await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
 
-      prestador.especialidades.map(async (e) => {
+      especialidades.map(async (e) => {
         const esp = await Especialidad.findByPk(e);
         if (esp) {
           nuevoPrestador.addEspecialidad(esp);
         }
       });
 
-      for (const lugar of prestador.lugaresAtencion) {
+      //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
+      for (const lugar of lugaresAtencion) {
         const nuevaDireccion = await Direccion.create({
-          calle: lugar.calle,
+          calle: await capitalizarCadena(lugar.calle),
           altura: lugar.altura,
-          pisoDepto: lugar.pisoDepto,
-          codigoPostal: lugar.codigoPostal,
-          localidad: lugar.localidad,
-          provinciaId: lugar.provincia,
+          pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
+          codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
+          localidad: await capitalizarCadena(lugar.localidad),
+          provinciaId: lugar.provincia
+
         });
 
         const nuevoLugarAtencion = await LugarAtencion.create({
-          prestadorId: nuevoPrestador.id,
+          prestadorId: nuevoPrestadorId,
           direccionId: nuevaDireccion.id,
         });
 
+        //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
         for (const horarioData of lugar.horarios) {
 
           for (const dia of horarioData.dias) {
@@ -159,6 +182,6 @@ module.exports = {
   async down(queryInterface, Sequelize) {
 
     await Prestador.destroy({ where: {}, truncate: true, cascade: true });
-    
+
   }
 };

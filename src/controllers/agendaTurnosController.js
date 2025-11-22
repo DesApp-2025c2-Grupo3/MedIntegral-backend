@@ -388,7 +388,7 @@ const actualizarHorariosDeAgendaTurnos = async (req, res) => {
                     horaInicio: hAgenda.horaInicio,
                     horaFin: hAgenda.horaFin,
                     lugarAtencionId: agendaTurnos.lugarAtencionId,
-                    esParcial: true,           // solo los parciales del prestador
+                    //esParcial: true,           // solo los parciales del prestador
                 },
             }
         );

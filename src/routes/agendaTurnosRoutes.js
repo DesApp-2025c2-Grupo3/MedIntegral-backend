@@ -13,7 +13,7 @@ router.post('/',
     agendaTurnosMiddleware.validarHorarios,
     agendaTurnosMiddleware.validarQueElLugarTengaRelacionConElPrestador,
     agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
-    agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
+    //agendaTurnosMiddleware.validarLosHorariosEntreAgendasYPrestadores,
     agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
     agendaTurnosController.crearAgendaTurnos
 );
