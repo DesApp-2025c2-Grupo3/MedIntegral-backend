@@ -191,6 +191,9 @@ const obtenerTitulares = async (req, res) => {
   where[Op.and] = [];
   const rangoDeFecha = {};
   const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const rangoVigenciaInicio = new Date(hoy)
+  rangoVigenciaInicio.setDate(rangoVigenciaInicio.getDate() + 1)
 
   if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
@@ -207,7 +210,7 @@ const obtenerTitulares = async (req, res) => {
 
     case "Vigencia futura":
       where[Op.and].push({
-          vigenciaInicio: { [Op.gte]: hoy.setDate(hoy.getDate() + 1) }
+          vigenciaInicio: { [Op.gte]: rangoVigenciaInicio }
         });
       break;
 
@@ -225,7 +228,7 @@ const obtenerTitulares = async (req, res) => {
         });
 
         where[Op.and].push({
-          vigenciaInicio: { [Op.lte]: hoy.setDate(hoy.getDate() + 1) }
+          vigenciaInicio: { [Op.lte]: rangoVigenciaInicio }
         });
       }
       break;
