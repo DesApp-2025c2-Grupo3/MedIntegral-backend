@@ -64,6 +64,7 @@ router.put("/:id/especialidades",
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateEspecialidad),
     genericMiddleware.existModelRequest(Especialidad),
     agendaTurnosMiddleware.validarQueLaEspecialidadTengaRelacionConElPrestador,
+    agendaTurnosMiddleware.validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
     agendaTurnosController.actualizarEspecialidadDeAgendaTurnos
 );
 
