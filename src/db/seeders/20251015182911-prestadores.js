@@ -1,187 +1,693 @@
 'use strict';
-
-const { Prestador, Email, Telefono, Especialidad, Direccion, LugarAtencion, HorarioAtencion } = require("../models")
 const { capitalizarCadena } = require("../../services/capitalizarCadena");
+
+const { 
+  Prestador, 
+  Email, 
+  Telefono, 
+  Especialidad, 
+  Direccion, 
+  LugarAtencion, 
+  HorarioAtencion
+} = require('../models');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
 
-    const prestadoresARegistrar = [
-      {
-        "nombre": "Dr Pepe Grillo",
-        "cuilCuit": "12345678901",
-        "esCentroMedico": false,
-        "integraCentroMedico": false,
-        "centroMedicoQueIntegra": null,
-        "especialidades": [1, 2],
-        "emails": [
-          { "direccion": "pepeg@gmail.com" },
-          { "direccion": "drgrillo@gmail.com" }
-        ],
-        "telefonos": [
-          { "numero": "1234567890" },
-          { "numero": "0123456789" }
-        ],
-        "lugaresAtencion": [{
-          "calle": "Avenida Siempre Viva",
-          "altura": 123,
-          "codigoPostal": "a123",
-          "localidad": "Tigre",
-          "provincia": 1,
-          "horarios": [
-            { "horaInicio": "08:00", "horaFin": "12:00", "dias": ["Lunes", "Miércoles", "Viernes"] },
-            { "horaInicio": "08:00", "horaFin": "18:00", "dias": ["Martes", "Jueves"] }
-          ]
-        }]
-      },
-      {
-        "nombre": "Centro Medico Springfield",
-        "cuilCuit": "12345654321",
-        "esCentroMedico": true,
-        "integraCentroMedico": false,
-        "centroMedicoQueIntegra": null,
-        "especialidades": [1, 2, 3, 4, 5],
-        "emails": [
-          { "direccion": "centromedicos@gmail.com" },
-          { "direccion": "springfieldmedic@gmail.com" }
-        ],
-        "telefonos": [
-          { "numero": "1234554321" },
-          { "numero": "5432112345" }
-        ],
-        "lugaresAtencion": [{
-          "calle": "Calle Falsa",
-          "altura": 123,
-          "codigoPostal": "c123",
-          "localidad": "Leon",
-          "provincia": 2,
-          "horarios": [
-            { "horaInicio": "08:00", "horaFin": "20:00", "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] },
-            { "horaInicio": "10:00", "horaFin": "12:00", "dias": ["Sábado", "Domingo"] }
-          ]
-        }]
-      },
-      {
-        "nombre": "Dr Armando Paredes",
-        "cuilCuit": "11223344556",
-        "esCentroMedico": false,
-        "integraCentroMedico": true,
-        "centroMedicoQueIntegra": 2,
-        "especialidades": [4, 5],
-        "emails": [
-          { "direccion": "armandop@gmail.com" },
-          { "direccion": "drparedes@gmail.com" }
-        ],
-        "telefonos": [
-          { "numero": "3344556677" },
-          { "numero": "4455667788" }
-        ],
-        "lugaresAtencion": [{
-          "calle": "Avenida Springfield",
-          "altura": 654,
-          "codigoPostal": "s123",
-          "localidad": "Pantera",
-          "provincia": 2,
-          "horarios": [
-            { "horaInicio": "10:00", "horaFin": "15:00", "dias": ["Martes", "Jueves"] },
-            { "horaInicio": "12:00", "horaFin": "20:00", "dias": ["Lunes", "Miércoles", "Viernes"] }
-          ]
-        }]
-      }
-    ]
-
-
-    for (const prestador of prestadoresARegistrar) {
-
-      const {
-        nombre,
-        cuilCuit,
-        esCentroMedico,
-        integraCentroMedico,
-        centroMedicoQueIntegra,
-        especialidades, // Array de IDs { id: X }
-        emails, // Array de objetos { direccion:... }
-        telefonos, // Array de objetos { numero: ... }
-        lugaresAtencion, // Array de objetos , incluyendo la Dirección
-      } = prestador;
-
-      const nuevoPrestador = await Prestador.create({
-        nombre: await capitalizarCadena(nombre),
-        cuilCuit,
-        esCentroMedico,
-        integraCentroMedico,
-      });
-
-      const nuevoPrestadorId = nuevoPrestador.id;
-
-      if (integraCentroMedico) {
-        await nuevoPrestador.update({ centroMedicoId: centroMedicoQueIntegra });
-      }
-
-      //Asignamos todos los mails
+    // --- HELPERS ---
+    const crearEmails = async (emails, prestadorId) => {
+      if (!emails || emails.length === 0) return;
       const datosEmails = emails.map((e) => ({
         direccion: e.direccion,
-        propietarioId: nuevoPrestadorId,
-        propietarioTipo: "Prestador",
+        propietarioId: prestadorId,
+        propietarioTipo: 'Prestador',
+        createdAt: new Date(),
+        updatedAt: new Date()
       }));
-      await Email.bulkCreate(datosEmails); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
+      await Email.bulkCreate(datosEmails);
+    };
 
-      //Asignamos todos los teléfonos
+    const crearTelefonos = async (telefonos, prestadorId) => {
+      if (!telefonos || telefonos.length === 0) return;
       const datosTelefonos = telefonos.map((t) => ({
         numero: t.numero,
-        propietarioId: nuevoPrestadorId,
-        propietarioTipo: "Prestador",
+        propietarioId: prestadorId,
+        propietarioTipo: 'Prestador',
+        createdAt: new Date(),
+        updatedAt: new Date()
       }));
-      await Telefono.bulkCreate(datosTelefonos); //<-- bulkCreate método de Sequelize para insertar múltiples registros en la db
+      await Telefono.bulkCreate(datosTelefonos);
+    };
 
-      especialidades.map(async (e) => {
-        const esp = await Especialidad.findByPk(e);
+    const asignarEspecialidades = async (especialidadesIds, prestadorInstance) => {
+      if (!especialidadesIds || especialidadesIds.length === 0) return;
+      for (const espId of especialidadesIds) {
+        const esp = await Especialidad.findByPk(espId);
         if (esp) {
-          nuevoPrestador.addEspecialidad(esp);
+          await prestadorInstance.addEspecialidad(esp);
         }
-      });
+      }
+    };
 
-      //Por cada lugar de atención creamos una dirección y un lugarAtención con esa direccionId y prestadorId
-      for (const lugar of lugaresAtencion) {
-        const nuevaDireccion = await Direccion.create({
-          calle: await capitalizarCadena(lugar.calle),
-          altura: lugar.altura,
-          pisoDepto: lugar.pisoDepto ? lugar.pisoDepto : null,
-          codigoPostal: lugar.codigoPostal ? lugar.codigoPostal : null,
-          localidad: await capitalizarCadena(lugar.localidad),
-          provinciaId: lugar.provincia
+    const crearLugaresAtencion = async (lugares, prestadorId) => {
+      if (!lugares || lugares.length === 0) return;
 
+      for (const lugar of lugares) {
+        const [nuevaDireccion] = await Direccion.findOrCreate({
+          where: {
+            calle: await capitalizarCadena(lugar.calle),
+            altura: lugar.altura,
+            pisoDepto: lugar.pisoDepto || null,
+            codigoPostal: lugar.codigoPostal || null,
+            localidad: await capitalizarCadena(lugar.localidad),
+            provinciaId: lugar.provincia
+          },
+          defaults: {
+            calle: await capitalizarCadena(lugar.calle),
+            altura: lugar.altura,
+            pisoDepto: lugar.pisoDepto || null,
+            codigoPostal: lugar.codigoPostal || null,
+            localidad: await capitalizarCadena(lugar.localidad),
+            provinciaId: lugar.provincia
+          }
         });
 
         const nuevoLugarAtencion = await LugarAtencion.create({
-          prestadorId: nuevoPrestadorId,
-          direccionId: nuevaDireccion.id,
+          prestadorId: prestadorId,
+          direccionId: nuevaDireccion.id
         });
 
-        //Por cada lugar extraemos el array de horarios y por cada uno lo creamos con la FK lugarAtencionId
-        for (const horarioData of lugar.horarios) {
-
-          for (const dia of horarioData.dias) {
-            const nuevoHorario = await HorarioAtencion.create({
-              horaInicio: horarioData.horaInicio,
-              horaFin: horarioData.horaFin,
-              lugarAtencionId: nuevoLugarAtencion.id,
-              dia: dia,
-              disponible: true
-            });
-
+        if (lugar.horarios && lugar.horarios.length > 0) {
+          for (const horarioData of lugar.horarios) {
+            for (const dia of horarioData.dias) {
+              await HorarioAtencion.create({
+                horaInicio: horarioData.horaInicio,
+                horaFin: horarioData.horaFin,
+                lugarAtencionId: nuevoLugarAtencion.id,
+                dia: dia,
+                disponible: true
+              });
+            }
           }
-
         }
       }
+    };
 
+    // --- DATOS ---
+    const prestadoresARegistrar = [
+      // --- CENTROS MÉDICOS ---
+      {
+        refId: 1,
+        nombre: "Clínica Modelo Ituzaingó",
+        cuilCuit: "30111111111",
+        esCentroMedico: true,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [1, 4, 27, 41],
+        emails: [{ direccion: "turnos@clinicaituzaingo.com.ar" }],
+        telefonos: [{ numero: "1146240001" }, { numero: "1146240002" }],
+        lugaresAtencion: [{
+          calle: "Gral. Las Heras",
+          altura: 250,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "20:00", dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] }]
+        }]
+      },
+      {
+        refId: 2,
+        nombre: "Sanatorio del Oeste Hurlingham",
+        cuilCuit: "30222222222",
+        esCentroMedico: true,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [11, 2, 48],
+        emails: [{ direccion: "info@sanatoriohurlingham.com" }],
+        telefonos: [{ numero: "1144520001" }],
+        lugaresAtencion: [{
+          calle: "Pedro Díaz",
+          altura: 1700,
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "00:00", horaFin: "23:59", dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"] }]
+        }]
+      },
+      {
+        refId: 3,
+        nombre: "Centro de Diagnóstico Morón",
+        cuilCuit: "30333333333",
+        esCentroMedico: true,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [41, 42],
+        emails: [{ direccion: "recepcion@cdmoron.com" }],
+        telefonos: [{ numero: "1146290000" }],
+        lugaresAtencion: [{
+          calle: "Ingeniero Boatti",
+          altura: 300,
+          localidad: "Morón",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "18:00", dias: ["Lunes", "Viernes"] }]
+        }]
+      },
+
+      // --- PROFESIONALES QUE INTEGRAN ---
+      {
+        nombre: "Juan Carlos Pérez",
+        cuilCuit: "20111111112",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 1,
+        especialidades: [4],
+        emails: [{ direccion: "juan.perez@clinicaituzaingo.com" }],
+        telefonos: [{ numero: "1155550001" }],
+        lugaresAtencion: [{
+          calle: "Gral. Las Heras",
+          altura: 250,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "14:00", dias: ["Lunes", "Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "María González",
+        cuilCuit: "27111111113",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 1,
+        especialidades: [28],
+        emails: [{ direccion: "dra.gonzalez@gmail.com" }],
+        telefonos: [{ numero: "1155550002" }],
+        lugaresAtencion: [{
+          calle: "Gral. Las Heras",
+          altura: 250,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "14:00", horaFin: "20:00", dias: ["Martes", "Jueves"] }]
+        }]
+      },
+      {
+        nombre: "Roberto Carlos",
+        cuilCuit: "20111111114",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 1,
+        especialidades: [1],
+        emails: [{ direccion: "rcarlos@gmail.com" }],
+        telefonos: [{ numero: "1155556666" }],
+        lugaresAtencion: [{
+          calle: "Gral. Las Heras",
+          altura: 250,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Viernes"] }]
+        }]
+      },
+      {
+        nombre: "Esteban Quintana",
+        cuilCuit: "20222222223",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 2,
+        especialidades: [11],
+        emails: [{ direccion: "esteban.quintana@trauma.com" }],
+        telefonos: [{ numero: "1144440001" }],
+        lugaresAtencion: [{
+          calle: "Pedro Díaz",
+          altura: 1700,
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "10:00", horaFin: "16:00", dias: ["Lunes", "Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "Ana Demichelis",
+        cuilCuit: "27222222224",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 2,
+        especialidades: [2],
+        emails: [{ direccion: "anademichelis@piel.com" }],
+        telefonos: [{ numero: "1144440002" }],
+        lugaresAtencion: [{
+          calle: "Pedro Díaz",
+          altura: 1700,
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "14:00", horaFin: "18:00", dias: ["Martes", "Jueves"] }]
+        }]
+      },
+      {
+        nombre: "Mario Olivieri",
+        cuilCuit: "20222222225",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 2,
+        especialidades: [36],
+        emails: [{ direccion: "mario.olivieri@consultorio.com" }],
+        telefonos: [{ numero: "1144440003" }],
+        lugaresAtencion: [{
+          calle: "Pedro Díaz",
+          altura: 1700,
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "09:00", horaFin: "12:00", dias: ["Viernes"] }]
+        }]
+      },
+      {
+        nombre: "Laura Ramos",
+        cuilCuit: "27333333334",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 3,
+        especialidades: [41],
+        emails: [{ direccion: "laura.ramos@cdmoron.com" }],
+        telefonos: [{ numero: "1166660001" }],
+        lugaresAtencion: [{
+          calle: "Ingeniero Boatti",
+          altura: 300,
+          localidad: "Morón",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "14:00", dias: ["Lunes", "Martes", "Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "Pedro Ibañez",
+        cuilCuit: "20333333335",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 3,
+        especialidades: [42],
+        emails: [{ direccion: "p.ibanez@medico.com" }],
+        telefonos: [{ numero: "1166660002" }],
+        lugaresAtencion: [{
+          calle: "Ingeniero Boatti",
+          altura: 300,
+          localidad: "Morón",
+          provincia: 1,
+          horarios: [{ horaInicio: "14:00", horaFin: "18:00", dias: ["Jueves", "Viernes"] }]
+        }]
+      },
+      {
+        nombre: "Sofía Reinoso",
+        cuilCuit: "27333333336",
+        esCentroMedico: false,
+        integraCentroMedico: true,
+        centroMedicoQueIntegra: 3,
+        especialidades: [42], 
+        emails: [{ direccion: "sofia.reinoso@gmail.com" }],
+        telefonos: [{ numero: "1166660003" }],
+        lugaresAtencion: [{
+          calle: "Ingeniero Boatti",
+          altura: 300,
+          localidad: "Morón",
+          provincia: 1,
+          horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Lunes", "Miércoles"] }]
+        }]
+      },
+
+      // --- INDEPENDIENTES ---
+      {
+        nombre: "Carla Núñez",
+        cuilCuit: "27444444441",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [4, 38],
+        emails: [{ direccion: "dracarla@gmail.com" }],
+        telefonos: [{ numero: "1166667777" }],
+        lugaresAtencion: [{
+          calle: "Soler",
+          altura: 150,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "14:00", horaFin: "19:00", dias: ["Lunes", "Miércoles", "Viernes"] }]
+        }]
+      },
+      {
+        nombre: "Marcos Huerta",
+        cuilCuit: "20444444442",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [34, 47],
+        emails: [{ direccion: "kinesiomarcos@hotmail.com" }],
+        telefonos: [{ numero: "1144448888" }],
+        lugaresAtencion: [{
+          calle: "Jauretche",
+          altura: 1200,
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Martes", "Jueves"] }]
+        }]
+      },
+      {
+        nombre: "Fernando Pérez",
+        cuilCuit: "20444444443",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [5],
+        emails: [{ direccion: "lic.fernando@psico.com" }],
+        telefonos: [{ numero: "1155559999" }],
+        lugaresAtencion: [{
+          calle: "Arias",
+          altura: 2400,
+          localidad: "Castelar",
+          provincia: 1,
+          horarios: [{ horaInicio: "15:00", horaFin: "21:00", dias: ["Lunes", "Martes"] }]
+        }]
+      },
+      {
+        nombre: "Marina Verdi",
+        cuilCuit: "27444444445",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [32],
+        emails: [{ direccion: "nutrimarina@gmail.com" }],
+        telefonos: [{ numero: "1146231111" }],
+        lugaresAtencion: [{
+          calle: "Santa Rosa",
+          altura: 1200,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Sábado"] }]
+        }]
+      },
+      {
+        nombre: "Pablo Suárez",
+        cuilCuit: "20444444446",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [2],
+        emails: [{ direccion: "pablo.suarez@derma.com" }],
+        telefonos: [{ numero: "1199998888" }],
+        lugaresAtencion: [{
+          calle: "Vergara",
+          altura: 3500,
+          localidad: "Villa Tesei",
+          provincia: 1,
+          horarios: [{ horaInicio: "16:00", horaFin: "20:00", dias: ["Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "Oscar Ávila",
+        cuilCuit: "20555555551",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [7],
+        emails: [{ direccion: "oscar.avila@ojos.com" }],
+        telefonos: [{ numero: "1188887777" }],
+        lugaresAtencion: [{
+          calle: "Sarmiento",
+          altura: 800,
+          localidad: "Morón",
+          provincia: 1,
+          horarios: [{ horaInicio: "10:00", horaFin: "16:00", dias: ["Lunes", "Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "Viviana Navarro",
+        cuilCuit: "27555555552",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [6, 37],
+        emails: [{ direccion: "dra.viviana@ginecologia.com" }],
+        telefonos: [{ numero: "1146249999" }],
+        lugaresAtencion: [{
+          calle: "Juncal",
+          altura: 200,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "14:00", horaFin: "18:00", dias: ["Martes", "Jueves"] }]
+        }]
+      },
+
+      // --- LUGAR COMPARTIDO: Consultorios "Lavalle" en Ituzaingó (IDs 20, 21, 22) ---
+      {
+        nombre: "Carlos Urtiz",
+        cuilCuit: "20666666661",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [27],
+        emails: [{ direccion: "dr.carlos@compartido.com" }],
+        telefonos: [{ numero: "1146235555" }],
+        lugaresAtencion: [{
+          calle: "Lavalle",
+          altura: 650,
+          pisoDepto: "PB",
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Lunes", "Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "Daniela Osorio",
+        cuilCuit: "27666666662",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [32],
+        emails: [{ direccion: "dra.daniela@compartido.com" }],
+        telefonos: [{ numero: "1146235555" }],
+        lugaresAtencion: [{
+          calle: "Lavalle",
+          altura: 650,
+          pisoDepto: "PB",
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "13:00", horaFin: "17:00", dias: ["Martes", "Jueves"] }]
+        }]
+      },
+      {
+        nombre: "Tomás Resano",
+        cuilCuit: "20666666663",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [5],
+        emails: [{ direccion: "lic.tomas@compartido.com" }],
+        telefonos: [{ numero: "1146235555" }],
+        lugaresAtencion: [{
+          calle: "Lavalle",
+          altura: 650,
+          pisoDepto: "1A",
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "17:00", horaFin: "21:00", dias: ["Viernes"] }]
+        }]
+      },
+
+      // 23. Cardiólogo con 2 consultorios (Ituzaingó y Morón)
+      {
+        nombre: "Víctor Corvalán",
+        cuilCuit: "20777777771",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [1],
+        emails: [{ direccion: "drvictor@gmail.com" }],
+        telefonos: [{ numero: "1150501234" }],
+        lugaresAtencion: [
+          {
+            calle: "Brandzen",
+            altura: 1000,
+            localidad: "Ituzaingó",
+            provincia: 1,
+            horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Lunes"] }]
+          },
+          {
+            calle: "Brown",
+            altura: 500,
+            localidad: "Morón",
+            provincia: 1,
+            horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Miércoles"] }]
+          }
+        ]
+      },
+
+      // 24. Oncólogo en Hurlingham
+      {
+        nombre: "Gastón Paz",
+        cuilCuit: "20777777772",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [15],
+        emails: [{ direccion: "gastro@paz.com" }],
+        telefonos: [{ numero: "1144528888" }],
+        lugaresAtencion: [{
+          calle: "Ricchieri",
+          altura: 1400,
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "09:00", horaFin: "15:00", dias: ["Jueves"] }]
+        }]
+      },
+
+      // 25. Neumonólogo (Castelar)
+      {
+        nombre: "Ariel Puentes",
+        cuilCuit: "20777777773",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [18],
+        emails: [{ direccion: "dr.ariel@pulmones.com" }],
+        telefonos: [{ numero: "1146271111" }],
+        lugaresAtencion: [{
+          calle: "Santa Rosa",
+          altura: 1800,
+          localidad: "Castelar",
+          provincia: 1,
+          horarios: [{ horaInicio: "10:00", horaFin: "14:00", dias: ["Martes"] }]
+        }]
+      },
+
+      // 26. Urólogo (Ituzaingó)
+      {
+        nombre: "Vito Uriarte",
+        cuilCuit: "20777777774",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [12],
+        emails: [{ direccion: "dr.vito@urologia.com" }],
+        telefonos: [{ numero: "1146242222" }],
+        lugaresAtencion: [{
+          calle: "Olivera",
+          altura: 900,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "16:00", horaFin: "20:00", dias: ["Viernes"] }]
+        }]
+      },
+
+      // 27. Neurólogo (Morón)
+      {
+        nombre: "Clara Méndez",
+        cuilCuit: "27777777775",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [3],
+        emails: [{ direccion: "claramendez@gmail.com" }],
+        telefonos: [{ numero: "1146293333" }],
+        lugaresAtencion: [{
+          calle: "9 de Julio",
+          altura: 200,
+          localidad: "Morón",
+          provincia: 1,
+          horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Lunes", "Viernes"] }]
+        }]
+      },
+
+      // --- LUGAR COMPARTIDO: Consultorios "Cinco Esquinas" Hurlingham (IDs 28, 29) ---
+      {
+        nombre: "Tomás Huergo",
+        cuilCuit: "20888888881",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [11],
+        emails: [{ direccion: "tomas@hurlingham.com" }],
+        telefonos: [{ numero: "1146650000" }],
+        lugaresAtencion: [{
+          calle: "Av. Roca",
+          altura: 1100,
+          pisoDepto: "1",
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Lunes", "Miércoles"] }]
+        }]
+      },
+      {
+        nombre: "Karina Huergo",
+        cuilCuit: "27888888882",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [34],
+        emails: [{ direccion: "karina@hurlingham.com" }],
+        telefonos: [{ numero: "1146650000" }],
+        lugaresAtencion: [{
+          calle: "Av. Roca",
+          altura: 1100,
+          pisoDepto: "2",
+          localidad: "Hurlingham",
+          provincia: 1,
+          horarios: [{ horaInicio: "14:00", horaFin: "19:00", dias: ["Martes", "Jueves"] }]
+        }]
+      },
+
+      // 30. Cirujano Plástico (Ituzaingó)
+      {
+        nombre: "Esteban Leiva",
+        cuilCuit: "20999999991",
+        esCentroMedico: false,
+        integraCentroMedico: false,
+        centroMedicoQueIntegra: null,
+        especialidades: [23],
+        emails: [{ direccion: "esteban@leloir.com" }],
+        telefonos: [{ numero: "1150505050" }],
+        lugaresAtencion: [{
+          calle: "Martin Fierro",
+          altura: 3200,
+          localidad: "Ituzaingó",
+          provincia: 1,
+          horarios: [{ horaInicio: "10:00", horaFin: "18:00", dias: ["Lunes", "Viernes"] }]
+        }]
+      }
+    ];
+
+    // --- PROCESAMIENTO ---
+    // Mapa para relacionar el 'refId' del array con el ID real de base de datos
+    const idMap = {};
+
+    for (const data of prestadoresARegistrar) {
+      
+      // 1. Crear Prestador (Sin ID forzado)
+      const nuevoPrestador = await Prestador.create({
+        nombre: await capitalizarCadena(data.nombre),
+        cuilCuit: data.cuilCuit,
+        esCentroMedico: data.esCentroMedico,
+        integraCentroMedico: data.integraCentroMedico,
+        // Buscamos el ID real en el mapa si integra un centro
+        centroMedicoId: data.integraCentroMedico && data.centroMedicoQueIntegra 
+          ? idMap[data.centroMedicoQueIntegra] 
+          : null
+      });
+
+      // 2. Guardar el ID real en el mapa si tiene referencia
+      if (data.refId) {
+        idMap[data.refId] = nuevoPrestador.id;
+      }
+
+      // 3. Crear Asociaciones (Emails y Teléfonos para TODOS)
+      await crearEmails(data.emails, nuevoPrestador.id);
+      await crearTelefonos(data.telefonos, nuevoPrestador.id);
+      await asignarEspecialidades(data.especialidades, nuevoPrestador);
+
+      if (data.lugaresAtencion && data.lugaresAtencion.length > 0) {
+        await crearLugaresAtencion(data.lugaresAtencion, nuevoPrestador.id);
+      }
     }
   },
 
   async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('HorariosAtencion', null, { truncate: true, cascade: true, restartIdentity: true });
+    await queryInterface.bulkDelete('LugaresAtencion', null, { truncate: true, cascade: true, restartIdentity: true });
+    await queryInterface.bulkDelete('PrestadorEspecialidad', null, { truncate: true, cascade: true, restartIdentity: true });
+    
+    await queryInterface.bulkDelete('Telefonos', { propietarioTipo: 'Prestador' }, { truncate: true, cascade: true, restartIdentity: true });
+    await queryInterface.bulkDelete('Emails', { propietarioTipo: 'Prestador' }, { truncate: true, cascade: true, restartIdentity: true });
 
-    await Prestador.destroy({ where: {}, truncate: true, cascade: true });
-
+    await queryInterface.bulkDelete('Prestadores', null, { truncate: true, cascade: true, restartIdentity: true });
   }
 };
