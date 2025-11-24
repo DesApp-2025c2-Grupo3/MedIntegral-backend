@@ -2,18 +2,50 @@ const { Afiliado } = require("../db/models");
 const dayjs = require("dayjs");
 
 const yaExisteNumeroDeDni = async (req, res, next) => {
-  const { numeroDocumento } = req.body;
+  const { numeroDocumento, grupoFamiliar = [] } = req.body;
   try {
-    const afiliadoExistente = await Afiliado.findOne({
+    const existeTitular = await Afiliado.findOne({
       where: {
         numeroDocumento: numeroDocumento,
       },
     });
-    if (afiliadoExistente) {
+    if (existeTitular) {
       return res.status(400).json({
         message: `El numero de documento ya está registrado`,
       });
     }
+
+    for (const miembro of grupoFamiliar) {
+      const existeMiembro = await Afiliado.findOne({
+        where: {
+          numeroDocumento: miembro.numeroDocumento,
+        },
+      });
+
+      if (existeMiembro) {
+        return res.status(400).json({
+          message: `El numero de documento del miembro ya está registrado`,
+        });
+      }
+    }
+
+    const documentosUnicos = new Set();
+
+    if (numeroDocumento) {
+      documentosUnicos.add(numeroDocumento);
+    }
+
+    for (const miembro of grupoFamiliar) {
+      if (miembro.numeroDocumento) {
+        if (documentosUnicos.has(miembro.numeroDocumento)) {
+          return res.status(400).json({
+            message: `Hay documentos duplicados dentro del grupo familiar: ${miembro.numeroDocumento}`,
+          });
+        }
+        documentosUnicos.add(miembro.numeroDocumento);
+      }
+    }
+
     next();
   } catch (error) {
     next(error);
@@ -83,7 +115,7 @@ const validateDocumentoUnicoEnActualizacion = async (req, res, next) => {
     const afiliadoExistente = await Afiliado.findOne({
       where: {
         numeroDocumento: numeroDocumento,
-        id: { [Op.ne]: id }
+        id: { [Op.ne]: id },
       },
     });
 
@@ -101,5 +133,5 @@ const validateDocumentoUnicoEnActualizacion = async (req, res, next) => {
 module.exports = {
   yaExisteNumeroDeDni,
   validateVigencia,
-  validateDocumentoUnicoEnActualizacion
+  validateDocumentoUnicoEnActualizacion,
 };

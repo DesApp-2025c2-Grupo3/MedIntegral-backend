@@ -134,12 +134,15 @@ const crearAfiliado = async (req, res) => {
     let nIntegrante = 2;
 
     for (const miembro of grupoFamiliar) {
+      const capitalizedNombre = await capitalizarCadena(miembro.nombre);
+      const capitalizedApellido = await capitalizarCadena(miembro.apellido);
+
       const nuevoIntegrante = await Afiliado.create({
         tipoDocumentoId: miembro.tipoDocumentoId,
         numeroDocumento: miembro.numeroDocumento,
         fechaNacimiento: miembro.fechaNacimiento,
-        nombre: miembro.nombre,
-        apellido: miembro.apellido,
+        nombre: capitalizedNombre,
+        apellido: capitalizedApellido,
         vigenciaInicio: miembro.vigenciaInicio,
         vigenciaFin: miembro.vigenciaFin,
         nIntegrante: nIntegrante,
@@ -191,6 +194,9 @@ const obtenerTitulares = async (req, res) => {
   where[Op.and] = [];
   const rangoDeFecha = {};
   const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const rangoVigenciaInicio = new Date(hoy)
+  rangoVigenciaInicio.setDate(rangoVigenciaInicio.getDate() + 1)
 
   if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
@@ -200,16 +206,35 @@ const obtenerTitulares = async (req, res) => {
     ];
   }
 
-  if (!estado) {
-    where[Op.and].push({
-      [Op.or]: [
-        { titularId: null, vigenciaFin: { [Op.is]: null } },
-        { titularId: null, vigenciaFin: { [Op.gte]: hoy } },
-      ],
-    });
-  }
-  else{
-    where[Op.and].push({ titularId: null });
+  switch(estado){
+    case "Bajas":
+      where[Op.and].push({ titularId: null, vigenciaFin: { [Op.lte]: hoy } });
+      break;
+
+    case "Vigencia futura":
+      where[Op.and].push({
+          vigenciaInicio: { [Op.gte]: rangoVigenciaInicio }
+        });
+      break;
+
+    case "Todos":
+      where[Op.and].push({ titularId: null });
+      break;
+
+    default:
+      {
+        where[Op.and].push({
+          [Op.or]: [
+            { titularId: null, vigenciaFin: { [Op.is]: null } },
+            { titularId: null, vigenciaFin: { [Op.gte]: hoy } },
+          ],
+        });
+
+        where[Op.and].push({
+          vigenciaInicio: { [Op.lte]: rangoVigenciaInicio }
+        });
+      }
+      break;
   }
 
   if (tipoDocumento) {
@@ -230,11 +255,14 @@ const obtenerTitulares = async (req, res) => {
   }
 
   if (vigenciaDesde) {
-    where.vigenciaInicio = { [Op.gte]: vigenciaDesde };
+    const fechaVigenciaDesde = new Date(vigenciaDesde);
+    where.vigenciaInicio = { [Op.gte]: fechaVigenciaDesde };
   }
 
   if (vigenciaHasta) {
-    where[Op.and].push({ vigenciaFin: { [Op.lte]: vigenciaHasta }});
+    const fechaVigenciaHasta = new Date(vigenciaHasta);
+    fechaVigenciaHasta.setDate(fechaVigenciaHasta.getDate() + 1);
+    where.vigenciaFin = { [Op.lte]: fechaVigenciaHasta }; 
   }
 
   if (creacionDesde) {
@@ -245,7 +273,7 @@ const obtenerTitulares = async (req, res) => {
 
   if (creacionHasta) {
     const fechaHasta = new Date(creacionHasta);
-    fechaHasta.setHours(23, 59, 59, 999);
+    fechaHasta.setDate(fechaHasta.getDate() + 1);
     rangoDeFecha[Op.lte] = fechaHasta;
   }
 
@@ -265,7 +293,7 @@ const obtenerTitulares = async (req, res) => {
       "vigenciaInicio",
       "vigenciaFin",
       "numeroDocumento",
-      "fechaNacimiento",
+      "fechaNacimiento"
     ],
     include: [
       {
@@ -403,8 +431,6 @@ const obtenerProvinciasAfiliados = async (_, res) => {
   const filtradas = Array.from(setProvincias).flatMap((provincia) =>
     provinciasTotales.filter((p) => p.nombre == provincia)
   );
-
-  //const provinciasFormateadas = Array.from(setProvincias).map((provincia) => ({value: provincia, label: provincia}))
 
   return res.status(200).json(filtradas);
 };
@@ -582,18 +608,6 @@ const actualizarCoberturaAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 };
 
-const actualizarSituacionesTerapeuticasAfiliado = async (req, res) => {
-  const { id } = req.params;
-  const { situacionesTerapeuticas } = req.body;
-
-  const afiliado = await Afiliado.findByPk(id);
-  await AfiliadoSituaciones.destroy({ where: { afiliadoId: afiliado.id } });
-
-  await crearSituacionesTerapeuticas(situacionesTerapeuticas, afiliado.id);
-
-  res.status(200).json(afiliado);
-};
-
 const actualizarDatosContactoAfiliado = async (req, res) => {
   const { id } = req.params;
   const { emails, telefonos } = req.body;
@@ -650,6 +664,7 @@ const crearDirecciones = async (direcciones, afiliadoId) => {
       ...direccionData,
       calle: calleCapitalizada,
       localidad: localidadCapitalizada,
+      provinciaId: direccionData.provinciaId
     };
 
     const [direccion] = await Direccion.findOrCreate({
@@ -657,8 +672,9 @@ const crearDirecciones = async (direcciones, afiliadoId) => {
         calle: calleCapitalizada,
         altura: direccionData.altura,
         pisoDepto: direccionData.pisoDepto,
-        localidad: direccionData.localidad,
+        localidad: localidadCapitalizada,
         codigoPostal: direccionData.codigoPostal,
+        provinciaId: direccionData.provinciaId
       },
       defaults: datosParaCrear,
     });
@@ -697,7 +713,6 @@ module.exports = {
   bajaAfiliado,
   actualizarDatosPersonalesAfiliado,
   actualizarCoberturaAfiliado,
-  actualizarSituacionesTerapeuticasAfiliado,
   actualizarDatosContactoAfiliado,
   actualizarDireccionesAfiliado,
 };
