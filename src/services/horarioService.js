@@ -38,5 +38,11 @@ const noSeSuperponenHorarios = (horarios, next) => {
     }
 }
 
-module.exports = { convertirAMinutos, horariosCorrectos, noSeSuperponenHorarios }; 
+const minutosAString = (minutos) => {
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+    return `${horas.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
+
+module.exports = { convertirAMinutos, horariosCorrectos, noSeSuperponenHorarios, minutosAString }; 
 

@@ -7,7 +7,7 @@ const {
     Direccion,
     Provincia
 } = require("../db/models");
-const { convertirAMinutos } = require("../services/horarioService");
+const { convertirAMinutos, minutosAString } = require("../services/horarioService");
 
 const { Op } = require("sequelize");
 
@@ -309,6 +309,7 @@ const formatearAgenda = (agenda) => {
         calle: direccionData.calle,
         altura: direccionData.altura,
         pisoDepto: direccionData.pisoDepto,
+        codigoPostal: direccionData.codigoPostal,
         localidad: direccionData.localidad,
         provincia: provincia.nombre,
     };
@@ -701,6 +702,7 @@ const formatearPrestador = (prestador) => {
         calle: lugar.Direccion.calle,
         altura: lugar.Direccion.altura,
         pisoDepto: lugar.Direccion.pisoDepto,
+        codigoPostal: lugar.Direccion.codigoPostal,
         localidad: lugar.Direccion.localidad,
         provincia: lugar.Direccion.Provincia.nombre,
         horarios: lugar.Horarios,
