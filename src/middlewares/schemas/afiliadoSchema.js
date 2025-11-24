@@ -119,7 +119,7 @@ const direccionSchema = Joi.object({
           .pattern(/^\d{2,}$/)
           .required()
           .messages({
-            "string.base": "La altura debe ser un número",
+            "string.base": "La altura debe ser una cadena de texto",
             "string.pattern": "La altura debe ser numérica (Mín. 2 dígitos)",
             "any.required": "La altura es obligatoria",
           }),

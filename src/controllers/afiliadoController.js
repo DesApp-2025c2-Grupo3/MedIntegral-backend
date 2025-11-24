@@ -134,12 +134,15 @@ const crearAfiliado = async (req, res) => {
     let nIntegrante = 2;
 
     for (const miembro of grupoFamiliar) {
+      const capitalizedNombre = await capitalizarCadena(miembro.nombre);
+      const capitalizedApellido = await capitalizarCadena(miembro.apellido);
+
       const nuevoIntegrante = await Afiliado.create({
         tipoDocumentoId: miembro.tipoDocumentoId,
         numeroDocumento: miembro.numeroDocumento,
         fechaNacimiento: miembro.fechaNacimiento,
-        nombre: miembro.nombre,
-        apellido: miembro.apellido,
+        nombre: capitalizedNombre,
+        apellido: capitalizedApellido,
         vigenciaInicio: miembro.vigenciaInicio,
         vigenciaFin: miembro.vigenciaFin,
         nIntegrante: nIntegrante,
@@ -661,6 +664,7 @@ const crearDirecciones = async (direcciones, afiliadoId) => {
       ...direccionData,
       calle: calleCapitalizada,
       localidad: localidadCapitalizada,
+      provinciaId: direccionData.provinciaId
     };
 
     const [direccion] = await Direccion.findOrCreate({
@@ -668,8 +672,9 @@ const crearDirecciones = async (direcciones, afiliadoId) => {
         calle: calleCapitalizada,
         altura: direccionData.altura,
         pisoDepto: direccionData.pisoDepto,
-        localidad: direccionData.localidad,
+        localidad: localidadCapitalizada,
         codigoPostal: direccionData.codigoPostal,
+        provinciaId: direccionData.provinciaId
       },
       defaults: datosParaCrear,
     });
