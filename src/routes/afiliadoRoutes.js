@@ -4,6 +4,7 @@ const { afiliadoController } = require("../controllers");
 const { genericMiddleware, afiliadoMiddleware } = require("../middlewares");
 const { afiliadoSchema } = require("../middlewares/schemas");
 const { Afiliado } = require("../db/models");
+const { existsAnyByModel } = require("../middlewares/genericMiddleware");
 
 router.post(
   "/",
@@ -36,6 +37,11 @@ router.get(
   "/:id",
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.obtenerAfiliado
+);
+
+router.get("/:id/reporte", 
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.obtenerReporteAfiliado
 );
 
 router.delete(
