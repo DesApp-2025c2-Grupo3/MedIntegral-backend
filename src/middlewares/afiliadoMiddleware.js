@@ -1,5 +1,6 @@
 const { Afiliado } = require("../db/models");
 const dayjs = require("dayjs");
+const { Op } = require("sequelize");
 
 const yaExisteNumeroDeDni = async (req, res, next) => {
   const { numeroDocumento, grupoFamiliar = [] } = req.body;
@@ -121,6 +122,7 @@ const validateDocumentoUnicoEnActualizacion = async (req, res, next) => {
 
     if (afiliadoExistente) {
       return res.status(400).json({
+        field: numeroDocumento,
         message: `Ya existe otro afiliado con este número de documento`,
       });
     }

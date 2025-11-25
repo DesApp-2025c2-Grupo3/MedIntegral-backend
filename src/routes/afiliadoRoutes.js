@@ -50,6 +50,7 @@ router.put(
   genericMiddleware.schemaValidator(
     afiliadoSchema.afiliadoSchemaUpdateDatosPersonales
   ),
+  afiliadoMiddleware.validateDocumentoUnicoEnActualizacion,
   afiliadoController.actualizarDatosPersonalesAfiliado
 );
 
