@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { errorPersonalizado } = require('./genericMiddleware');
 const { AgendaTurnos, Prestador, LugarAtencion, HorarioAtencion, Especialidad } = require("../db/models");
 const { convertirAMinutos, horariosCorrectos, noSeSuperponenHorarios } = require("../services/horarioService");
@@ -88,29 +89,63 @@ const validarQueLaEspecialidadTengaRelacionConElPrestador = async (req, res, nex
 
 const validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad = async (req, res, next) => {
 
-    const { prestadorId, lugaratencionId, especialidadId } = req.body;
+    const { prestadorId, especialidadId } = req.body;
+    let { lugaratencionId } = req.body;
+    const { id } = req.params;
 
-    const agendaExistente = await AgendaTurnos.findOne({
-        where: {
-            prestadorId: prestadorId,
-            lugarAtencionId: lugaratencionId,
-            especialidadId: especialidadId
+    const IS_UPDATE = !!id;
+    
+    if (IS_UPDATE) {
+        const agendaActual = await AgendaTurnos.findOne({
+            where: { id }
+        });
+
+        if (!agendaActual) {
+            return errorPersonalizado("La agenda no existe", 404, next);
         }
-    });
+
+        lugaratencionId = agendaActual.lugarAtencionId;
+    }
+
+    const where = {
+        prestadorId,
+        lugarAtencionId: lugaratencionId,
+        especialidadId,
+    };
+
+    if (IS_UPDATE) {
+        where.id = { [Op.ne]: id }; 
+    }
+
+    const agendaExistente = await AgendaTurnos.findOne({ where });
 
     if (agendaExistente) {
-        return errorPersonalizado(`Ya existe una agenda para el prestador con id ${prestadorId} en el lugar de atención con id ${lugaratencionId} y con la especialidad con id ${especialidadId}`, 400, next);
+        return errorPersonalizado(`Ya existe la agenda #${agendaExistente.id}# para el prestador con id ${prestadorId} en el lugar de atención con id ${lugaratencionId} y con la especialidad con id ${especialidadId}`, 400, next);
     }
 
     next();
 };
+
+const validarQueExistaElPrestador = async (req, res, next) => {
+
+    const { prestadorId } = req.params;
+
+    const prestador = await Prestador.findByPk(prestadorId);
+
+    if (!prestador) {
+        return errorPersonalizado(`No existe el prestador con id ${prestadorId}`, 404, next);
+    }
+
+    next();
+}
 
 module.exports = {
     validarLosHorariosEntreAgendasYPrestadores,
     validarQueElLugarTengaRelacionConElPrestador,
     validarQueLaEspecialidadTengaRelacionConElPrestador,
     validarQueNoExistaUnaAgendaConElMismoPrestadorMismoLugarYMismaEspecialidad,
-    validarHorarios
+    validarHorarios,
+    validarQueExistaElPrestador
 };
 
 //al crear agendas se saca de disponibilidad, y al modificar o eliminar agendas se vuelve a poner en disponibilidad

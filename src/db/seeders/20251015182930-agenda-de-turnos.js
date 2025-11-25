@@ -50,6 +50,7 @@ module.exports = {
 
       let nuevoHorarioInicioDisponible;
       let nuevoHorarioFinDisponible;
+      let nuevoHorarioNoDisponible;
 
       for (const horario of horarios) {
 
@@ -69,11 +70,26 @@ module.exports = {
                   horaInicio: horario.horaInicio,
                   horaFin: horario.horaFin,
                   duracionTurno: horario.duracion,
-                  dia: dia
+                  dia: dia,
+                  esParcial: convertirAMinutos(horarioPrestador.horaInicio) < convertirAMinutos(horario.horaInicio) || convertirAMinutos(horarioPrestador.horaFin) > convertirAMinutos(horario.horaFin)
                 });
 
                 const horarioAActualizar = await HorarioAtencion.findByPk(horarioPrestador.id);
                 await horarioAActualizar.update({ disponible: false });
+
+                if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio) ||
+                  convertirAMinutos(horarioPrestador.horaFin) != convertirAMinutos(horario.horaFin)) {
+                  nuevoHorarioNoDisponible = await HorarioAtencion.create({
+                    agendaTurnosId: null,
+                    lugarAtencionId: lugaratencionId,
+                    horaInicio: horario.horaInicio,
+                    horaFin: horario.horaFin,
+                    dia: dia,
+                    disponible: false,
+                    esParcial: true
+
+                  });
+                }
 
                 if (convertirAMinutos(horarioPrestador.horaInicio) != convertirAMinutos(horario.horaInicio)) {
 

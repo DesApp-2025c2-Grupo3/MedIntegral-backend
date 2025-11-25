@@ -121,6 +121,11 @@ const agendaTurnosSchemaUpdateHorarios = Joi.object({
 })
 
 const agendaTurnosSchemaUpdateEspecialidad = Joi.object({
+    prestadorId: Joi.number().integer().required().messages({
+        'number.base': 'El ID del prestador debe ser un número',
+        'number.integer': 'El ID del prestador debe ser un número entero',
+        'any.required': 'El ID del prestador es obligatorio'
+    }),
 
     especialidadId: Joi.number().integer().messages({
         'number.base': 'El ID de la especialidad debe ser un número',

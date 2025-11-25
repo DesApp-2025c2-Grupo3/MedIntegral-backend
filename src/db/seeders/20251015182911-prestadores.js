@@ -1,4 +1,5 @@
 'use strict';
+const { capitalizarCadena } = require("../../services/capitalizarCadena");
 
 const { 
   Prestador, 
@@ -55,19 +56,19 @@ module.exports = {
       for (const lugar of lugares) {
         const [nuevaDireccion] = await Direccion.findOrCreate({
           where: {
-            calle: lugar.calle,
+            calle: await capitalizarCadena(lugar.calle),
             altura: lugar.altura,
             pisoDepto: lugar.pisoDepto || null,
             codigoPostal: lugar.codigoPostal || null,
-            localidad: lugar.localidad,
+            localidad: await capitalizarCadena(lugar.localidad),
             provinciaId: lugar.provincia
           },
           defaults: {
-            calle: lugar.calle,
+            calle: await capitalizarCadena(lugar.calle),
             altura: lugar.altura,
             pisoDepto: lugar.pisoDepto || null,
             codigoPostal: lugar.codigoPostal || null,
-            localidad: lugar.localidad,
+            localidad: await capitalizarCadena(lugar.localidad),
             provinciaId: lugar.provincia
           }
         });
@@ -653,7 +654,7 @@ module.exports = {
       
       // 1. Crear Prestador (Sin ID forzado)
       const nuevoPrestador = await Prestador.create({
-        nombre: data.nombre,
+        nombre: await capitalizarCadena(data.nombre),
         cuilCuit: data.cuilCuit,
         esCentroMedico: data.esCentroMedico,
         integraCentroMedico: data.integraCentroMedico,
