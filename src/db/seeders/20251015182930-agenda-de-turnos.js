@@ -9,24 +9,130 @@ module.exports = {
 
     const agendas = [
       {
-        "prestadorId": 1,
-        "especialidadId": 1,
-        "lugaratencionId": 1,
+        "//": "Prestador 4: Juan Carlos Pérez (Integra P1). Lugar ID 4 es su consultorio en la clínica.",
+        "prestadorId": 4,
+        "especialidadId": 4,
+        "lugaratencionId": 4,
         "horarios": [
-          { "horaInicio": "08:00", "horaFin": "12:00", "duracion": 20, "dias": ["Lunes", "Viernes"] },
-          { "horaInicio": "10:00", "horaFin": "12:00", "duracion": 15, "dias": ["Miércoles"] }
+          {
+            "horaInicio": "09:00",
+            "horaFin": "11:00",
+            "duracion": 30,
+            "dias": ["Lunes"]
+          },
+          {
+            "horaInicio": "08:30",
+            "horaFin": "12:30",
+            "duracion": 30,
+            "dias": ["Miércoles"]
+          }
         ]
       },
       {
-        "prestadorId": 3,
-        "especialidadId": 4,
-        "lugaratencionId": 3,
+        "//": "Prestador 13: Carla Núñez (Independiente). Lugar ID 13.",
+        "prestadorId": 13,
+        "especialidadId": 38,
+        "lugaratencionId": 13,
         "horarios": [
-          { "horaInicio": "11:00", "horaFin": "14:00", "duracion": 30, "dias": ["Martes", "Jueves"] }
+          {
+            "horaInicio": "14:30",
+            "horaFin": "18:00",
+            "duracion": 20,
+            "dias": ["Lunes", "Viernes"]
+          }
+        ]
+      },
+      {
+        "//": "Prestador 20: Carlos Urtiz (Compartido Lavalle). Lugar ID 20.",
+        "prestadorId": 20,
+        "especialidadId": 27,
+        "lugaratencionId": 20,
+        "horarios": [
+          {
+            "horaInicio": "08:00",
+            "horaFin": "11:00",
+            "duracion": 40,
+            "dias": ["Lunes"]
+          }
+        ]
+      },
+      {
+        "//": "Prestador 23: Víctor Corvalán (Tiene 2 lugares). Lugar ID 23 (Ituzaingó).",
+        "prestadorId": 23,
+        "especialidadId": 1,
+        "lugaratencionId": 23,
+        "horarios": [
+          {
+            "horaInicio": "08:00",
+            "horaFin": "11:30",
+            "duracion": 30,
+            "dias": ["Lunes"]
+          }
+        ]
+      },
+      {
+        "//": "Prestador 23: Víctor Corvalán. Lugar ID 24 (Morón).",
+        "prestadorId": 23,
+        "especialidadId": 1,
+        "lugaratencionId": 24,
+        "horarios": [
+          {
+            "horaInicio": "09:00",
+            "horaFin": "12:00",
+            "duracion": 30,
+            "dias": ["Miércoles"]
+          }
+        ]
+      },
+      {
+        "//": "Prestador 30: Esteban Leiva (Ultimo de la lista). Lugar ID 31 (IDs acumulados: 22 previos + 2 de Victor + 6 otros).",
+        "prestadorId": 30,
+        "especialidadId": 23,
+        "lugaratencionId": 31,
+        "horarios": [
+          {
+            "horaInicio": "10:00",
+            "horaFin": "14:00",
+            "duracion": 60,
+            "dias": ["Lunes"]
+          },
+          {
+            "horaInicio": "15:00",
+            "horaFin": "18:00",
+            "duracion": 45,
+            "dias": ["Viernes"]
+          }
+        ]
+      },
+      {
+        "//": "Prestador 28: Tomás Huergo (Compartido Cinco Esquinas). Lugar ID 29.",
+        "prestadorId": 28,
+        "especialidadId": 11,
+        "lugaratencionId": 29,
+        "horarios": [
+          {
+            "horaInicio": "08:00",
+            "horaFin": "12:00",
+            "duracion": 20,
+            "dias": ["Miércoles"]
+          }
+        ]
+      },
+      {
+        "//": "Prestador 7: Esteban Quintana (Integra P2). Lugar ID 7.",
+        "prestadorId": 7,
+        "especialidadId": 11,
+        "lugaratencionId": 7,
+        "horarios": [
+          {
+            "horaInicio": "10:00",
+            "horaFin": "13:00",
+            "duracion": 15,
+            "dias": ["Lunes"]
+          }
         ]
       }
     ]
-
 
     for (const agenda of agendas) {
 
