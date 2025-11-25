@@ -16,6 +16,7 @@ router.post(
 router.post(
   "/:id/dependientes",
   genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoMiddleware.yaExisteNumeroDeDni,
   genericMiddleware.schemaValidator(
     afiliadoSchema.afiliadoSchemaCreateDependiente
   ),
