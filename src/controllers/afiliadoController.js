@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const { generarProximoNAfiliado } = require("../services/contratoService");
 const { capitalizarCadena } = require("../services/capitalizarCadena");
+const { generarReporteAfiliadoPDF } = require('../utils/pdfGenerator.js');
 
 const {
   TipoDocumento,
@@ -485,6 +486,115 @@ const obtenerAfiliado = async (req, res) => {
   res.status(200).json(afiliado);
 };
 
+const obtenerReporteAfiliado = async (req, res) => {
+  const { id } = req.params;
+
+  const afiliado = await Afiliado.findByPk(id, {
+    attributes: [
+      "nombre", 
+      "apellido",
+      "numeroDocumento",
+    ],
+    include: [
+      {
+        model: SituacionTerapeutica,
+        as: "situacionesTerapeuticas",
+        attributes: ["nombre"],
+        through: {
+          model: AfiliadoSituaciones,
+          attributes: ["fechaInicio", "fechaFin"],
+        },
+      },
+
+      {
+        model: Afiliado,
+        as: "dependientes",
+        separate: true,
+        attributes: [
+          "id",
+          "nombre",
+          "apellido",
+          "numeroDocumento",
+        ],
+
+        include: [
+          {
+            model: SituacionTerapeutica,
+            as: "situacionesTerapeuticas",
+            attributes: ["nombre"],
+            through: {
+              model: AfiliadoSituaciones,
+              attributes: ["fechaInicio", "fechaFin"],
+            },
+          },
+        ],
+      },
+    ],
+  })
+
+  if (!afiliado) {
+    return res.status(404).json({ error: "Afiliado no encontrado." })
+  };
+
+
+  const situacionesFormateadas = (st) => ({
+    situaciones: st.map((s) => s.nombre).join("\n\n"),
+    inicio: st.map((s)=>formatoFecha(s.AfiliadoSituaciones.fechaInicio)).join("\n\n"),
+    fin: st.map((s)=>formatoFecha(s.AfiliadoSituaciones.fechaFin)).join("\n\n"),
+  });
+  
+  const dependientes = afiliado.dependientes.map((d) => ({
+    nombre: `${d.nombre} ${d.apellido}`,
+    numeroDocumento: d.numeroDocumento,
+    ...situacionesFormateadas(d.situacionesTerapeuticas?? [])    
+  }))
+
+  const titularYGrupoFamiliar = [
+    {
+      nombre: `${afiliado.nombre} ${afiliado.apellido}`,
+      numeroDocumento: afiliado.numeroDocumento,
+      ...situacionesFormateadas(afiliado.situacionesTerapeuticas?? [])
+    },
+    ...dependientes
+  ]
+
+  const dataTable = {
+    tittle: 'Reporte Situaciones Terapéuticas',
+    headers: [
+      { label:"Afiliado/s", property: 'nombre', align: 'center' },
+      { label:"DNI", property: 'numeroDocumento', align: 'center' }, 
+      { label:"S.Terapéuticas", property: 'situaciones', align: 'center' }, 
+      { label:"Desde", property: 'inicio', align: 'center' }, 
+      { label:"Hasta", property: 'fin', align: 'center' },
+    ],
+    datas: titularYGrupoFamiliar  
+  }
+
+  const stream = res.writeHead(200,{
+    "Content-Type": "application/pdf",
+    "Content-Disposition": `attachment; filename=reporteAfiliado${id}.pdf`,
+  })
+
+  generarReporteAfiliadoPDF(
+    dataTable,
+    (data) => stream.write(data),
+    () => stream.end()
+  );
+};
+
+const formatoFecha = (fechaUtc) => {
+
+  if(fechaUtc === "" || fechaUtc === null){
+    return;
+  }
+  const fecha = new Date(fechaUtc);
+  const dia = fecha.getUTCDate();
+  const mes = fecha.getUTCMonth()+1;
+  const anio = fecha.getUTCFullYear();
+
+  return `${dia}-${mes}-${anio}`;
+}
+
 const agregarDependiente = async (req, res) => {
   const { id } = req.params;
 
@@ -707,6 +817,7 @@ module.exports = {
   crearAfiliado,
   obtenerTitulares,
   obtenerAfiliado,
+  obtenerReporteAfiliado,
   obtenerLocalidadesAfiliados,
   obtenerProvinciasAfiliados,
   agregarDependiente,
