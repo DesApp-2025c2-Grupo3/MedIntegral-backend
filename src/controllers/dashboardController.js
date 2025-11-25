@@ -118,7 +118,12 @@ const obtenerAfiliadosConBaja = async (_, res) => {
   const mes = fechaActual.getMonth();
   const fechaFinMes = new Date(año, mes, 30);
 
-  const afiliados = await Afiliado.findAll({where: {vigenciaFin:{[Op.between]:[fechaActual, fechaFinMes]}}})
+  const afiliados = await Afiliado.findAll({
+    where: {
+      vigenciaFin:{[Op.between]:[fechaActual, fechaFinMes]},
+      titularId: {[Op.is]: null}
+    }
+  })
 
   const afiliadosDeBaja = afiliados.map((a) => ({
       id: a.id,
@@ -126,7 +131,7 @@ const obtenerAfiliadosConBaja = async (_, res) => {
       vigenciaHasta: a.vigenciaFin
   }))
 
-  res.status(200).json(afiliadosDeBaja)
+  res.status(200).json(afiliadosDeBaja);
 };
 
 const obtenerPrestadoresSinAgenda = async (_, res) => {
