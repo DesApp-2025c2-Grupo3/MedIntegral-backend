@@ -23,24 +23,30 @@ router.post(
   afiliadoController.agregarDependiente
 );
 
-router.get(
-  "/",
+router.get("/",
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.obtenerTitulares
 );
 
-router.get("/localidades", afiliadoController.obtenerLocalidadesAfiliados);
+router.get("/localidades", 
+  afiliadoController.obtenerLocalidadesAfiliados
+);
 
-router.get("/provincias", afiliadoController.obtenerProvinciasAfiliados);
+router.get("/provincias", 
+  afiliadoController.obtenerProvinciasAfiliados
+);
 
-router.get(
-  "/:id",
+router.get("/:id",
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.obtenerAfiliado
 );
 
-router.delete(
-  "/:id",
+router.get("/:id/reporte", 
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.obtenerReporteAfiliado
+);
+
+router.delete("/:id",
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.bajaAfiliado
 );
@@ -60,37 +66,26 @@ router.put(
 router.put(
   "/:id/datos-personales",
   genericMiddleware.existsAnyByModel(Afiliado),
-  genericMiddleware.schemaValidator(
-    afiliadoSchema.afiliadoSchemaUpdateDatosPersonales
-  ),
+  genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaUpdateDatosPersonales),
   afiliadoMiddleware.validateDocumentoUnicoEnActualizacion,
   afiliadoController.actualizarDatosPersonalesAfiliado
 );
 
-router.put(
-  "/:id/plan-medico",
+router.put("/:id/plan-medico",
   genericMiddleware.existsAnyByModel(Afiliado),
-  genericMiddleware.schemaValidator(
-    afiliadoSchema.afiliadoUpdateSchemaCobertura
-  ),
+  genericMiddleware.schemaValidator(afiliadoSchema.afiliadoUpdateSchemaCobertura),
   afiliadoController.actualizarCoberturaAfiliado
 );
 
-router.put(
-  "/:id/datos-contacto",
+router.put("/:id/datos-contacto",
   genericMiddleware.existsAnyByModel(Afiliado),
-  genericMiddleware.schemaValidator(
-    afiliadoSchema.afiliadoSchemaUpdateDatosContacto
-  ),
+  genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaUpdateDatosContacto),
   afiliadoController.actualizarDatosContactoAfiliado
 );
 
-router.put(
-  "/:id/direcciones",
+router.put("/:id/direcciones",
   genericMiddleware.existsAnyByModel(Afiliado),
-  genericMiddleware.schemaValidator(
-    afiliadoSchema.afiliadoSchemaUpdateDirecciones
-  ),
+  genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaUpdateDirecciones),
   afiliadoController.actualizarDireccionesAfiliado
 );
 
