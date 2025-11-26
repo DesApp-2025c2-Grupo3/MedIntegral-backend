@@ -46,6 +46,18 @@ router.delete(
 );
 
 router.put(
+  "/:id/fecha-baja",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.modificarFechaBaja
+);
+
+router.put(
+  "/:id/reincorporar",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.reincorporarAfiliado
+);
+
+router.put(
   "/:id/datos-personales",
   genericMiddleware.existsAnyByModel(Afiliado),
   genericMiddleware.schemaValidator(

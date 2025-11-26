@@ -558,17 +558,73 @@ const bajaAfiliado = async (req, res) => {
 
   const afiliado = await Afiliado.findByPk(id);
 
-  afiliado.vigenciaFin = fechaBaja ? fechaBaja : new Date();
+  const fechaBajaDate = fechaBaja ? new Date(fechaBaja) : new Date();
+  afiliado.vigenciaFin = fechaBajaDate;
+  await afiliado.save();
 
-  const dependientes = await Afiliado.findAll({
-    where: { titularId: afiliado.id },
-  });
-  for (const dep of dependientes) {
-    dep.vigenciaFin = fechaBaja ? fechaBaja : new Date();
-    await dep.save();
+  if (afiliado.titularId === null) {
+    const dependientes = await Afiliado.findAll({
+      where: { titularId: afiliado.id },
+    });
+
+    for (const dep of dependientes) {
+      const fechaFinDependiente = dep.vigenciaFin
+        ? new Date(dep.vigenciaFin)
+        : null;
+
+      if (!fechaFinDependiente || fechaFinDependiente > fechaBajaDate) {
+        dep.vigenciaFin = fechaBajaDate;
+        await dep.save();
+      }
+    }
   }
 
+  res.status(200).json(afiliado);
+};
+
+const modificarFechaBaja = async (req, res) => {
+  const { id } = req.params;
+  const { fechaBaja } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  const fechaBajaDate = new Date(fechaBaja);
+
+  afiliado.vigenciaFin = fechaBajaDate;
   await afiliado.save();
+
+  if (afiliado.titularId === null) {
+    const dependientes = await Afiliado.findAll({
+      where: { titularId: afiliado.id },
+    });
+
+    for (const dep of dependientes) {
+      dep.vigenciaFin = fechaBajaDate;
+      await dep.save();
+    }
+  }
+
+  res.status(200).json(afiliado);
+};
+
+const reincorporarAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { reincorporarGrupoFamiliar = false } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+
+  afiliado.vigenciaFin = null;
+  await afiliado.save();
+
+  if (reincorporarGrupoFamiliar && afiliado.titularId === null) {
+    const dependientes = await Afiliado.findAll({
+      where: { titularId: afiliado.id },
+    });
+
+    for (const dep of dependientes) {
+      dep.vigenciaFin = null;
+      await dep.save();
+    }
+  }
 
   res.status(200).json(afiliado);
 };
@@ -715,6 +771,8 @@ module.exports = {
   obtenerProvinciasAfiliados,
   agregarDependiente,
   bajaAfiliado,
+  modificarFechaBaja,
+  reincorporarAfiliado,
   actualizarDatosPersonalesAfiliado,
   actualizarCoberturaAfiliado,
   actualizarDatosContactoAfiliado,
