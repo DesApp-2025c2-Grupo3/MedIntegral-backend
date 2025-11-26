@@ -111,6 +111,7 @@ module.exports = {
           calle: "Gral. Las Heras",
           altura: 250,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "20:00", dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] }]
         }]
@@ -129,6 +130,7 @@ module.exports = {
           calle: "Pedro Díaz",
           altura: 1700,
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "00:00", horaFin: "23:59", dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"] }]
         }]
@@ -147,6 +149,7 @@ module.exports = {
           calle: "Ingeniero Boatti",
           altura: 300,
           localidad: "Morón",
+          codigoPostal: "B1708",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "18:00", dias: ["Lunes", "Viernes"] }]
         }]
@@ -166,6 +169,7 @@ module.exports = {
           calle: "Gral. Las Heras",
           altura: 250,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "14:00", dias: ["Lunes", "Miércoles"] }]
         }]
@@ -183,6 +187,7 @@ module.exports = {
           calle: "Gral. Las Heras",
           altura: 250,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "14:00", horaFin: "20:00", dias: ["Martes", "Jueves"] }]
         }]
@@ -200,6 +205,7 @@ module.exports = {
           calle: "Gral. Las Heras",
           altura: 250,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Viernes"] }]
         }]
@@ -217,6 +223,7 @@ module.exports = {
           calle: "Pedro Díaz",
           altura: 1700,
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "10:00", horaFin: "16:00", dias: ["Lunes", "Miércoles"] }]
         }]
@@ -234,6 +241,7 @@ module.exports = {
           calle: "Pedro Díaz",
           altura: 1700,
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "14:00", horaFin: "18:00", dias: ["Martes", "Jueves"] }]
         }]
@@ -251,6 +259,7 @@ module.exports = {
           calle: "Pedro Díaz",
           altura: 1700,
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "09:00", horaFin: "12:00", dias: ["Viernes"] }]
         }]
@@ -268,6 +277,7 @@ module.exports = {
           calle: "Ingeniero Boatti",
           altura: 300,
           localidad: "Morón",
+          codigoPostal: "B1708",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "14:00", dias: ["Lunes", "Martes", "Miércoles"] }]
         }]
@@ -285,6 +295,7 @@ module.exports = {
           calle: "Ingeniero Boatti",
           altura: 300,
           localidad: "Morón",
+          codigoPostal: "B1708",
           provincia: 1,
           horarios: [{ horaInicio: "14:00", horaFin: "18:00", dias: ["Jueves", "Viernes"] }]
         }]
@@ -302,6 +313,7 @@ module.exports = {
           calle: "Ingeniero Boatti",
           altura: 300,
           localidad: "Morón",
+          codigoPostal: "B1708",
           provincia: 1,
           horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Lunes", "Miércoles"] }]
         }]
@@ -321,6 +333,7 @@ module.exports = {
           calle: "Soler",
           altura: 150,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "14:00", horaFin: "19:00", dias: ["Lunes", "Miércoles", "Viernes"] }]
         }]
@@ -338,6 +351,7 @@ module.exports = {
           calle: "Jauretche",
           altura: 1200,
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Martes", "Jueves"] }]
         }]
@@ -355,6 +369,7 @@ module.exports = {
           calle: "Arias",
           altura: 2400,
           localidad: "Castelar",
+          codigoPostal: "B1712",
           provincia: 1,
           horarios: [{ horaInicio: "15:00", horaFin: "21:00", dias: ["Lunes", "Martes"] }]
         }]
@@ -372,6 +387,7 @@ module.exports = {
           calle: "Santa Rosa",
           altura: 1200,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Sábado"] }]
         }]
@@ -389,6 +405,7 @@ module.exports = {
           calle: "Vergara",
           altura: 3500,
           localidad: "Villa Tesei",
+          codigoPostal: "B1688",
           provincia: 1,
           horarios: [{ horaInicio: "16:00", horaFin: "20:00", dias: ["Miércoles"] }]
         }]
@@ -406,6 +423,7 @@ module.exports = {
           calle: "Sarmiento",
           altura: 800,
           localidad: "Morón",
+          codigoPostal: "B1708",
           provincia: 1,
           horarios: [{ horaInicio: "10:00", horaFin: "16:00", dias: ["Lunes", "Miércoles"] }]
         }]
@@ -423,12 +441,13 @@ module.exports = {
           calle: "Juncal",
           altura: 200,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "14:00", horaFin: "18:00", dias: ["Martes", "Jueves"] }]
         }]
       },
 
-      // --- LUGAR COMPARTIDO: Consultorios "Lavalle" en Ituzaingó (IDs 20, 21, 22) ---
+      // --- LUGAR COMPARTIDO 1: Consultorios "Lavalle" en Ituzaingó (IDs 20, 21, 22) ---
       {
         nombre: "Carlos Urtiz",
         cuilCuit: "20666666661",
@@ -443,6 +462,7 @@ module.exports = {
           altura: 650,
           pisoDepto: "PB",
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Lunes", "Miércoles"] }]
         }]
@@ -461,6 +481,7 @@ module.exports = {
           altura: 650,
           pisoDepto: "PB",
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "13:00", horaFin: "17:00", dias: ["Martes", "Jueves"] }]
         }]
@@ -479,6 +500,7 @@ module.exports = {
           altura: 650,
           pisoDepto: "1A",
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "17:00", horaFin: "21:00", dias: ["Viernes"] }]
         }]
@@ -499,6 +521,7 @@ module.exports = {
             calle: "Brandzen",
             altura: 1000,
             localidad: "Ituzaingó",
+            codigoPostal: "B1714",
             provincia: 1,
             horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Lunes"] }]
           },
@@ -506,26 +529,28 @@ module.exports = {
             calle: "Brown",
             altura: 500,
             localidad: "Morón",
+            codigoPostal: "B1708",
             provincia: 1,
             horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Miércoles"] }]
           }
         ]
       },
 
-      // 24. Oncólogo en Hurlingham
+      // 24. Gastroenterólogo en Hurlingham
       {
         nombre: "Gastón Paz",
         cuilCuit: "20777777772",
         esCentroMedico: false,
         integraCentroMedico: false,
         centroMedicoQueIntegra: null,
-        especialidades: [15],
+        especialidades: [10],
         emails: [{ direccion: "gastro@paz.com" }],
         telefonos: [{ numero: "1144528888" }],
         lugaresAtencion: [{
           calle: "Ricchieri",
           altura: 1400,
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "09:00", horaFin: "15:00", dias: ["Jueves"] }]
         }]
@@ -545,6 +570,7 @@ module.exports = {
           calle: "Santa Rosa",
           altura: 1800,
           localidad: "Castelar",
+          codigoPostal: "B1712",
           provincia: 1,
           horarios: [{ horaInicio: "10:00", horaFin: "14:00", dias: ["Martes"] }]
         }]
@@ -564,6 +590,7 @@ module.exports = {
           calle: "Olivera",
           altura: 900,
           localidad: "Ituzaingó",
+          codigoPostal: "B1714",
           provincia: 1,
           horarios: [{ horaInicio: "16:00", horaFin: "20:00", dias: ["Viernes"] }]
         }]
@@ -583,12 +610,13 @@ module.exports = {
           calle: "9 de Julio",
           altura: 200,
           localidad: "Morón",
+          codigoPostal: "B1708",
           provincia: 1,
           horarios: [{ horaInicio: "09:00", horaFin: "13:00", dias: ["Lunes", "Viernes"] }]
         }]
       },
 
-      // --- LUGAR COMPARTIDO: Consultorios "Cinco Esquinas" Hurlingham (IDs 28, 29) ---
+      // --- LUGAR COMPARTIDO 2: Consultorios "Cinco Esquinas" Hurlingham (IDs 28, 29) ---
       {
         nombre: "Tomás Huergo",
         cuilCuit: "20888888881",
@@ -599,10 +627,11 @@ module.exports = {
         emails: [{ direccion: "tomas@hurlingham.com" }],
         telefonos: [{ numero: "1146650000" }],
         lugaresAtencion: [{
-          calle: "Av. Roca",
+          calle: "Avenida Roca",
           altura: 1100,
           pisoDepto: "1",
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "08:00", horaFin: "12:00", dias: ["Lunes", "Miércoles"] }]
         }]
@@ -615,12 +644,13 @@ module.exports = {
         centroMedicoQueIntegra: null,
         especialidades: [34],
         emails: [{ direccion: "karina@hurlingham.com" }],
-        telefonos: [{ numero: "1146650000" }],
+        telefonos: [{ numero: "1146650000" }], // Mismo teléfono de recepción
         lugaresAtencion: [{
-          calle: "Av. Roca",
+          calle: "Avenida Roca",
           altura: 1100,
           pisoDepto: "2",
           localidad: "Hurlingham",
+          codigoPostal: "B1686",
           provincia: 1,
           horarios: [{ horaInicio: "14:00", horaFin: "19:00", dias: ["Martes", "Jueves"] }]
         }]
@@ -640,6 +670,7 @@ module.exports = {
           calle: "Martin Fierro",
           altura: 3200,
           localidad: "Ituzaingó",
+          codigoPostal: "B1713",
           provincia: 1,
           horarios: [{ horaInicio: "10:00", horaFin: "18:00", dias: ["Lunes", "Viernes"] }]
         }]
@@ -647,29 +678,24 @@ module.exports = {
     ];
 
     // --- PROCESAMIENTO ---
-    // Mapa para relacionar el 'refId' del array con el ID real de base de datos
     const idMap = {};
 
     for (const data of prestadoresARegistrar) {
       
-      // 1. Crear Prestador (Sin ID forzado)
       const nuevoPrestador = await Prestador.create({
         nombre: await capitalizarCadena(data.nombre),
         cuilCuit: data.cuilCuit,
         esCentroMedico: data.esCentroMedico,
         integraCentroMedico: data.integraCentroMedico,
-        // Buscamos el ID real en el mapa si integra un centro
         centroMedicoId: data.integraCentroMedico && data.centroMedicoQueIntegra 
           ? idMap[data.centroMedicoQueIntegra] 
           : null
       });
 
-      // 2. Guardar el ID real en el mapa si tiene referencia
       if (data.refId) {
         idMap[data.refId] = nuevoPrestador.id;
       }
 
-      // 3. Crear Asociaciones (Emails y Teléfonos para TODOS)
       await crearEmails(data.emails, nuevoPrestador.id);
       await crearTelefonos(data.telefonos, nuevoPrestador.id);
       await asignarEspecialidades(data.especialidades, nuevoPrestador);
