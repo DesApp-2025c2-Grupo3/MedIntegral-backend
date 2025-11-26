@@ -4,28 +4,28 @@ const { Op } = require("sequelize");
 
 const yaExisteNumeroDeDni = async (req, res, next) => {
   const { numeroDocumento, grupoFamiliar = [] } = req.body;
+
   try {
     const existeTitular = await Afiliado.findOne({
-      where: {
-        numeroDocumento: numeroDocumento,
-      },
+      where: { numeroDocumento },
     });
+
     if (existeTitular) {
       return res.status(400).json({
-        message: `El numero de documento ya está registrado`,
+        field: "numeroDocumento",
+        message: "El número de documento ya está registrado",
       });
     }
 
     for (const miembro of grupoFamiliar) {
       const existeMiembro = await Afiliado.findOne({
-        where: {
-          numeroDocumento: miembro.numeroDocumento,
-        },
+        where: { numeroDocumento: miembro.numeroDocumento },
       });
 
       if (existeMiembro) {
         return res.status(400).json({
-          message: `El numero de documento del miembro ya está registrado`,
+          field: "numeroDocumento",
+          message: "El número de documento del miembro ya está registrado",
         });
       }
     }
@@ -40,6 +40,7 @@ const yaExisteNumeroDeDni = async (req, res, next) => {
       if (miembro.numeroDocumento) {
         if (documentosUnicos.has(miembro.numeroDocumento)) {
           return res.status(400).json({
+            field: "numeroDocumento",
             message: `Hay documentos duplicados dentro del grupo familiar: ${miembro.numeroDocumento}`,
           });
         }
@@ -122,7 +123,7 @@ const validateDocumentoUnicoEnActualizacion = async (req, res, next) => {
 
     if (afiliadoExistente) {
       return res.status(400).json({
-        field: numeroDocumento,
+        field: "numeroDocumento",
         message: `Ya existe otro afiliado con este número de documento`,
       });
     }

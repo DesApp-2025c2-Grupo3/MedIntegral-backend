@@ -16,6 +16,7 @@ router.post(
 router.post(
   "/:id/dependientes",
   genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoMiddleware.yaExisteNumeroDeDni,
   genericMiddleware.schemaValidator(
     afiliadoSchema.afiliadoSchemaCreateDependiente
   ),
@@ -50,7 +51,20 @@ router.delete("/:id",
   afiliadoController.bajaAfiliado
 );
 
-router.put("/:id/datos-personales",
+router.put(
+  "/:id/fecha-baja",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.modificarFechaBaja
+);
+
+router.put(
+  "/:id/reincorporar",
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.reincorporarAfiliado
+);
+
+router.put(
+  "/:id/datos-personales",
   genericMiddleware.existsAnyByModel(Afiliado),
   genericMiddleware.schemaValidator(afiliadoSchema.afiliadoSchemaUpdateDatosPersonales),
   afiliadoMiddleware.validateDocumentoUnicoEnActualizacion,

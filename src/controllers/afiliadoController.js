@@ -196,8 +196,8 @@ const obtenerTitulares = async (req, res) => {
   const rangoDeFecha = {};
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
-  const rangoVigenciaInicio = new Date(hoy)
-  rangoVigenciaInicio.setDate(rangoVigenciaInicio.getDate() + 1)
+  const rangoVigenciaInicio = new Date(hoy);
+  rangoVigenciaInicio.setDate(rangoVigenciaInicio.getDate() + 1);
 
   if (textInputSearch && textInputSearch.trim() !== "") {
     where[Op.or] = [
@@ -207,15 +207,15 @@ const obtenerTitulares = async (req, res) => {
     ];
   }
 
-  switch(estado){
+  switch (estado) {
     case "Bajas":
       where[Op.and].push({ titularId: null, vigenciaFin: { [Op.lte]: hoy } });
       break;
 
     case "Vigencia futura":
       where[Op.and].push({
-          vigenciaInicio: { [Op.gte]: rangoVigenciaInicio }
-        });
+        vigenciaInicio: { [Op.gte]: rangoVigenciaInicio },
+      });
       break;
 
     case "Todos":
@@ -232,7 +232,7 @@ const obtenerTitulares = async (req, res) => {
         });
 
         where[Op.and].push({
-          vigenciaInicio: { [Op.lte]: rangoVigenciaInicio }
+          vigenciaInicio: { [Op.lte]: rangoVigenciaInicio },
         });
       }
       break;
@@ -263,7 +263,7 @@ const obtenerTitulares = async (req, res) => {
   if (vigenciaHasta) {
     const fechaVigenciaHasta = new Date(vigenciaHasta);
     fechaVigenciaHasta.setDate(fechaVigenciaHasta.getDate() + 1);
-    where.vigenciaFin = { [Op.lte]: fechaVigenciaHasta }; 
+    where.vigenciaFin = { [Op.lte]: fechaVigenciaHasta };
   }
 
   if (creacionDesde) {
@@ -294,7 +294,7 @@ const obtenerTitulares = async (req, res) => {
       "vigenciaInicio",
       "vigenciaFin",
       "numeroDocumento",
-      "fechaNacimiento"
+      "fechaNacimiento",
     ],
     include: [
       {
@@ -473,6 +473,7 @@ const obtenerAfiliado = async (req, res) => {
         ],
 
         include: includeAfiliadoCompleto(),
+        order: [["nIntegrante", "ASC"]],
       },
     ],
     // order: [[{ model: Afiliado, as: "dependientes" }, "nIntegrante", "ASC"]]
@@ -629,13 +630,16 @@ const agregarDependiente = async (req, res) => {
   });
   const nIntegrante = totalDependientes + 2; //Titular es 1 y no se cuenta, por eso se suma 2
 
+  const capitalizedNombre = await capitalizarCadena(nombre);
+  const capitalizedApellido = await capitalizarCadena(apellido);
+
   //Creación del nuevo integrante del grupo familiar
   const nuevoIntegrante = await Afiliado.create({
     tipoDocumentoId,
     numeroDocumento,
     fechaNacimiento,
-    nombre,
-    apellido,
+    nombre: capitalizedNombre,
+    apellido: capitalizedApellido,
     vigenciaInicio,
     vigenciaFin,
     nIntegrante: nIntegrante,
@@ -664,17 +668,73 @@ const bajaAfiliado = async (req, res) => {
 
   const afiliado = await Afiliado.findByPk(id);
 
-  afiliado.vigenciaFin = fechaBaja ? fechaBaja : new Date();
+  const fechaBajaDate = fechaBaja ? new Date(fechaBaja) : new Date();
+  afiliado.vigenciaFin = fechaBajaDate;
+  await afiliado.save();
 
-  const dependientes = await Afiliado.findAll({
-    where: { titularId: afiliado.id },
-  });
-  for (const dep of dependientes) {
-    dep.vigenciaFin = fechaBaja ? fechaBaja : new Date();
-    await dep.save();
+  if (afiliado.titularId === null) {
+    const dependientes = await Afiliado.findAll({
+      where: { titularId: afiliado.id },
+    });
+
+    for (const dep of dependientes) {
+      const fechaFinDependiente = dep.vigenciaFin
+        ? new Date(dep.vigenciaFin)
+        : null;
+
+      if (!fechaFinDependiente || fechaFinDependiente > fechaBajaDate) {
+        dep.vigenciaFin = fechaBajaDate;
+        await dep.save();
+      }
+    }
   }
 
+  res.status(200).json(afiliado);
+};
+
+const modificarFechaBaja = async (req, res) => {
+  const { id } = req.params;
+  const { fechaBaja } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+  const fechaBajaDate = new Date(fechaBaja);
+
+  afiliado.vigenciaFin = fechaBajaDate;
   await afiliado.save();
+
+  if (afiliado.titularId === null) {
+    const dependientes = await Afiliado.findAll({
+      where: { titularId: afiliado.id },
+    });
+
+    for (const dep of dependientes) {
+      dep.vigenciaFin = fechaBajaDate;
+      await dep.save();
+    }
+  }
+
+  res.status(200).json(afiliado);
+};
+
+const reincorporarAfiliado = async (req, res) => {
+  const { id } = req.params;
+  const { reincorporarGrupoFamiliar = false } = req.body;
+
+  const afiliado = await Afiliado.findByPk(id);
+
+  afiliado.vigenciaFin = null;
+  await afiliado.save();
+
+  if (reincorporarGrupoFamiliar && afiliado.titularId === null) {
+    const dependientes = await Afiliado.findAll({
+      where: { titularId: afiliado.id },
+    });
+
+    for (const dep of dependientes) {
+      dep.vigenciaFin = null;
+      await dep.save();
+    }
+  }
 
   res.status(200).json(afiliado);
 };
@@ -774,7 +834,7 @@ const crearDirecciones = async (direcciones, afiliadoId) => {
       ...direccionData,
       calle: calleCapitalizada,
       localidad: localidadCapitalizada,
-      provinciaId: direccionData.provinciaId
+      provinciaId: direccionData.provinciaId,
     };
 
     const [direccion] = await Direccion.findOrCreate({
@@ -784,7 +844,7 @@ const crearDirecciones = async (direcciones, afiliadoId) => {
         pisoDepto: direccionData.pisoDepto,
         localidad: localidadCapitalizada,
         codigoPostal: direccionData.codigoPostal,
-        provinciaId: direccionData.provinciaId
+        provinciaId: direccionData.provinciaId,
       },
       defaults: datosParaCrear,
     });
@@ -822,6 +882,8 @@ module.exports = {
   obtenerProvinciasAfiliados,
   agregarDependiente,
   bajaAfiliado,
+  modificarFechaBaja,
+  reincorporarAfiliado,
   actualizarDatosPersonalesAfiliado,
   actualizarCoberturaAfiliado,
   actualizarDatosContactoAfiliado,
