@@ -34,7 +34,9 @@ router.get('/centros-medicos',
   prestadorController.obtenerCentrosMedicos
 );
 
-router.get("/provincias", prestadorController.obtenerProvinciasPrestadores)
+router.get("/provincias", 
+  prestadorController.obtenerProvinciasPrestadores
+);
 
 router.get("/:id",
   genericMiddleware.existsModelById(Prestador),
