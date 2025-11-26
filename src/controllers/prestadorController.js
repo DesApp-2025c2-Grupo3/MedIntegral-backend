@@ -467,9 +467,16 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   for (const lugar of lugaresActuales) {
     await HorarioAtencion.destroy({ where: { lugarAtencionId: lugar.id } });
 
+    // guardo direccionId antes de destruir el lugar
+    const direccionId = lugar.direccionId;
+
     await lugar.destroy();
-    //destruyo las direcciones? porque otros lugares de atención podrían usarla también
-    await Direccion.destroy({ where: { id: lugar.direccionId } });
+
+    // si esa direccion ya no la usa ningún otro LugarAtencion, la borro
+    const usos = await LugarAtencion.count({ where: { direccionId } });
+    if (usos === 0) {
+      await Direccion.destroy({ where: { id: direccionId } });
+    }
   }
 
   //deberia borrar las agendas del prestador ya que cambio los horarios y lugares de atencion
@@ -478,13 +485,23 @@ const actualizarLugaresAtencionPrestador = async (req, res) => {
   //Creacion:
   for (const lugar of lugaresAtencion) {
     //Si no elimino las direcciones, cómo sé que no estoy creando duplicados?
-    const nuevaDireccion = await Direccion.create({
-      calle: await capitalizarCadena(lugar.calle),
-      altura: lugar.altura,
-      pisoDepto: lugar.pisoDepto,
-      codigoPostal: lugar.codigoPostal,
-      localidad: await capitalizarCadena(lugar.localidad),
-      provinciaId: lugar.provincia,
+    const [nuevaDireccion] = await Direccion.findOrCreate({
+      where: {
+        calle: await capitalizarCadena(lugar.calle),
+        altura: lugar.altura,
+        pisoDepto: lugar.pisoDepto || null,
+        codigoPostal: lugar.codigoPostal || null,
+        localidad: await capitalizarCadena(lugar.localidad),
+        provinciaId: lugar.provincia
+      },
+      defaults: {
+        calle: await capitalizarCadena(lugar.calle),
+        altura: lugar.altura,
+        pisoDepto: lugar.pisoDepto || null,
+        codigoPostal: lugar.codigoPostal || null,
+        localidad: await capitalizarCadena(lugar.localidad),
+        provinciaId: lugar.provincia
+      }
     });
 
     const nuevoLugarAtencion = await LugarAtencion.create({
