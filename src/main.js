@@ -4,6 +4,9 @@ const CORS = require('cors');
 const DB = require('./db/models');
 const { configureApp } = require('./app');
 require('dotenv').config();
+const swaggerUi = require('swagger-ui-express');
+const swaggerFile = require('../swagger-output.json'); // generado por swagger-autogen
+
 
 const PORT = process.env.PORT || 3002;
 
@@ -16,6 +19,8 @@ APP.use(CORS({
 APP.use(EXPRESS.json());
 // Configuro rutas y middlewares desde app.js
 configureApp(APP);
+
+APP.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 APP.listen(PORT, async () => {
   console.log(`App corriendo en el puerto ${PORT}`);

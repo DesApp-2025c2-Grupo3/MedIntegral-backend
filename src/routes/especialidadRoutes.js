@@ -5,6 +5,10 @@ const { genericMiddleware } = require('../middlewares');
 const { Especialidad } = require("../db/models");
 
 router.get('/', 
+    /* 
+    #swagger.tags = ['Especialidades']
+    #swagger.path = '/api/especialidades'
+    */
     genericMiddleware.existsAnyByModel(Especialidad),
     especialidadController.obtenerEspecialidades
 );
