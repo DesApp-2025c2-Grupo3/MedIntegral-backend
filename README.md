@@ -15,9 +15,8 @@
 3. [Instalación](#-instalación)
 4. [Configuración](#-configuración)
 5. [Ejecución](#-ejecución)
-6. [Testing](#-testing)
-7. [API Endpoints](#-api-endpoints)
-8. [Autores](#-autores)
+6. [API Endpoints](#-api-endpoints)
+7. [Autores](#-autores)
 
 ---
 
