@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/main.js",
+    "dev": "npm run gendoc && nodemon src/main.js",
     "start": "node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db": "node src/reiniciarDB.js && npx sequelize-cli db:seed:all",
+    "gendoc": "rm -f swagger-output.json && node swagger.js",
+    "start:doc": "npm run gendoc && npm run start"
   },
   "keywords": [],
   "author": "Dream Team",
@@ -14,7 +17,8 @@
   "devDependencies": {
     "eslint": "^9.35.0",
     "nodemon": "^3.1.10",
-    "sequelize-cli": "^6.6.3"
+    "sequelize-cli": "^6.6.3",
+    "swagger-autogen": "^2.23.7"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -25,6 +29,7 @@
     "pdfkit-table": "^0.1.99",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.7",
+    "swagger-ui-express": "^5.0.1"
   }
 }

@@ -6,6 +6,16 @@ const { AgendaTurnos, Especialidad, Prestador, LugarAtencion } = require("../db/
 const { agendaTurnosSchema } = require("../middlewares/schemas");
 
 router.post('/',
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Datos de la Agenda de Turnos',
+      required: true,
+      schema: { $ref: "#/definitions/AgendaDeTurnosInput" }
+    }
+    */
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaCreate),
     genericMiddleware.existModelRequest(Prestador),
     genericMiddleware.existModelRequest(Especialidad),
@@ -19,39 +29,77 @@ router.post('/',
 );
 
 router.get('/',
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos'
+    */
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnos
 );
 
 router.get('/prestador/:prestadorId',
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/prestador/{prestadorId}'
+    */
     agendaTurnosMiddleware.validarQueExistaElPrestador,
     agendaTurnosController.obtenerPrestador
 );
 
-router.get('/localidades', 
+router.get('/localidades',
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/localidades'
+    */
     agendaTurnosController.obtenerLocalidadesAgendas
 );
 
-router.get('/provincias', 
+router.get('/provincias',
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/provincias'
+    */
     agendaTurnosController.obtenerProvinciasAgendas
 );
 
 router.get('/listado',
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/listado'
+    */
     genericMiddleware.existsAnyByModel(AgendaTurnos),
     agendaTurnosController.obtenerAgendasTurnosFormateados
 );
 
 router.get("/prestadores-con-agenda-incompleta",
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/prestadores-con-agenda-incompleta'
+    */
     genericMiddleware.existsAnyByModel(Prestador),
     agendaTurnosController.obtenerPrestadoresConAgendaIncompleta
 );
 
 router.get("/:id",
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/{id}'
+    */
     genericMiddleware.existsModelById(AgendaTurnos),
     agendaTurnosController.obtenerUnaAgendaTurnos
 );
 
 router.put("/:id/horarios",
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/{id}/horarios'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Horarios de la Agenda de Turnos',
+      required: true,
+      schema: { $ref: "#/definitions/AgendaDeTurnosHorariosUpdateInput" }
+    }
+    */
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateHorarios),
     agendaTurnosMiddleware.validarHorarios,
@@ -60,6 +108,16 @@ router.put("/:id/horarios",
 );
 
 router.put("/:id/especialidades",
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/{id}/especialidades'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Especialidades de la Agenda de Turnos',
+      required: true,
+      schema: { $ref: "#/definitions/AgendaDeTurnosEspecialidadesUpdateInput" }
+    }
+    */
     genericMiddleware.existsModelById(AgendaTurnos),
     genericMiddleware.schemaValidator(agendaTurnosSchema.agendaTurnosSchemaUpdateEspecialidad),
     genericMiddleware.existModelRequest(Especialidad),
@@ -69,6 +127,10 @@ router.put("/:id/especialidades",
 );
 
 router.delete("/:id",
+    /* 
+    #swagger.tags = ['Agendas de Turnos']
+    #swagger.path = '/api/agenda-turnos/{id}'
+    */
     genericMiddleware.existsModelById(AgendaTurnos),
     agendaTurnosController.eliminarAgendaTurnos
 );
