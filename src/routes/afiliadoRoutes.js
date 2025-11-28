@@ -36,6 +36,7 @@ router.post(
     }
   */
   genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoMiddleware.yaExisteNumeroDeDni,
   genericMiddleware.schemaValidator(
     afiliadoSchema.afiliadoSchemaCreateDependiente
   ),
@@ -92,6 +93,36 @@ router.delete("/:id",
   */
   genericMiddleware.existsAnyByModel(Afiliado),
   afiliadoController.bajaAfiliado
+);
+
+router.put("/:id/fecha-baja",
+  /* 
+    #swagger.tags = ['Afiliados']
+    #swagger.path = '/api/afiliados/{id}/fecha-baja'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Fecha de Baja del Afiliado',
+      required: true,
+      schema: { $ref: "#/definitions/AfiliadoFechaBajaUpdateInput" }
+    }
+  */
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.modificarFechaBaja
+);
+
+router.put("/:id/reincorporar",
+  /* 
+    #swagger.tags = ['Afiliados']
+    #swagger.path = '/api/afiliados/{id}/reincorporar'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Reincorporar al Afiliado',
+      required: true,
+      schema: { $ref: "#/definitions/AfiliadoReincorporarUpdateInput" }
+    }
+  */
+  genericMiddleware.existsAnyByModel(Afiliado),
+  afiliadoController.reincorporarAfiliado
 );
 
 router.put("/:id/datos-personales",

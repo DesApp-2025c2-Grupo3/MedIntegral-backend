@@ -141,6 +141,12 @@ const doc = {
                 provincia: 2
             }]
         },
+        AfiliadoFechaBajaUpdateInput: {
+            fechaBaja: "2024-06-30"
+        },
+        AfiliadoReincorporarUpdateInput: {
+            reincorporarGrupoFamiliar: false
+        },
         PrestadorDatosPersonalesUpdateInput: {
             nombre: "nuevo nombre",
             cuilCuit: "12345654321",
